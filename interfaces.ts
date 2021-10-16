@@ -11,14 +11,23 @@ interface IRenderer {
 }
 
 interface IBoard {
-    width: number; height: number; numbers: number;
     board: number[][];
-    parent: ISudoku;
+    parent: ISudoku | null;
 
     getPrompterNum: () => (number);
-    getValuesNum: () => (number);
+    getExtraNum: () => (number);
 
-    copy: () => (IBoard);
+    copy: (parent: ISudoku) => (IBoard);
+}
+
+interface ISudokuBuilder {
+    size: number;
+    isRectangular: boolean; rectangleWidth: number; rectangleHeight: number;
+    isDiagonal: boolean;
+    isVX: boolean; vxSum: [number, string][];
+    prompterNumMinimal: number; prompterNumMaximal: number;
+
+    build: () => (ISudoku);
 }
 
 interface ISudoku {
