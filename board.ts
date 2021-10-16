@@ -1,5 +1,5 @@
 class Board implements IBoard {
-    private readonly _parent: ISudoku | null;
+    private readonly _parent: ISudoku;
     private _board: number[][];
 
     private readonly _width: number;
@@ -7,7 +7,7 @@ class Board implements IBoard {
     private readonly _valuesNum: number;
     private readonly _emptyValue: number;
 
-    public get parent(): ISudoku | null {
+    public get parent(): ISudoku {
         return this._parent;
     }
 
@@ -23,7 +23,7 @@ class Board implements IBoard {
         }
     }
 
-    constructor(parent: ISudoku | null, width: number, height: number, valuesNum: number) {
+    constructor(parent: ISudoku, width: number, height: number, valuesNum: number) {
         if (valuesNum > 32) {
             throw "Board->constructor - VALUES_NUM IS TOO BIG";
         }

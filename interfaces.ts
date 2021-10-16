@@ -21,16 +21,20 @@ interface IBoard {
 }
 
 interface ISudokuBuilder {
-    size: number;
-    isRectangular: boolean; rectangleWidth: number; rectangleHeight: number;
-    isDiagonal: boolean;
-    isVX: boolean; vxSum: [number, string][];
-    prompterNumMinimal: number; prompterNumMaximal: number;
+    size: (size: number) => (void);
+    rectangular: (isRectangular: boolean, rectangleWidth: number | null, rectangleHeight: number | null) => (void);
+    diagonal: (isDiagonal: boolean) => (void);
+    vx: (isVx: boolean, vxSum: [number, string][]) => (void);
+    prompterNum: (minimal: number | null, maximal: number | null) => (void);
 
     build: () => (ISudoku);
 }
 
 interface ISudoku {
-    rectangleWidth: number; rectangleHeight: number; size: number;
+    size: number;
+    isRectangular: boolean; rectangleWidth: number | null; rectangleHeight: number | null;
+    isDiagonal: boolean;
+    isVX: boolean; vxSum: [number, string][] | null;
+
     solution: IBoard; task: IBoard; board: IBoard;
 }
