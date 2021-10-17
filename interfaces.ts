@@ -1,23 +1,7 @@
-interface ISolver {
-    solve: (sudoku: IBoard) => (IBoard);
-    checkSolution: (sudoku: IBoard) => (boolean);
-    countTaskSolutions: (sudoku: IBoard) => (number);
-}
-
 interface IRenderer {
     width: number; height: number; // pixels
 
     render: (a: HTMLElement) => (HTMLElement);
-}
-
-interface IBoard {
-    board: number[][];
-    parent: ISudoku | null;
-
-    getPrompterNum: () => (number);
-    getExtraNum: () => (number);
-
-    copy: (parent: ISudoku) => (IBoard);
 }
 
 interface ISudokuBuilder {
@@ -36,5 +20,5 @@ interface ISudoku {
     isDiagonal: boolean;
     isVX: boolean; vxSum: [number, string][] | null;
 
-    solution: IBoard; task: IBoard; board: IBoard;
+    solution: number[][]; task: number[][]; board: number[][];
 }

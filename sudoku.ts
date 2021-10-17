@@ -7,32 +7,32 @@ class Sudoku implements ISudoku {
     public readonly isVX: boolean;
     public readonly vxSum: [number, string][] | null;
 
-    private readonly _solution: IBoard;
-    private readonly _task: IBoard;
-    private readonly _board: IBoard;
+    private _solution: number[][];
+    private _task: number[][];
+    private _board: number[][];
 
-    public get solution(): IBoard {
-        return this._solution;
+    public get solution(): number[][] {
+        return this.copyBoard(this._solution);
     }
 
-    public set solution(solution: IBoard) {
-        this._solution.board = solution.board;
+    public set solution(solution: number[][]) {
+        this._solution = solution;
     }
 
-    public get task(): IBoard {
-        return this._task;
+    public get task(): number[][] {
+        return this.copyBoard(this._task);
     }
 
-    public set task(task: IBoard) {
-        this._task.board = task.board;
+    public set task(task: number[][]) {
+        this._task = task;
     }
 
-    public get board(): IBoard {
-        return this._board;
+    public get board(): number[][] {
+        return this.copyBoard(this._board);
     }
 
-    public set board(board: IBoard) {
-        this._board.board = board.board;
+    public set board(board: number[][]) {
+        this._board = board;
     }
 
     constructor(
@@ -74,8 +74,32 @@ class Sudoku implements ISudoku {
             this.vxSum = null;
         }
 
-        this._solution = new Board(this, size, size, size);
-        this._task = new Board(this, size, size, size);
-        this._board = new Board(this, size, size, size);
+        this._solution = this.createEmptyBoard();
+        this._task = this.createEmptyBoard();
+        this._board = this.createEmptyBoard();
+    }
+
+    private createEmptyBoard(): number[][] {
+        let board = [];
+        for (let y = 0; y < this.size; y++) {
+            let row = [];
+            for (let x = 0; x < this.size; x++) {
+                row.push((1 << this.size) - 1);
+            }
+            board.push(row);
+        }
+        return board;
+    }
+
+    private copyBoard(board: number[][]): number[][] {
+        let copied = [];
+        for (let y = 0; y < this.size; y++) {
+            let row = [];
+            for (let x = 0; x < this.size; x++) {
+                row.push(board[y][x]);
+            }
+            copied.push(row);
+        }
+        return copied;
     }
 }
