@@ -12,7 +12,7 @@ class Sudoku implements ISudoku {
     private _board: number[][];
 
     public get solution(): number[][] {
-        return this.copyBoard(this._solution);
+        return Utils.deepcopyBoard(this._solution);
     }
 
     public set solution(solution: number[][]) {
@@ -20,7 +20,7 @@ class Sudoku implements ISudoku {
     }
 
     public get task(): number[][] {
-        return this.copyBoard(this._task);
+        return Utils.deepcopyBoard(this._task);
     }
 
     public set task(task: number[][]) {
@@ -28,7 +28,7 @@ class Sudoku implements ISudoku {
     }
 
     public get board(): number[][] {
-        return this.copyBoard(this._board);
+        return Utils.deepcopyBoard(this._board);
     }
 
     public set board(board: number[][]) {
@@ -74,32 +74,8 @@ class Sudoku implements ISudoku {
             this.vxSum = null;
         }
 
-        this._solution = this.createEmptyBoard();
-        this._task = this.createEmptyBoard();
-        this._board = this.createEmptyBoard();
-    }
-
-    private createEmptyBoard(): number[][] {
-        let board = [];
-        for (let y = 0; y < this.size; y++) {
-            let row = [];
-            for (let x = 0; x < this.size; x++) {
-                row.push((1 << this.size) - 1);
-            }
-            board.push(row);
-        }
-        return board;
-    }
-
-    private copyBoard(board: number[][]): number[][] {
-        let copied = [];
-        for (let y = 0; y < this.size; y++) {
-            let row = [];
-            for (let x = 0; x < this.size; x++) {
-                row.push(board[y][x]);
-            }
-            copied.push(row);
-        }
-        return copied;
+        this._solution = Utils.createEmptyBoard(this);
+        this._task = Utils.createEmptyBoard(this);
+        this._board = Utils.createEmptyBoard(this);
     }
 }

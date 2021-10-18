@@ -1,13 +1,13 @@
 function main(): void {
     console.log("Hello world");
 
-    let sudoku = new Sudoku(9, true, 3, 3, true, false, null);
-    console.log(sudoku.isDiagonal);
+    SudokuBuilder.rectangular(true, 3, 3);
+    SudokuBuilder.prompterNum(25);
+    // SudokuBuilder.diagonal(true);
+    let sudoku = SudokuBuilder.build();
 
-    let solution = sudoku.solution;
-    solution[0][0] = 1;
-    solution = Solver.solve(solution, sudoku);
-    sudoku.solution = solution;
-
-    console.log(sudoku.solution);
+    if (sudoku !== null) {
+        console.log(sudoku.solution);
+        console.log(sudoku.task);
+    }
 }
