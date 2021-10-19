@@ -3,7 +3,7 @@ function main(): void {
 
     SudokuBuilder.rectangular(true, 3, 3);
     // SudokuBuilder.prompterNum(25);
-    // SudokuBuilder.diagonal(true);
+    SudokuBuilder.diagonal(true);
     let sudoku = SudokuBuilder.build();
 
     if (sudoku !== null) {
@@ -13,8 +13,8 @@ function main(): void {
 
     console.log("HERE");
 
-    if (sudoku !== null) {
-        Renderer.render(sudoku.solution, sudoku, sudoku.task);
-        Renderer.render(Solver.solveCycle(sudoku.task, sudoku), sudoku, sudoku.task);
+    Renderer.perPage(2, 3);
+    for (let i = 0; i < 100; i++) {
+        Renderer.render(sudoku?.task, sudoku);0
     }
 }

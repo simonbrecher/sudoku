@@ -1,6 +1,10 @@
 class Renderer {
-    private static readonly PAPER_WIDTH = 2480;
-    private static readonly PATER_HEIGHT = 3085;
+    private static readonly PAPER_HEIGHT = 1000;
+    private static readonly PAPER_WIDTH = 700;
+
+    private static _pageUsedHeight = 0;
+    private static _pageUsedWidth = 0;
+    private static _pageLineHeight = 0;
 
     private static _width: number;
     private static _height: number;
@@ -30,11 +34,17 @@ class Renderer {
         this._maxSquareInnerCount = 4;
     }
 
-    public static render(board: number[][], parent: ISudoku, unsolved: number[][] | null = null): void {
-        let boardNum = this._boardCount;
-        this._boardCount++;
+    public static render(board: number[][] | null | undefined, parent: ISudoku | null | undefined, unsolved: number[][] | null = null): void {
+        if (board === null || board === undefined || parent === null || parent === undefined) {
+            return;
+        }
+
+        this.formatPage();
 
         let pageWrapper = document.getElementById("page-wrapper");
+
+        let boardNum = this._boardCount;
+        this._boardCount++;
 
         let boardTable = document.createElement("table");
         pageWrapper?.appendChild(boardTable);
@@ -93,6 +103,35 @@ class Renderer {
         }
     }
 
+    public static formatPage(): void {
+        let pageWrapper = document.getElementById("page-wrapper");
+
+        if (this._boardCount === 0) {
+            let pageBreak = document.createElement("hr");
+            pageBreak.classList.add("page-break");
+            pageWrapper?.appendChild(pageBreak);
+        }
+        if (this._pageUsedWidth + this._width > this.PAPER_WIDTH) {
+            this._pageUsedHeight += this._pageLineHeight + this._marginBottom;
+            this._pageUsedWidth = 0;
+
+            if (this._pageUsedHeight + this._height > this.PAPER_HEIGHT) {
+                this._pageUsedHeight = 0;
+                this._pageUsedWidth = 0;
+                this._pageLineHeight = 0;
+                let pageBreak = document.createElement("hr");
+                pageBreak.classList.add("page-break");
+                pageWrapper?.appendChild(pageBreak);
+            } else {
+                let hr = document.createElement("hr");
+                pageWrapper?.appendChild(hr);
+            }
+        }
+
+        this._pageLineHeight = Math.max(this._pageLineHeight, this._height);
+        this._pageUsedWidth += this._width;
+    }
+
     public static setStyle(boardNum: number, parent: ISudoku): void {
         let style = document.getElementById("style");
         if (style === null) {
@@ -110,6 +149,9 @@ class Renderer {
 
         let styles = `width: ${squareFullSize}px; height: ${squareFullSize}px; line-height: ${squareFullSize}px; font-size: ${squareFullFontSize}px;`;
         let styleHtml = `table.board-table-${boardNum} div.square-full { ${styles} }`;
+        style.textContent += styleHtml + "\n";
+
+        styleHtml = `table.board-table-${boardNum} { margin-left: ${this._marginLeft}px; margin-bottom: ${this._marginBottom}px; }`;
         style.textContent += styleHtml + "\n";
 
         styles = `width: ${squareInnerSize}px; height: ${squareInnerSize}px; line-height: ${squareInnerSize}px; font-size: ${squareInnerFontSize}px;`;
@@ -151,6 +193,14 @@ class Renderer {
     }
 
     public static size(size: number): void {
+        this._width = size;
+        this._height = size;
+    }
+
+    public static perPage(xCount: number, yCount: number): void {
+        let width = Math.floor((this.PAPER_WIDTH - (xCount - 1) * this._marginLeft) / xCount);
+        let height = Math.floor((this.PAPER_HEIGHT - (yCount - 1) * this._marginBottom) / yCount);
+        let size = Math.min(width, height);
         this._width = size;
         this._height = size;
     }
