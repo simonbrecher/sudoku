@@ -140,4 +140,39 @@ class Utils {
         }
         return copied;
     }
+
+    private static convertBinary(binary: number, squareInnerCount: number): string | string[] {
+        let bitCount = this.countBits32(binary);
+        if (bitCount >= squareInnerCount) {
+            return " ";
+        }
+        if (bitCount === 1) {
+            return this.binaryToValue(binary).toString();
+        }
+        if (binary === 0) {
+            return "?";
+        }
+        let values = [];
+        let number = 1;
+        while (binary !== 0) {
+            if ((binary & 1) === 1) {
+                values.push(number.toString());
+            }
+            binary >>>= 1;
+            number += 1;
+        }
+        return values;
+    }
+
+    public static convertBoard(board: number[][], squareInnerCount: number): (string | string[])[][] {
+        let arr: (string | string[])[][] = [];
+        for (let y = 0; y < board.length; y++) {
+            let row = [];
+            for (let x = 0; x < board[y].length; x++) {
+                row.push(this.convertBinary(board[y][x], squareInnerCount));
+            }
+            arr.push(row);
+        }
+        return arr;
+    }
 }

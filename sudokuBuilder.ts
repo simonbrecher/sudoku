@@ -15,7 +15,6 @@ class SudokuBuilder {
     private static readonly STATS = {
         solutionTries: 0,
         taskTries: 0,
-        taskLengths: {21: 0, 22: 0, 23: 0, 24: 0, 25: 0, 26: 0, 27: 0, 28: 0, 29: 0, 30: 0, 31: 0, 32: 0, 33: 0, 34: 0, 35: 0},
     };
 
     private static setDefault = (() => {
@@ -146,9 +145,6 @@ class SudokuBuilder {
                 }
             }
         }
-
-        // @ts-ignore
-        this.STATS.taskLengths[Utils.getPrompterNum(task)] += 1;
 
         if (this._prompterNumMax !== null) {
             if (Utils.getPrompterNum(task) >= this._prompterNumMax) {

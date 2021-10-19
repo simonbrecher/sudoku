@@ -189,7 +189,7 @@ class Solver {
         return board;
     }
 
-    private static solveCycle(board: number[][], parent: ISudoku): number[][] {
+    public static solveCycle(board: number[][], parent: ISudoku): number[][] {
         board = this.solveLineOneInSquare(board, parent);
         board = this.solveLineOnlyInSquare(board, parent);
         if (parent.isRectangular) {
