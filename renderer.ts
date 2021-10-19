@@ -9,6 +9,8 @@ class Renderer {
     private static _width: number;
     private static _height: number;
     private static _fontRelativeSize: number;
+    private static _vxBoxSizeRelative: number;
+    private static _vxBoxFontSizeRelative: number;
     private static _innerFontRelativeSize: number;
     private static _marginLeft: number;
     private static _marginBottom: number;
@@ -26,6 +28,8 @@ class Renderer {
         this._width = 310;
         this._height = 310;
         this._fontRelativeSize = 0.7;
+        this._vxBoxSizeRelative = 0.6;
+        this._vxBoxFontSizeRelative = 0.8;
         this._innerFontRelativeSize = 0.8;
         this._marginLeft = 10;
         this._marginBottom = 10;
@@ -99,6 +103,29 @@ class Renderer {
                         }
                     }
                 }
+                if (parent?.isVX) {
+                    let solution = parent.solution;
+                    if (x !== parent.size - 1) {
+                        let sum = Utils.binaryToValue(solution[y][x]) + Utils.binaryToValue(solution[y][x + 1]);
+                        if (parent.getVxSumName(sum) !== null) {
+                            let div = document.createElement("div");
+                            div.textContent = parent.getVxSumName(sum);
+                            div.classList.add("vx");
+                            div.classList.add("vx-horizontal")
+                            column.appendChild(div);
+                        }
+                    }
+                    if (y !== parent.size - 1) {
+                        let sum = Utils.binaryToValue(solution[y][x]) + Utils.binaryToValue(solution[y + 1][x]);
+                        if (parent.getVxSumName(sum)) {
+                            let div = document.createElement("div");
+                            div.textContent = parent.getVxSumName(sum);
+                            div.classList.add("vx");
+                            div.classList.add("vx-vertical")
+                            column.appendChild(div);
+                        }
+                    }
+                }
             }
         }
     }
@@ -164,6 +191,26 @@ class Renderer {
         style.textContent += `table.board-table td.border-bottom { border-bottom-width: ${this._bigBorderWidth}px; }\n`;
         style.textContent += `table.board-table td.border-left { border-left-width: ${this._bigBorderWidth}px; }\n`;
         style.textContent += `table.board-table td.border-right { border-right-width: ${this._bigBorderWidth}px; }\n`;
+
+        if (parent.isVX) {
+            let vxBoxSize = Math.floor(squareFullSize * this._vxBoxSizeRelative);
+            let vxBoxFontSize = Math.floor(vxBoxSize * this._vxBoxFontSizeRelative);
+            styles = `width: ${vxBoxSize}px; height: ${vxBoxSize}px; line-height: ${vxBoxSize}px; font-size: ${vxBoxFontSize}px;`;
+            styleHtml = `table.board-table-${boardNum} div.vx { ${styles} }`;
+            style.textContent += styleHtml + "\n";
+
+            let vxBoxMarginTop = - (squareFullSize / 2 + vxBoxSize / 2);
+            let vxBoxMarginLeft = squareFullSize - vxBoxSize / 2;
+            styles = `margin-top: ${vxBoxMarginTop}px; margin-left: ${vxBoxMarginLeft}px;`;
+            styleHtml = `table.board-table-${boardNum} div.vx-horizontal { ${styles} }`;
+            style.textContent += styleHtml + "\n";
+
+            vxBoxMarginTop = - vxBoxSize / 2;
+            vxBoxMarginLeft = squareFullSize / 2 - vxBoxSize / 2;
+            styles = `margin-top: ${vxBoxMarginTop}px; margin-left: ${vxBoxMarginLeft}px;`;
+            styleHtml = `table.board-table-${boardNum} div.vx-vertical { ${styles} }`;
+            style.textContent += styleHtml + "\n";
+        }
     }
 
     public static addBorderStyle(x: number, y: number, column: HTMLElement, parent: ISudoku): void {

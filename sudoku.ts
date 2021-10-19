@@ -11,6 +11,9 @@ class Sudoku implements ISudoku {
     private _task: number[][];
     private _board: number[][];
 
+    public isFinished: boolean = false;
+    public hasSolution: boolean = false;
+
     public get solution(): number[][] {
         return Utils.deepcopyBoard(this._solution);
     }
@@ -33,6 +36,29 @@ class Sudoku implements ISudoku {
 
     public set board(board: number[][]) {
         this._board = board;
+    }
+
+    public getVxSumName(sum: number): string | null {
+        if (! this.isVX || this.vxSum === null) {
+            return null;
+        }
+        for (let i = 0; i < this.vxSum.length; i++) {
+            if (this.vxSum[i][0] === sum) {
+                return this.vxSum[i][1];
+            }
+        }
+        return null;
+    }
+
+    public getVxSumValues(): number[] {
+        if (! this.isVX || this.vxSum === null) {
+            return [];
+        }
+        let arr = [];
+        for (let i = 0; i < this.vxSum.length; i++) {
+            arr.push(this.vxSum[i][0]);
+        }
+        return arr;
     }
 
     constructor(

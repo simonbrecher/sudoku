@@ -10,5 +10,11 @@ interface ISudoku {
     isDiagonal: boolean;
     isVX: boolean; vxSum: [number, string][] | null;
 
+    isFinished: boolean;
+    hasSolution: boolean;
+
+    getVxSumName: (sum: number) => (string | null);
+    getVxSumValues: () => (number[]);
+
     solution: number[][]; task: number[][]; board: number[][];
 }

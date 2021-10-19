@@ -1,6 +1,6 @@
 class Solver {
     private static solveLineOneInSquare(board: number[][], parent: ISudoku): number[][] {
-        let hasOneNumber = Utils.getHasOneNumber(board);
+        let hasOneNumber = Utils.getHasOneBit(board);
         for (let y = 0; y < parent.size; y++) {
             let rowOne = 0;
             for (let x = 0; x < parent.size; x++) {
@@ -71,7 +71,7 @@ class Solver {
             return board;
         }
 
-        let hasOneNumber = Utils.getHasOneNumber(board);
+        let hasOneNumber = Utils.getHasOneBit(board);
         for (let rectangleY = 0; rectangleY < parent.size; rectangleY+=parent.rectangleHeight) {
             for (let rectangleX = 0; rectangleX < parent.size; rectangleX+=parent.rectangleWidth) {
                 let rectangleOne = 0;
@@ -189,6 +189,68 @@ class Solver {
         return board;
     }
 
+    private static solveVxInSumOne(first: number, second: number, sum: number): number {
+        return first & (Utils.reverseBits32(second) >>> 32 - sum + 1);
+    }
+
+    private static solveVxInSum(board: number[][], parent: ISudoku): number[][] {
+        let solutionValues = Utils.getSolutionValues(parent.solution);
+        for (let y = 0; y < parent.size; y++) {
+            for (let x = 0; x < parent.size - 1; x++) {
+                let sum = solutionValues[y][x] + solutionValues[y][x + 1];
+                if (parent.getVxSumName(sum) !== null) {
+                    board[y][x] = this.solveVxInSumOne(board[y][x], board[y][x + 1], sum);
+                    board[y][x + 1] = this.solveVxInSumOne(board[y][x + 1], board[y][x], sum);
+                    if ((sum & 1) !== 1) {
+                        board[y][x] &= ~ (1 << sum / 2 - 1);
+                        board[y][x + 1] &= ~ (1 << sum / 2 - 1);
+                    }
+                }
+            }
+        }
+        for (let y = 0; y < parent.size - 1; y++) {
+            for (let x = 0; x < parent.size; x++) {
+                let sum = solutionValues[y][x] + solutionValues[y + 1][x];
+                if (parent.getVxSumName(sum) !== null) {
+                    board[y][x] = this.solveVxInSumOne(board[y][x], board[y + 1][x], sum);
+                    board[y + 1][x] = this.solveVxInSumOne(board[y + 1][x], board[y][x], sum);
+                    if ((sum & 1) !== 1) {
+                        board[y][x] &= ~ (1 << sum / 2 - 1);
+                        board[y + 1][x] &= ~ (1 << sum / 2 - 1);
+                    }
+                }
+            }
+        }
+
+        return board;
+    }
+
+    public static solveVxOutSum(board: number[][], parent: ISudoku): number[][] {
+        let solutionValues = Utils.getSolutionValues(parent.solution);
+        let hasOneBit = Utils.getHasOneBit(board);
+        for (let y = 0; y < parent.size; y++) {
+            for (let x = 0; x < parent.size - 1; x++) {
+                let sum = solutionValues[y][x] + solutionValues[y][x + 1];
+                if (parent.getVxSumName(sum) === null) {
+                    if (hasOneBit[y][x]) {
+                        let sums = parent.getVxSumValues();
+                        for (let i = 0; i < sums.length; i++) {
+                            board[y][x + 1] &= ~ (1 << sums[i] - solutionValues[y][x] - 1);
+                        }
+                    }
+                    if (hasOneBit[y][x + 1]) {
+                        let sums = parent.getVxSumValues();
+                        for (let i = 0; i < sums.length; i++) {
+                            board[y][x] &= ~ (1 << sums[i] - solutionValues[y][x + 1] - 1);
+                        }
+                    }
+                }
+            }
+        }
+
+        return board;
+    }
+
     public static solveCycle(board: number[][], parent: ISudoku): number[][] {
         board = this.solveLineOneInSquare(board, parent);
         board = this.solveLineOnlyInSquare(board, parent);
@@ -199,6 +261,13 @@ class Solver {
         if (parent.isDiagonal) {
             board = this.solveDiagonalOneInSquare(board, parent);
             board = this.solveDiagonalOnlyInSquare(board, parent);
+        }
+        if (parent.isVX && parent.hasSolution) {
+            let then = Utils.getExtraNum(board);
+            board = this.solveVxInSum(board, parent);
+            board = this.solveVxOutSum(board, parent);
+            let now = Utils.getExtraNum(board);
+            // console.log(now, then);
         }
 
         return board;

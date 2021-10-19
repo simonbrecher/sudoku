@@ -8,6 +8,16 @@ class Utils {
         return binary & 0x3F;
     }
 
+    public static reverseBits32(binary: number): number {
+        binary = (binary & 0x55555555) << 1 | (binary & 0xAAAAAAAA) >>> 1;
+        binary = (binary & 0x33333333) << 2 | (binary & 0xCCCCCCCC) >>> 2;
+        binary = (binary & 0x0F0F0F0F) << 4 | (binary & 0xF0F0F0F0) >>> 4;
+        binary = (binary & 0x00FF00FF) << 8 | (binary & 0xFF00FF00) >>> 8;
+        binary = (binary & 0x0000FFFF) << 16 | (binary & 0xFFFF0000) >>> 16;
+
+        return binary;
+    }
+
     public static getPrompterNum(board: number[][]): number {
         let total = 0;
         for (let y = 0; y < board.length; y++) {
@@ -30,7 +40,7 @@ class Utils {
         return total;
     }
 
-    public static getHasOneNumber(board: number[][]): boolean[][] {
+    public static getHasOneBit(board: number[][]): boolean[][] {
         let hasOneNumber = [];
         for (let y = 0; y < board.length; y++) {
             let row = [];
@@ -71,7 +81,7 @@ class Utils {
         return arr[randomNumber];
     }
 
-    private static binaryToValue(binary: number) {
+    public static binaryToValue(binary: number) {
         if (binary === 0) {
             throw "Utils->binaryToValue - NO BITS";
         }
@@ -86,7 +96,7 @@ class Utils {
         return value;
     }
 
-    private static getSolutionValues(solution: number[][]) {
+    public static getSolutionValues(solution: number[][]) {
         let solutionValues = [];
         for (let y = 0; y < solution.length; y++) {
             let row = [];
@@ -174,5 +184,37 @@ class Utils {
             arr.push(row);
         }
         return arr;
+    }
+
+    public static hasPrompterInSum(task: number[][], parent: ISudoku): boolean {
+        let solutionValues = this.getSolutionValues(parent.solution);
+        for (let y = 0; y < parent.size; y++) {
+            for (let x = 0; x < parent.size; x++) {
+                if (this.countBits32(task[y][x]) === 1) {
+                    if (x !== 0) {
+                        if (parent.getVxSumName(solutionValues[y][x] + solutionValues[y][x - 1]) !== null) {
+                            return true;
+                        }
+                    }
+                    if (x !== parent.size - 1) {
+                        if (parent.getVxSumName(solutionValues[y][x] + solutionValues[y][x + 1]) !== null) {
+                            return true;
+                        }
+                    }
+                    if (y !== 0) {
+                        if (parent.getVxSumName(solutionValues[y][x] + solutionValues[y - 1][x]) !== null) {
+                            return true;
+                        }
+                    }
+                    if (y !== parent.size - 1) {
+                        if (parent.getVxSumName(solutionValues[y][x] + solutionValues[y + 1][x]) !== null) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 }

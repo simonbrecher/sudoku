@@ -30,10 +30,15 @@ class SudokuBuilder {
             this._isDiagonal, this._isVX, this._vxSum,
         );
 
+        sudoku.isFinished = false;
+        sudoku.hasSolution = false;
+
         this.STATS.taskTries = 0;
         this.STATS.solutionTries = 0;
         let isTaskSuccess = this.getTask(sudoku);
         console.log(this.STATS, Utils.getPrompterNum(sudoku.task));
+
+        sudoku.isFinished = true;
 
         if (isTaskSuccess) {
             return sudoku;
@@ -73,6 +78,8 @@ class SudokuBuilder {
     }
 
     private static getSolution(parent: ISudoku): boolean {
+        parent.hasSolution = false;
+
         let isSolutionSuccess = false;
         let solutionTries = 0;
 
@@ -92,6 +99,8 @@ class SudokuBuilder {
         if (! isSolutionSuccess) {
             console.log("Unable to create solution in " + this.MAX_TRIES_SOLUTION.toString() + " tries.");
         }
+
+        parent.hasSolution = true;
 
         return isSolutionSuccess;
     }
@@ -140,14 +149,20 @@ class SudokuBuilder {
             }
 
             if (this._prompterNumMin !== null) {
-                if (Utils.getPrompterNum(task) <= this._prompterNumMin) {
+                if (Utils.getPrompterNum(task) < this._prompterNumMin) {
                     return task;
                 }
             }
         }
 
         if (this._prompterNumMax !== null) {
-            if (Utils.getPrompterNum(task) >= this._prompterNumMax) {
+            if (Utils.getPrompterNum(task) > this._prompterNumMax) {
+                return null;
+            }
+        }
+
+        if (parent.isVX) {
+            if (Utils.hasPrompterInSum(task, parent)) {
                 return null;
             }
         }
