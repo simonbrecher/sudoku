@@ -11,6 +11,7 @@ class Renderer {
     private static _fontRelativeSize: number;
     private static _vxBoxSizeRelative: number;
     private static _vxBoxFontSizeRelative: number;
+    private static _kropkiBoxSizeRelative: number;
     private static _innerFontRelativeSize: number;
     private static _marginLeft: number;
     private static _marginBottom: number;
@@ -30,12 +31,28 @@ class Renderer {
         this._fontRelativeSize = 0.7;
         this._vxBoxSizeRelative = 0.6;
         this._vxBoxFontSizeRelative = 0.8;
+        this._kropkiBoxSizeRelative = 0.2;
         this._innerFontRelativeSize = 0.8;
         this._marginLeft = 10;
         this._marginBottom = 10;
         this._smallBorderWidth = 1;
         this._bigBorderWidth = 3;
         this._maxSquareInnerCount = 4;
+    }
+
+    private static getKropkiColor(value1: number, value2: number): "white" | "black" | null {
+        let isWhite = value1 - value2 === 1 || value1 - value2 === -1;
+        let isBlack = value1 === value2 * 2 || value1 * 2 === value2;
+
+        if (isWhite && isBlack) {
+            return Math.random() > 0.5 ? "white" : "black";
+        } else if (isWhite) {
+            return "white";
+        } else if (isBlack) {
+            return "black";
+        }
+
+        return null;
     }
 
     public static render(board: number[][] | null | undefined, parent: ISudoku | null | undefined, unsolved: number[][] | null = null): void {
@@ -110,8 +127,8 @@ class Renderer {
                         if (parent.getVxSumName(sum) !== null) {
                             let div = document.createElement("div");
                             div.textContent = parent.getVxSumName(sum);
-                            div.classList.add("vx");
-                            div.classList.add("vx-horizontal")
+                            div.classList.add("orthogonal");
+                            div.classList.add("orthogonal-horizontal")
                             column.appendChild(div);
                         }
                     }
@@ -120,8 +137,33 @@ class Renderer {
                         if (parent.getVxSumName(sum)) {
                             let div = document.createElement("div");
                             div.textContent = parent.getVxSumName(sum);
-                            div.classList.add("vx");
-                            div.classList.add("vx-vertical")
+                            div.classList.add("orthogonal");
+                            div.classList.add("orthogonal-vertical")
+                            column.appendChild(div);
+                        }
+                    }
+                }
+                if (parent?.isKropki) {
+                    let solution = parent.solution;
+                    if (x !== parent.size - 1) {
+                        let color = this.getKropkiColor(Utils.binaryToValue(solution[y][x]), Utils.binaryToValue(solution[y][x + 1]));
+                        if (color !== null) {
+                            let div = document.createElement("div");
+                            div.textContent = " ";
+                            div.classList.add("orthogonal");
+                            div.classList.add(`orthogonal-${color}`);
+                            div.classList.add("orthogonal-horizontal")
+                            column.appendChild(div);
+                        }
+                    }
+                    if (y !== parent.size - 1) {
+                        let color = this.getKropkiColor(Utils.binaryToValue(solution[y][x]), Utils.binaryToValue(solution[y + 1][x]));
+                        if (color !== null) {
+                            let div = document.createElement("div");
+                            div.textContent = " ";
+                            div.classList.add("orthogonal");
+                            div.classList.add(`orthogonal-${color}`);
+                            div.classList.add("orthogonal-vertical")
                             column.appendChild(div);
                         }
                     }
@@ -192,23 +234,31 @@ class Renderer {
         style.textContent += `table.board-table td.border-left { border-left-width: ${this._bigBorderWidth}px; }\n`;
         style.textContent += `table.board-table td.border-right { border-right-width: ${this._bigBorderWidth}px; }\n`;
 
-        if (parent.isVX) {
-            let vxBoxSize = Math.floor(squareFullSize * this._vxBoxSizeRelative);
-            let vxBoxFontSize = Math.floor(vxBoxSize * this._vxBoxFontSizeRelative);
-            styles = `width: ${vxBoxSize}px; height: ${vxBoxSize}px; line-height: ${vxBoxSize}px; font-size: ${vxBoxFontSize}px;`;
-            styleHtml = `table.board-table-${boardNum} div.vx { ${styles} }`;
+        if (parent.isVX || parent.isKropki) {
+            let orthogonalBoxSize = 0;
+            if (parent.isVX) {
+                orthogonalBoxSize = Math.floor(squareFullSize * this._vxBoxSizeRelative);
+            } else if (parent.isKropki) {
+                orthogonalBoxSize = Math.floor(squareFullSize * this._kropkiBoxSizeRelative);
+            }
+            let orthogonalBoxFontSize = 0;
+            if (parent.isVX) {
+                orthogonalBoxFontSize = Math.floor(orthogonalBoxSize * this._vxBoxFontSizeRelative);
+            }
+            styles = `width: ${orthogonalBoxSize}px; height: ${orthogonalBoxSize}px; line-height: ${orthogonalBoxSize}px; font-size: ${orthogonalBoxFontSize}px;`;
+            styleHtml = `table.board-table-${boardNum} div.orthogonal { ${styles} }`;
             style.textContent += styleHtml + "\n";
 
-            let vxBoxMarginTop = - (squareFullSize / 2 + vxBoxSize / 2);
-            let vxBoxMarginLeft = squareFullSize - vxBoxSize / 2;
+            let vxBoxMarginTop = - (squareFullSize / 2 + orthogonalBoxSize / 2);
+            let vxBoxMarginLeft = squareFullSize - orthogonalBoxSize / 2;
             styles = `margin-top: ${vxBoxMarginTop}px; margin-left: ${vxBoxMarginLeft}px;`;
-            styleHtml = `table.board-table-${boardNum} div.vx-horizontal { ${styles} }`;
+            styleHtml = `table.board-table-${boardNum} div.orthogonal-horizontal { ${styles} }`;
             style.textContent += styleHtml + "\n";
 
-            vxBoxMarginTop = - vxBoxSize / 2;
-            vxBoxMarginLeft = squareFullSize / 2 - vxBoxSize / 2;
+            vxBoxMarginTop = - orthogonalBoxSize / 2;
+            vxBoxMarginLeft = squareFullSize / 2 - orthogonalBoxSize / 2;
             styles = `margin-top: ${vxBoxMarginTop}px; margin-left: ${vxBoxMarginLeft}px;`;
-            styleHtml = `table.board-table-${boardNum} div.vx-vertical { ${styles} }`;
+            styleHtml = `table.board-table-${boardNum} div.orthogonal-vertical { ${styles} }`;
             style.textContent += styleHtml + "\n";
         }
     }

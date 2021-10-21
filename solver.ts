@@ -274,6 +274,10 @@ class Solver {
     }
 
     public static solve(inputBoard: number[][], parent: ISudoku): number[][] {
+        if (parent.isKropki && parent.hasSolution) {
+            return parent.solution;
+        }
+
         let board = Utils.deepcopyBoard(inputBoard);
 
         let lastExtraNum = -1;

@@ -9,6 +9,7 @@ interface ISudoku {
     isRectangular: boolean; rectangleWidth: number | null; rectangleHeight: number | null;
     isDiagonal: boolean;
     isVX: boolean; vxSum: [number, string][] | null;
+    isKropki: boolean;
 
     isFinished: boolean;
     hasSolution: boolean;

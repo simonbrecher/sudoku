@@ -6,6 +6,7 @@ class Sudoku implements ISudoku {
     public readonly isDiagonal: boolean;
     public readonly isVX: boolean;
     public readonly vxSum: [number, string][] | null;
+    public readonly isKropki: boolean;
 
     private _solution: number[][];
     private _task: number[][];
@@ -69,17 +70,18 @@ class Sudoku implements ISudoku {
         isDiagonal: boolean,
         isVX: boolean,
         vxSum: [number, string][] | null,
+        isKropki: boolean,
     ) {
         this.isRectangular = isRectangular;
 
         if (isRectangular) {
             if (rectangleWidth === null || rectangleHeight === null) {
-                throw "IS_RECTANGULAR === true and (RECTANGLE_WIDTH === null or RECTANGLE_HEIGHT === null)"
+                throw "IS_RECTANGULAR === true and (RECTANGLE_WIDTH === null or RECTANGLE_HEIGHT === null)";
             } else {
                 this.size = rectangleWidth * rectangleHeight;
                 this.rectangleWidth = rectangleWidth;
                 this.rectangleHeight = rectangleHeight;
-            };
+            }
         } else {
             this.size = size;
             this.rectangleWidth = null;
@@ -99,6 +101,8 @@ class Sudoku implements ISudoku {
         } else {
             this.vxSum = null;
         }
+
+        this.isKropki = isKropki;
 
         this._solution = Utils.createEmptyBoard(this);
         this._task = Utils.createEmptyBoard(this);

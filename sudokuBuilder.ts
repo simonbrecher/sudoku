@@ -8,9 +8,10 @@ class SudokuBuilder {
     private static _vxSum: [number, string][] | null;
     private static _prompterNumMin: number | null;
     private static _prompterNumMax: number | null;
+    private static _isKropki: boolean;
 
-    private static readonly MAX_TRIES_SOLUTION = 1000;
-    private static readonly MAX_TRIES_TASK = 1000;
+    private static readonly MAX_TRIES_SOLUTION = 100;
+    private static readonly MAX_TRIES_TASK = 100;
 
     private static readonly STATS = {
         solutionTries: 0,
@@ -27,7 +28,10 @@ class SudokuBuilder {
             this._isRectangular,
             this._rectangleWidth,
             this._rectangleHeight,
-            this._isDiagonal, this._isVX, this._vxSum,
+            this._isDiagonal,
+            this._isVX,
+            this._vxSum,
+            this._isKropki,
         );
 
         sudoku.isFinished = false;
@@ -180,6 +184,7 @@ class SudokuBuilder {
         this._vxSum = null;
         this._prompterNumMin = null;
         this._prompterNumMax = null;
+        this._isKropki = false;
     }
 
     public static size(size: number): void {
@@ -206,7 +211,9 @@ class SudokuBuilder {
         this._isDiagonal = isDiagonal;
     }
 
-    public static vxSum(isVX: boolean, vxSum: [number, string][] | null): void {
+    public static vxSum(isVX: boolean, vxSum: [number, string][] | null = null): void {
+        this._isKropki = false;
+
         if (isVX && vxSum !== null) {
             this._isVX = true;
             this._vxSum = vxSum;
@@ -224,5 +231,13 @@ class SudokuBuilder {
         }
         this._prompterNumMin = prompterNumMin;
         this._prompterNumMax = prompterNumMax;
+    }
+
+    public static kropki(isKropki: boolean): void {
+        if (this._isVX) {
+            this.vxSum(false);
+        }
+
+        this._isKropki = isKropki;
     }
 }
