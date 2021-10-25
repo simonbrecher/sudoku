@@ -9,18 +9,72 @@ class SudokuBuilder {
     private static _prompterNumMin: number | null;
     private static _prompterNumMax: number | null;
     private static _isKropki: boolean;
+    private static _isABC: boolean;
+    private static _abcNumber: number | null;
 
-    private static readonly MAX_TRIES_SOLUTION = 100;
-    private static readonly MAX_TRIES_TASK = 100;
+    private static readonly MAX_TRIES_SOLUTION = 1000;
+    private static readonly MAX_TRIES_TASK = 300;
 
     private static readonly STATS = {
         solutionTries: 0,
         taskTries: 0,
+        startSolutionTries: 0,
+        startTaskTries: 0,
+        addSolutionTries: () => {
+            SudokuBuilder.STATS.solutionTries ++;
+        },
+        addTaskTries: () => {
+            SudokuBuilder.STATS.taskTries ++;
+        },
+        isSolutionTriesEnd: () => {
+            return SudokuBuilder.STATS.solutionTries - SudokuBuilder.STATS.startSolutionTries >= SudokuBuilder.MAX_TRIES_SOLUTION;
+        },
+        isTaskTriesEnd: () => {
+            return SudokuBuilder.STATS.taskTries - SudokuBuilder.STATS.startTaskTries >= SudokuBuilder.MAX_TRIES_TASK;
+        },
+        restartSolutionTries: () => {
+            SudokuBuilder.STATS.startSolutionTries = SudokuBuilder.STATS.solutionTries;
+        },
+        restartTaskTries: () => {
+            SudokuBuilder.STATS.startTaskTries = SudokuBuilder.STATS.taskTries;
+        },
+        restart: () => {
+            SudokuBuilder.STATS.solutionTries = 0;
+            SudokuBuilder.STATS.taskTries = 0;
+            SudokuBuilder.STATS.startSolutionTries = 0;
+            SudokuBuilder.STATS.startTaskTries = 0;
+        },
+        print: () => {
+            console.log("ST: " + SudokuBuilder.STATS.solutionTries + " TT: " + SudokuBuilder.STATS.taskTries);
+        }
     };
 
     private static setDefault = (() => {
         SudokuBuilder.default();
     })();
+
+    public static default(): void {
+        this._size = 9;
+        this._isRectangular = true;
+        this._rectangleWidth = 3;
+        this._rectangleHeight = 3;
+        this._isDiagonal = false;
+        this._isVX = false;
+        this._vxSum = null;
+        this._prompterNumMin = null;
+        this._prompterNumMax = null;
+        this._isKropki = false;
+        this._isABC = false;
+        this._abcNumber = null;
+    }
+
+    private static removeVariation(): void {
+        this._isVX = false;
+        this._vxSum = null;
+        this._isKropki = false;
+        this._isABC = false;
+        this._abcNumber = null;
+    }
 
     public static build(): ISudoku | null {
         let sudoku = new Sudoku(
@@ -32,15 +86,20 @@ class SudokuBuilder {
             this._isVX,
             this._vxSum,
             this._isKropki,
+            this._isABC,
+            this._abcNumber,
         );
 
         sudoku.isFinished = false;
         sudoku.hasSolution = false;
 
-        this.STATS.taskTries = 0;
-        this.STATS.solutionTries = 0;
+        this.STATS.restart();
         let isTaskSuccess = this.getTask(sudoku);
-        console.log(this.STATS, Utils.getPrompterNum(sudoku.task));
+        this.STATS.print();
+
+        if (sudoku.isABC) {
+            sudoku.board = Utils.createEmptyBoard(sudoku);
+        }
 
         sudoku.isFinished = true;
 
@@ -51,28 +110,98 @@ class SudokuBuilder {
         }
     }
 
+    private static getAbcTask(parent: ISudoku): number[][] | null {
+        let solution = parent.solution;
+
+        let task = [];
+        for (let dir = 0; dir < 4; dir++) {
+            let directionTask = [];
+            for (let position = 0; position < parent.size; position++) {
+                let startX, startY, moveX, moveY;
+                [[startX, startY], [moveX, moveY]] = Utils.getAbcDirection(dir, position, parent);
+
+                let first = 1;
+                for (let i = 0; i < parent.size; i++) {
+                    let square = solution[startY + i * moveY][startX + i * moveX];
+                    if (square !== 1) {
+                        first = square;
+                        break;
+                    }
+                }
+                directionTask.push(first);
+            }
+            task.push(directionTask);
+        }
+
+        parent.task = task;
+        if (Utils.getExtraNum(Solver.solve(parent.board, parent)) > 0) {
+            // Renderer.render(Solver.solve(parent.board, parent), parent, null, "red"); ;
+            // console.log("ambiguous");
+            if (this.STATS.isSolutionTriesEnd()) {
+                this.STATS.restartSolutionTries();
+                this.STATS.addTaskTries();
+            } else {
+                this.STATS.addSolutionTries();
+            }
+            return null;
+        }
+
+        // parent.task = task; console.log("successful return"); return task;
+
+        let taskSolution = parent.task;
+        let unknownOrder = Utils.getUnknownOrder(parent);
+
+        // Renderer.perPage(4, 1);
+        // Renderer.render(Solver.solve(parent.board, parent), parent);
+        // Renderer.render(Solver.solve(parent.board, parent), parent);
+        // Renderer.render(Solver.solve(parent.board, parent), parent);
+        // Renderer.render(Solver.solve(parent.board, parent), parent);
+
+        for (let i = 0; i < unknownOrder.length; i++) {
+            let dir, position;
+            [dir, position] = unknownOrder[i];
+
+            task[dir][position] = 0;
+
+            parent.task = task;
+
+            // Renderer.render(Solver.solve(parent.board, parent), parent, null, "green");
+            // Renderer.render(Solver.solve(parent.board, parent), parent, null, "green");
+            // Renderer.render(Solver.solve(parent.board, parent), parent, null, "green");
+            // Renderer.render(Solver.solve(parent.board, parent), parent, null, "green");
+            // Solver.print = true;
+
+            let numberOfSolutions = Solver.countSolutions(Solver.solve(parent.board, parent), parent);
+
+            // Solver.print = false;
+
+            if (numberOfSolutions > 1) {
+                task[dir][position] = taskSolution[dir][position];
+            } else if (numberOfSolutions === 0) {
+                console.log(parent.solution);
+                throw "TASK ERROR";
+            }
+        }
+
+        parent.task = task;
+        return task;
+    }
+
     private static getTask(parent: ISudoku): boolean {
         let isTaskSuccess = false;
-        let taskTries = 0;
 
-        while (taskTries < this.MAX_TRIES_TASK && ! isTaskSuccess) {
+        while (! this.STATS.isTaskTriesEnd() && ! isTaskSuccess) {
             let isSolutionSuccess = this.getSolution(parent);
 
             if (isSolutionSuccess) {
                 let task = this.getTaskTry(parent);
 
-                if (task === null) {
-                    taskTries ++;
-                } else {
+                if (task !== null) {
                     parent.task = task;
                     isTaskSuccess = true;
                 }
-            } else {
-                taskTries ++;
             }
         }
-
-        this.STATS.taskTries += taskTries;
 
         if (! isTaskSuccess) {
             console.log("!! Unable to create task in " + this.MAX_TRIES_TASK.toString() + " tries.");
@@ -85,26 +214,28 @@ class SudokuBuilder {
         parent.hasSolution = false;
 
         let isSolutionSuccess = false;
-        let solutionTries = 0;
-
-        while (solutionTries < this.MAX_TRIES_SOLUTION && ! isSolutionSuccess) {
+        while (! this.STATS.isSolutionTriesEnd() && ! isSolutionSuccess) {
             let solution = this.getSolutionTry(parent);
 
-            if (solution === null) {
-                solutionTries ++;
-            } else {
+            if (solution !== null) {
                 parent.solution = solution;
                 isSolutionSuccess = true;
             }
         }
 
-        this.STATS.solutionTries += solutionTries;
+        parent.hasSolution = true;
 
-        if (! isSolutionSuccess) {
-            console.log("Unable to create solution in " + this.MAX_TRIES_SOLUTION.toString() + " tries.");
+        if (parent.isABC) {
+            if (! Utils.checkAbcSolutionUnambiguity(parent.solution, parent)) {
+                this.STATS.addSolutionTries();
+                isSolutionSuccess = false;
+            }
         }
 
-        parent.hasSolution = true;
+        if (this.STATS.isSolutionTriesEnd()) {
+            this.STATS.restartSolutionTries();
+            this.STATS.addTaskTries();
+        }
 
         return isSolutionSuccess;
     }
@@ -115,6 +246,7 @@ class SudokuBuilder {
             for (let x = 0; x < parent.size; x++) {
                 let possible = solution[y][x];
                 if (possible === 0) {
+                    this.STATS.addSolutionTries();
                     return null;
                 }
 
@@ -126,13 +258,28 @@ class SudokuBuilder {
         }
 
         if (! Solver.checkSolution(solution, parent)) {
+            this.STATS.addSolutionTries();
             return null;
+        }
+
+        if (parent.isABC && parent.abcNumber !== null) {
+            for (let y = 0; y < parent.size; y++) {
+                for (let x = 0; x < parent.size; x++) {
+                    if (solution[y][x] > 1 << parent.abcNumber) {
+                        solution[y][x] = 1;
+                    }
+                }
+            }
         }
 
         return solution;
     }
 
     private static getTaskTry(parent: ISudoku): number[][] | null {
+        if (parent.isABC) {
+            return this.getAbcTask(parent);
+        }
+
         let task = parent.solution;
         let solution = parent.solution;
 
@@ -161,30 +308,19 @@ class SudokuBuilder {
 
         if (this._prompterNumMax !== null) {
             if (Utils.getPrompterNum(task) > this._prompterNumMax) {
+                this.STATS.addTaskTries();
                 return null;
             }
         }
 
         if (parent.isVX) {
             if (Utils.hasPrompterInSum(task, parent)) {
+                this.STATS.addTaskTries();
                 return null;
             }
         }
 
         return task;
-    }
-
-    public static default(): void {
-        this._size = 9;
-        this._isRectangular = true;
-        this._rectangleWidth = 3;
-        this._rectangleHeight = 3;
-        this._isDiagonal = false;
-        this._isVX = false;
-        this._vxSum = null;
-        this._prompterNumMin = null;
-        this._prompterNumMax = null;
-        this._isKropki = false;
     }
 
     public static size(size: number): void {
@@ -212,7 +348,7 @@ class SudokuBuilder {
     }
 
     public static vxSum(isVX: boolean, vxSum: [number, string][] | null = null): void {
-        this._isKropki = false;
+        this.removeVariation();
 
         if (isVX && vxSum !== null) {
             this._isVX = true;
@@ -234,10 +370,18 @@ class SudokuBuilder {
     }
 
     public static kropki(isKropki: boolean): void {
-        if (this._isVX) {
-            this.vxSum(false);
-        }
+        this.removeVariation();
 
         this._isKropki = isKropki;
+    }
+
+    public static abc(isABC: boolean, abcNumber: number | null): void {
+        if (isABC && abcNumber !== null) {
+            this._isABC = true;
+            this._abcNumber = abcNumber;
+        } else {
+            this._isABC = false;
+            this._abcNumber = null;
+        }
     }
 }

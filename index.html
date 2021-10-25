@@ -8,16 +8,21 @@
         hr { clear: both; border: none; height: 0; font-size: 0; margin: 0; }
         table.board-table { border-collapse: collapse; float: left; }
         table.board-table td { border: 1px #000 solid; padding: 0; }
+        table.board-table td.border-none { border-width: 0; }
         table.board-table td.diagonal { background-color: #DDD; }
         table.board-table div { text-align: center; }
         table.board-table div.square-inner { float: left; }
         table.board-table td.unsolved div { color: #AAA ; }
         @media print {
             hr.page-break { page-break-before: always; margin-bottom: 35px; } /* 40 */
+            div.left-margin { width: 20px; height: 10px; float: left; }
         }
-        div.orthogonal { position: absolute; background-color: #FFF; border: none; }
-        div.orthogonal-white { background-color: #FFF; border: 1px #000 solid; }
-        div.orthogonal-black { background-color: #000; border: 1px #000 solid; }
+        table.board-table div.orthogonal { position: absolute; background-color: #FFF; border: none; }
+        table.board-table div.orthogonal-white { background-color: #FFF; border: 1px #000 solid; }
+        table.board-table div.orthogonal-black { background-color: #000; border: 1px #000 solid; }
+
+        table.red { background-color: #FDD; }
+        table.green { background-color: #DFD; }
     </style>
 
     <script src="main.js"></script>

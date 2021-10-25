@@ -1,4 +1,199 @@
 class Solver {
+    public static print = false;
+
+    private static solveAbcOneInSquare(board: number[][], parent: ISudoku): number[][] {
+        if (parent.abcSpaceNumber === null) {
+            return board;
+        }
+        let hasOneNumber = Utils.getHasOneBit(board);
+        for (let y = 0; y < parent.size; y++) {
+            let rowOne = 0;
+            let spaceCount = 0;
+            for (let x = 0; x < parent.size; x++) {
+                // console.log(board, y, x);
+                if (board[y][x] === 1) {
+                    spaceCount ++;
+                } else if (hasOneNumber[y][x]) {
+                    rowOne |= board[y][x];
+                }
+            }
+            let notRemove = (spaceCount < parent.abcSpaceNumber) ? (~ rowOne) : (~ (rowOne | 1));
+            for (let x = 0; x < parent.size; x++) {
+                if (! hasOneNumber[y][x]) {
+                    board[y][x] &= notRemove;
+                }
+            }
+        }
+        hasOneNumber = Utils.getHasOneBit(board);
+        for (let x = 0; x < parent.size; x++) {
+            let columnOne = 0;
+            let spaceCount = 0;
+            for (let y = 0; y < parent.size; y++) {
+                if (board[y][x] === 1) {
+                    spaceCount ++;
+                } else if (hasOneNumber[y][x]) {
+                    columnOne |= board[y][x];
+                }
+            }
+            let notRemove = (spaceCount < parent.abcSpaceNumber) ? (~ columnOne) : (~ (columnOne | 1));
+            for (let y = 0; y < parent.size; y++) {
+                if (! hasOneNumber[y][x]) {
+                    board[y][x] &= notRemove;
+                }
+            }
+        }
+
+        return board;
+    }
+
+    private static solveAbcOnlyInSquare(board: number[][], parent: ISudoku): number[][] {
+        for (let y = 0; y < parent.size; y++) {
+            let rowOne = 0;
+            let rowMultiple = 0;
+            for (let x = 0; x < parent.size; x++) {
+                rowMultiple |= rowOne & board[y][x];
+                rowOne |= board[y][x];
+                rowOne &= ~ rowMultiple;
+            }
+            rowOne &= ~ 1;
+            for (let x = 0; x < parent.size; x++) {
+                if ((board[y][x] & rowOne) !== 0) {
+                    board[y][x] &= rowOne;
+                }
+            }
+        }
+        for (let x = 0; x < parent.size; x++) {
+            let columnOne = 0;
+            let columnMultiple = 0;
+            for (let y = 0; y < parent.size; y++) {
+                columnMultiple |= columnOne & board[y][x];
+                columnOne |= board[y][x];
+                columnOne &= ~ columnMultiple;
+            }
+            columnOne &= ~ 1;
+            for (let y = 0; y < parent.size; y++) {
+                if ((board[y][x] & columnOne) !== 0) {
+                    board[y][x] &= columnOne;
+                }
+            }
+        }
+
+        return board;
+    }
+
+    private static solveAbcPrompterBoth(board: number[][], parent: ISudoku, task: number[][], dir: number, position: number): number[][] {
+        if (parent.abcNumber === null) {
+            return board;
+        }
+
+        let firstValue = Utils.getAbcFirstValue(dir, position, task);
+        let middleValue = Utils.getAbcMiddleValue(dir, position, task, parent);
+        let lastValue = Utils.getAbcLastValue(dir, position, task);
+        let startX, startY, moveX, moveY;
+        [[startX, startY], [moveX, moveY]] = Utils.getAbcDirection(dir, position, parent);
+        let firstFound = false;
+        let middleNotFound = middleValue;
+        let middleFoundCount = 0;
+        for (let i = 0; i < parent.size; i++) {
+            let x = startX + i * moveX;
+            let y = startY + i * moveY;
+            if (! firstFound) {
+                if ((board[y][x] & firstValue) !== 0) {
+                    firstFound = true;
+                    board[y][x] &= firstValue | 1;
+                } else {
+                    board[y][x] &= 1;
+                }
+            } else {
+                middleNotFound &= ~ (board[y][x]);
+                if ((board[y][x] & middleValue) !== 0) {
+                    middleFoundCount ++;
+                }
+                board[y][x] &= ~ lastValue;
+            }
+            if (firstFound && middleNotFound === 0 && middleFoundCount >= parent.abcNumber - 2) {
+                break;
+            }
+        }
+
+        return board;
+    }
+
+    private static solveAbcPrompterFirst(board: number[][], parent: ISudoku, task: number[][], dir: number, position: number): number[][] {
+        if (parent.abcNumber === null || parent.abcSpaceNumber === null) {
+            return board;
+        }
+
+        let firstValue = Utils.getAbcFirstValue(dir, position, task);
+        let middleValue = Utils.getAbcMiddleValue(dir, position, task, parent);
+        let startX, startY, moveX, moveY;
+        [[startX, startY], [moveX, moveY]] = Utils.getAbcDirection(dir, position, parent);
+        let firstFound = false;
+        let middleFound = false;
+        for (let i = 0; i < parent.size; i++) {
+            let x = startX + i * moveX;
+            let y = startY + i * moveY;
+            if (! firstFound) {
+                if ((board[y][x] & firstValue) !== 0) {
+                    firstFound = true;
+                    board[y][x] &= firstValue | 1;
+                } else {
+                    board[y][x] &= 1;
+                }
+            } else if (middleFound || i > parent.abcSpaceNumber) {
+                board[y][x] &= middleValue | 1;
+            } else if ((board[y][x] & middleValue) !== 0 && Utils.countBits32(board[y][x]) === 1) {
+                middleFound = true;
+            }
+        }
+
+        return board;
+    }
+
+    private static solveAbcPrompter(board: number[][], parent: ISudoku): number[][] {
+        let task = parent.task;
+        for (let dir = 0; dir < 4; dir++) {
+            for (let position = 0; position < parent.size; position++) {
+                let firstValue = Utils.getAbcFirstValue(dir, position, task);
+                let lastValue = Utils.getAbcLastValue(dir, position, task);
+                if (firstValue !== 0 && lastValue !== 0) {
+                    board = this.solveAbcPrompterBoth(board, parent, task, dir, position);
+                } else if (firstValue !== 0) {
+                    board = this.solveAbcPrompterFirst(board, parent, task, dir, position);
+                }
+            }
+        }
+
+        return board;
+    }
+
+    private static solveCycleAbc(board: number[][], parent: ISudoku): number[][] {
+
+        if (this.print) {
+            Renderer.render(board, parent, null, "red");
+        }
+
+        board = this.solveAbcOneInSquare(board, parent);
+
+        if (this.print) {
+            Renderer.render(board, parent, null, "red");
+        }
+
+        board = this.solveAbcOnlyInSquare(board, parent);
+
+        if (this.print) {
+            Renderer.render(board, parent, null, "red");
+        }
+
+        board = this.solveAbcPrompter(board, parent);
+
+        if (this.print) {
+            Renderer.render(board, parent, null, "red");
+        }
+
+        return board;
+    }
+
     private static solveLineOneInSquare(board: number[][], parent: ISudoku): number[][] {
         let hasOneNumber = Utils.getHasOneBit(board);
         for (let y = 0; y < parent.size; y++) {
@@ -225,7 +420,7 @@ class Solver {
         return board;
     }
 
-    public static solveVxOutSum(board: number[][], parent: ISudoku): number[][] {
+    private static solveVxOutSum(board: number[][], parent: ISudoku): number[][] {
         let solutionValues = Utils.getSolutionValues(parent.solution);
         let hasOneBit = Utils.getHasOneBit(board);
         for (let y = 0; y < parent.size; y++) {
@@ -251,7 +446,11 @@ class Solver {
         return board;
     }
 
-    public static solveCycle(board: number[][], parent: ISudoku): number[][] {
+    private static solveCycle(board: number[][], parent: ISudoku): number[][] {
+        if (parent.isABC && parent.hasSolution) {
+            return this.solveCycleAbc(board, parent);
+        }
+
         board = this.solveLineOneInSquare(board, parent);
         board = this.solveLineOnlyInSquare(board, parent);
         if (parent.isRectangular) {
@@ -263,11 +462,8 @@ class Solver {
             board = this.solveDiagonalOnlyInSquare(board, parent);
         }
         if (parent.isVX && parent.hasSolution) {
-            let then = Utils.getExtraNum(board);
             board = this.solveVxInSum(board, parent);
             board = this.solveVxOutSum(board, parent);
-            let now = Utils.getExtraNum(board);
-            // console.log(now, then);
         }
 
         return board;

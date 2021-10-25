@@ -1,6 +1,6 @@
 class Renderer {
     private static readonly PAPER_HEIGHT = 1000;
-    private static readonly PAPER_WIDTH = 700;
+    private static readonly PAPER_WIDTH = 710;
 
     private static _pageUsedHeight = 0;
     private static _pageUsedWidth = 0;
@@ -33,8 +33,8 @@ class Renderer {
         this._vxBoxFontSizeRelative = 0.8;
         this._kropkiBoxSizeRelative = 0.2;
         this._innerFontRelativeSize = 0.8;
-        this._marginLeft = 10;
-        this._marginBottom = 10;
+        this._marginLeft = 5; // 10
+        this._marginBottom = 5; // 10
         this._smallBorderWidth = 1;
         this._bigBorderWidth = 3;
         this._maxSquareInnerCount = 4;
@@ -55,7 +55,22 @@ class Renderer {
         return null;
     }
 
-    public static render(board: number[][] | null | undefined, parent: ISudoku | null | undefined, unsolved: number[][] | null = null): void {
+    public static breakPage(): void {
+        if (this._pageUsedWidth !== 0 || this._pageUsedHeight !== 0) {
+            let pageWrapper = document.getElementById("page-wrapper");
+            let pageBreak = document.createElement("hr");
+            pageBreak.classList.add("page-break");
+            pageWrapper?.appendChild(pageBreak);
+            let leftMargin = document.createElement("div");
+            leftMargin.classList.add("left-margin");
+            pageWrapper?.appendChild(leftMargin);
+            this._pageUsedHeight = 0;
+            this._pageUsedWidth = 0;
+            this._pageLineHeight = 0;
+        }
+    }
+
+    public static render(board: number[][] | null | undefined, parent: ISudoku | null | undefined, unsolved: number[][] | null = null, color: "red" | "green" | null = null): void {
         if (board === null || board === undefined || parent === null || parent === undefined) {
             return;
         }
@@ -72,6 +87,13 @@ class Renderer {
         boardTable.classList.add("board-table");
         boardTable.classList.add("board-table-" + boardNum.toString());
 
+        if (color === "red") {
+            boardTable.classList.add("red");
+        }
+        if (color === "green") {
+            boardTable.classList.add("green");
+        }
+
         this.setStyle(boardNum, parent);
 
         if (unsolved === null) {
@@ -80,25 +102,37 @@ class Renderer {
 
         let squareInnerLinearCount = Math.ceil(Math.sqrt(Math.min(this._maxSquareInnerCount, parent.size)));
 
-        let renderBoard = Utils.convertBoard(board, Math.min(this._maxSquareInnerCount, parent.size));
-        for (let y = 0; y < parent.size; y++) {
+        let renderBoard = Utils.convertBoard(board, parent, Math.min(this._maxSquareInnerCount, parent.size));
+        let size;
+        if (parent.isABC) {
+            size = parent.size + 2;
+        } else {
+            size = parent.size;
+        }
+        for (let y = 0; y < size; y++) {
             let row = boardTable.insertRow();
 
-            for (let x = 0; x < parent.size; x++) {
+            for (let x = 0; x < size; x++) {
                 let column = row.insertCell();
                 this.addBorderStyle(x, y, column, parent);
 
                 let div = document.createElement("div");
-                if (board[y][x] !== unsolved[y][x]) {
-                    column.classList.add("unsolved");
+                if (size === parent.size) {
+                    if (board[y][x] !== unsolved[y][x]) {
+                        column.classList.add("unsolved");
+                    }
                 }
                 if (parent.isDiagonal) {
-                    if (x === y || x + y + 1 === parent.size) {
+                    if (x === y || x + y + 1 === size) {
                         column.classList.add("diagonal");
                     }
                 }
                 column.appendChild(div);
-                if (typeof renderBoard[y][x] === "string") {
+                if (parent?.isABC && y === 0 && x === 0 && parent.abcNumber !== null) {
+                    div.textContent = parent.abcNumber.toString();
+                    div.classList.add("square-full");
+                    div.classList.add("small-font");
+                } else if (typeof renderBoard[y][x] === "string") {
                     div.textContent = renderBoard[y][x].toString();
                     div.classList.add("square-full");
                 } else {
@@ -122,7 +156,7 @@ class Renderer {
                 }
                 if (parent?.isVX) {
                     let solution = parent.solution;
-                    if (x !== parent.size - 1) {
+                    if (x !== size - 1) {
                         let sum = Utils.binaryToValue(solution[y][x]) + Utils.binaryToValue(solution[y][x + 1]);
                         if (parent.getVxSumName(sum) !== null) {
                             let div = document.createElement("div");
@@ -132,7 +166,7 @@ class Renderer {
                             column.appendChild(div);
                         }
                     }
-                    if (y !== parent.size - 1) {
+                    if (y !== size - 1) {
                         let sum = Utils.binaryToValue(solution[y][x]) + Utils.binaryToValue(solution[y + 1][x]);
                         if (parent.getVxSumName(sum)) {
                             let div = document.createElement("div");
@@ -145,7 +179,7 @@ class Renderer {
                 }
                 if (parent?.isKropki) {
                     let solution = parent.solution;
-                    if (x !== parent.size - 1) {
+                    if (x !== size - 1) {
                         let color = this.getKropkiColor(Utils.binaryToValue(solution[y][x]), Utils.binaryToValue(solution[y][x + 1]));
                         if (color !== null) {
                             let div = document.createElement("div");
@@ -156,7 +190,7 @@ class Renderer {
                             column.appendChild(div);
                         }
                     }
-                    if (y !== parent.size - 1) {
+                    if (y !== size - 1) {
                         let color = this.getKropkiColor(Utils.binaryToValue(solution[y][x]), Utils.binaryToValue(solution[y + 1][x]));
                         if (color !== null) {
                             let div = document.createElement("div");
@@ -179,6 +213,9 @@ class Renderer {
             let pageBreak = document.createElement("hr");
             pageBreak.classList.add("page-break");
             pageWrapper?.appendChild(pageBreak);
+            let leftMargin = document.createElement("div");
+            leftMargin.classList.add("left-margin");
+            pageWrapper?.appendChild(leftMargin);
         }
         if (this._pageUsedWidth + this._width > this.PAPER_WIDTH) {
             this._pageUsedHeight += this._pageLineHeight + this._marginBottom;
@@ -191,9 +228,15 @@ class Renderer {
                 let pageBreak = document.createElement("hr");
                 pageBreak.classList.add("page-break");
                 pageWrapper?.appendChild(pageBreak);
+                let leftMargin = document.createElement("div");
+                leftMargin.classList.add("left-margin");
+                pageWrapper?.appendChild(leftMargin);
             } else {
                 let hr = document.createElement("hr");
                 pageWrapper?.appendChild(hr);
+                let leftMargin = document.createElement("div");
+                leftMargin.classList.add("left-margin");
+                pageWrapper?.appendChild(leftMargin);
             }
         }
 
@@ -211,8 +254,15 @@ class Renderer {
 
         let squareInnerLinearCount = Math.ceil(Math.sqrt(Math.min(this._maxSquareInnerCount, parent.size)));;
 
-        let squareFullSize = Math.floor(this._width / parent.size);
-        let squareFullFontSize = Math.floor(this._width / parent.size * this._fontRelativeSize);
+        let size;
+        if (parent.isABC) {
+            size = parent.size + 2;
+        } else {
+            size = parent.size;
+        }
+
+        let squareFullSize = Math.floor(this._width / size);
+        let squareFullFontSize = Math.floor(this._width / size * this._fontRelativeSize);
         let squareInnerSize = Math.floor(squareFullSize / squareInnerLinearCount);
         let squareInnerFontSize = Math.floor(squareFullSize / squareInnerLinearCount * this._innerFontRelativeSize);
 
@@ -227,12 +277,12 @@ class Renderer {
         styleHtml = `table.board-table-${boardNum} div.square-inner { ${styles} }`;
         style.textContent += styleHtml + "\n";
 
-        style.textContent += `table.board-table td { border-width: ${this._smallBorderWidth}px; }\n`;
+        style.textContent += `table.board-table-${boardNum} td { border-width: ${this._smallBorderWidth}px; }\n`;
 
-        style.textContent += `table.board-table td.border-top { border-top-width: ${this._bigBorderWidth}px; }\n`;
-        style.textContent += `table.board-table td.border-bottom { border-bottom-width: ${this._bigBorderWidth}px; }\n`;
-        style.textContent += `table.board-table td.border-left { border-left-width: ${this._bigBorderWidth}px; }\n`;
-        style.textContent += `table.board-table td.border-right { border-right-width: ${this._bigBorderWidth}px; }\n`;
+        style.textContent += `table.board-table-${boardNum} td.border-top { border-top-width: ${this._bigBorderWidth}px; }\n`;
+        style.textContent += `table.board-table-${boardNum} td.border-bottom { border-bottom-width: ${this._bigBorderWidth}px; }\n`;
+        style.textContent += `table.board-table-${boardNum} td.border-left { border-left-width: ${this._bigBorderWidth}px; }\n`;
+        style.textContent += `table.board-table-${boardNum} td.border-right { border-right-width: ${this._bigBorderWidth}px; }\n`;
 
         if (parent.isVX || parent.isKropki) {
             let orthogonalBoxSize = 0;
@@ -261,30 +311,52 @@ class Renderer {
             styleHtml = `table.board-table-${boardNum} div.orthogonal-vertical { ${styles} }`;
             style.textContent += styleHtml + "\n";
         }
+
+        if (parent.isABC) {
+            style.textContent += `table.board-table-${boardNum} div.small-font { font-size: ${squareFullFontSize / 2}px; }\n`;
+        }
     }
 
     public static addBorderStyle(x: number, y: number, column: HTMLElement, parent: ISudoku): void {
-        if (x === 0) {
-            column.classList.add("border-left");
-        } else if (x === parent.size - 1) {
-            column.classList.add("border-right");
-        }
-        if (y === 0) {
-            column.classList.add("border-top");
-        } else if (y === parent.size - 1) {
-            column.classList.add("border-bottom");
-        }
+        if (parent.isABC) {
+            if (x === 0 || x === parent.size + 1 || y === 0 || y === parent.size + 1) {
+                column.classList.add("border-none");
+            } else {
+                if (x === 1) {
+                    column.classList.add("border-left");
+                } else if (x === parent.size) {
+                    column.classList.add("border-right");
+                }
+                if (y === 1) {
+                    column.classList.add("border-top");
+                } else if (y === parent.size) {
+                    column.classList.add("border-bottom");
+                }
+            }
 
-        if (parent.isRectangular && parent.rectangleWidth !== null && parent.rectangleHeight !== null) {
-            if (x % parent.rectangleWidth === 0) {
+        } else {
+            if (x === 0) {
                 column.classList.add("border-left");
-            } else if (x % parent.rectangleWidth === parent.rectangleWidth - 1) {
+            } else if (x === parent.size - 1) {
                 column.classList.add("border-right");
             }
-            if (y % parent.rectangleHeight === 0) {
+            if (y === 0) {
                 column.classList.add("border-top");
-            } else if (y % parent.rectangleHeight === parent.rectangleHeight - 1) {
+            } else if (y === parent.size - 1) {
                 column.classList.add("border-bottom");
+            }
+
+            if (parent.isRectangular && parent.rectangleWidth !== null && parent.rectangleHeight !== null) {
+                if (x % parent.rectangleWidth === 0) {
+                    column.classList.add("border-left");
+                } else if (x % parent.rectangleWidth === parent.rectangleWidth - 1) {
+                    column.classList.add("border-right");
+                }
+                if (y % parent.rectangleHeight === 0) {
+                    column.classList.add("border-top");
+                } else if (y % parent.rectangleHeight === parent.rectangleHeight - 1) {
+                    column.classList.add("border-bottom");
+                }
             }
         }
     }
@@ -295,8 +367,8 @@ class Renderer {
     }
 
     public static perPage(xCount: number, yCount: number): void {
-        let width = Math.floor((this.PAPER_WIDTH - (xCount - 1) * this._marginLeft) / xCount);
-        let height = Math.floor((this.PAPER_HEIGHT - (yCount - 1) * this._marginBottom) / yCount);
+        let width = Math.floor((this.PAPER_WIDTH - (xCount - 1) * this._marginLeft) / xCount) - 6;
+        let height = Math.floor((this.PAPER_HEIGHT - (yCount - 1) * this._marginBottom) / yCount) - 6;
         let size = Math.min(width, height);
         this._width = size;
         this._height = size;

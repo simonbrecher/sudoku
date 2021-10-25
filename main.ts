@@ -1,25 +1,36 @@
 function main(): void {
     console.log("Hello world");
 
-    SudokuBuilder.rectangular(true, 3, 3);
-    // SudokuBuilder.prompterNum(null, 3);
+    // SudokuBuilder.rectangular(true, 6, 4);
     // SudokuBuilder.diagonal(true);
-    SudokuBuilder.vxSum(true, [[5, "V"], [10, "X"]]);
+    // // SudokuBuilder.prompterNum(null, 3);
+    // // SudokuBuilder.diagonal(true);
+    // // SudokuBuilder.vxSum(true, [[5, "V"], [10, "X"]]);
     // let sudoku = SudokuBuilder.build();
-
+    //
     // if (sudoku !== null) {
-    //     console.log(sudoku.solution);
-    //     console.log(sudoku.task);
+    //     Renderer.render(sudoku.task, sudoku);
     // }
 
-    console.log("HERE");
+    // ---
 
-    SudokuBuilder.kropki(true);
+    SudokuBuilder.size(6);
+    SudokuBuilder.abc(true, 3);
 
-    Renderer.perPage(2, 3);
+    Renderer.perPage(3, 4);
+    for (let i = 0; i < 72; i++) {
+        let sudoku = SudokuBuilder.build();
+        if (sudoku !== null) {
+            // Renderer.render(sudoku?.solution, sudoku);
+            Renderer.render(sudoku?.board, sudoku);
+        }
+    }
+    SudokuBuilder.abc(true, 4);
     for (let i = 0; i < 24; i++) {
         let sudoku = SudokuBuilder.build();
-        Renderer.render(sudoku?.task, sudoku);
-        // Renderer.render(sudoku?.solution, sudoku);
+        if (sudoku !== null) {
+            // Renderer.render(sudoku?.solution, sudoku);
+            Renderer.render(sudoku?.board, sudoku);
+        }
     }
 }

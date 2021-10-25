@@ -1,4 +1,34 @@
 class Utils {
+    public static getAbcFirstValue(dir: number, position: number, task: number[][]): number {
+        return task[dir][position];
+    }
+
+    public static getAbcLastValue(dir: number, position: number, task: number[][]): number {
+        return task[dir ^ 1][position];
+    }
+
+    public static getAbcMiddleValue(dir: number, position: number, task: number[][], parent: ISudoku): number {
+        if (parent.abcNumber === null) {
+            throw "Utils->getAbcMiddle - parent.abcNumber === null";
+        }
+        return (1 << parent.abcNumber + 1) - 2 & ~ this.getAbcFirstValue(dir, position, task) & ~ this.getAbcLastValue(dir, position, task);
+    }
+
+    public static getAbcDirection(dir: number, position: number, parent: ISudoku): number[][] {
+        switch (dir) {
+            case 0:
+                return [[0, position], [1, 0]];
+            case 1:
+                return [[parent.size - 1, position], [-1, 0]];
+            case 2:
+                return [[position, 0], [0, 1]];
+            case 3:
+                return [[position, parent.size - 1], [0, -1]];
+            default:
+                throw "Utils->getAbcDirection - WRONG DIRECTION ID";
+        }
+    }
+
     public static countBits32(binary: number): number {
         binary -= (binary >>> 1) & 0x55555555;
         binary = (binary & 0x33333333) + ((binary >>> 2) & 0x33333333);
@@ -52,7 +82,18 @@ class Utils {
         return hasOneNumber;
     }
 
-    public static createEmptyBoard(parent: ISudoku): number[][] {
+    public static createEmptyBoard(parent: ISudoku, forceHasSolution: boolean = false): number[][] {
+        if (parent.isABC && parent.abcNumber !== null && (parent.hasSolution || forceHasSolution)) {
+            let board = [];
+            for (let y = 0; y < parent.size; y++) {
+                let row = [];
+                for (let x = 0; x < parent.size; x++) {
+                    row.push((1 << parent.abcNumber + 1) - 1);
+                }
+                board.push(row);
+            }
+            return board;
+        }
         let board = [];
         for (let y = 0; y < parent.size; y++) {
             let row = [];
@@ -116,11 +157,21 @@ class Utils {
 
     public static getUnknownOrder(parent: ISudoku): number[][] {
         let solution = parent.solution;
+
+        let width, height;
+        if (parent.isABC) {
+            width = 4;
+            height = parent.size;
+        } else {
+            width = parent.size;
+            height = parent.size;
+        }
+
         // let removeFirstBinary = 1 << Math.floor(Math.random() * parent.size);
         let beginning = [];
         let arr: number[][] = [];
-        for (let y = 0; y < parent.size; y++) {
-            for (let x = 0; x < parent.size; x++) {
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
                 if (solution === null) {
                     arr.push([x, y]);
                 // } else if (solution[y][x] === removeFirstBinary && parent.isRemoveOne) {
@@ -151,13 +202,30 @@ class Utils {
         return copied;
     }
 
-    private static convertBinary(binary: number, squareInnerCount: number): string | string[] {
+    private static valueToChar(value: number, parent: ISudoku): string {
+        if (parent.isABC) {
+            return ["-", "A", "B", "C", "D", "E", "F", "G", "H", "I"][value - 1];
+        }
+
+        return value.toString();
+    }
+
+    private static convertBinary(binary: number, parent: ISudoku, squareInnerCount: number): string | string[] {
         let bitCount = this.countBits32(binary);
-        if (bitCount >= squareInnerCount) {
+        if (bitCount > squareInnerCount) {
             return " ";
         }
+        if (parent.isABC && parent.abcNumber !== null) {
+            if (binary === (1 << parent.abcNumber + 1) - 1) {
+                return " ";
+            }
+        } else {
+            if (binary === (1 << parent.size) - 1) {
+                return " ";
+            }
+        }
         if (bitCount === 1) {
-            return this.binaryToValue(binary).toString();
+            return this.valueToChar(this.binaryToValue(binary), parent);
         }
         if (binary === 0) {
             return "?";
@@ -166,7 +234,7 @@ class Utils {
         let number = 1;
         while (binary !== 0) {
             if ((binary & 1) === 1) {
-                values.push(number.toString());
+                values.push(this.valueToChar(number, parent));
             }
             binary >>>= 1;
             number += 1;
@@ -174,15 +242,57 @@ class Utils {
         return values;
     }
 
-    public static convertBoard(board: number[][], squareInnerCount: number): (string | string[])[][] {
+    private static convertAbcBoard(board: number[][], parent: ISudoku, squareInnerCount: number): (string | string[])[][] {
+        let task = parent.task;
+        let arr: (string | string[])[][] = [];
+
+        let row = [];
+        row.push(" ");
+        for (let x = 0; x < parent.size; x++) {
+            let add = this.convertBinary(task[2][x], parent, squareInnerCount)
+            row.push(add === "?" ? " " : add);
+        }
+        row.push(" ");
+        arr.push(row);
+
+        for (let y = 0; y < board.length; y++) {
+            row = [];
+            let add = this.convertBinary(task[0][y], parent, squareInnerCount)
+            row.push(add === "?" ? " " : add);
+            for (let x = 0; x < board[y].length; x++) {
+                row.push(this.convertBinary(board[y][x], parent, squareInnerCount));
+            }
+            add = this.convertBinary(task[1][y], parent, squareInnerCount)
+            row.push(add === "?" ? " " : add);
+            arr.push(row);
+        }
+
+        row = [];
+        row.push(" ");
+        for (let x = 0; x < parent.size; x++) {
+            let add = this.convertBinary(task[3][x], parent, squareInnerCount)
+            row.push(add === "?" ? " " : add);
+        }
+        row.push(" ");
+        arr.push(row);
+
+        return arr;
+    }
+
+    public static convertBoard(board: number[][], parent: ISudoku, squareInnerCount: number): (string | string[])[][] {
+        if (parent.isABC) {
+            return this.convertAbcBoard(board, parent, squareInnerCount);
+        }
+
         let arr: (string | string[])[][] = [];
         for (let y = 0; y < board.length; y++) {
             let row = [];
             for (let x = 0; x < board[y].length; x++) {
-                row.push(this.convertBinary(board[y][x], squareInnerCount));
+                row.push(this.convertBinary(board[y][x], parent, squareInnerCount));
             }
             arr.push(row);
         }
+
         return arr;
     }
 
@@ -216,5 +326,31 @@ class Utils {
         }
 
         return false;
+    }
+
+    public static checkAbcSolutionUnambiguity(solution: number[][], parent: ISudoku): boolean {
+        for (let i = 0; i < 3; i++) {
+            let sizeX, sizeY;
+            [sizeX, sizeY] = [[2, 2], [2, 3], [3, 2]][i];
+            for (let y = 0; y <= parent.size - sizeY; y++) {
+                for (let x = 0; x <= parent.size - sizeX; x++) {
+                    let possible = 0;
+                    let numberCount = 0;
+                    for (let relativeY = 0; relativeY < sizeY; relativeY++) {
+                        for (let relativeX = 0; relativeX < sizeX; relativeX++) {
+                            possible |= solution[y + relativeY][x + relativeX];
+                            if (solution[y + relativeY][x + relativeX] !== 1) {
+                                numberCount ++;
+                            }
+                        }
+                    }
+                    if (this.countBits32(possible) === 1 && numberCount >= 2) {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        return true;
     }
 }

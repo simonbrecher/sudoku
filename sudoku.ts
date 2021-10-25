@@ -7,9 +7,12 @@ class Sudoku implements ISudoku {
     public readonly isVX: boolean;
     public readonly vxSum: [number, string][] | null;
     public readonly isKropki: boolean;
+    public readonly isABC: boolean;
+    public readonly abcNumber: number | null;
+    public readonly abcSpaceNumber: number | null;
 
     private _solution: number[][];
-    private _task: number[][];
+    private _task: number[][]; // sudoku - [y][x]; abc - line first, line last, column first, column last
     private _board: number[][];
 
     public isFinished: boolean = false;
@@ -71,6 +74,8 @@ class Sudoku implements ISudoku {
         isVX: boolean,
         vxSum: [number, string][] | null,
         isKropki: boolean,
+        isABC: boolean,
+        abcNumber: number | null,
     ) {
         this.isRectangular = isRectangular;
 
@@ -104,8 +109,18 @@ class Sudoku implements ISudoku {
 
         this.isKropki = isKropki;
 
+        if (isABC && abcNumber !== null) {
+            this.isABC = true;
+            this.abcNumber = abcNumber;
+            this.abcSpaceNumber = size - abcNumber;
+        } else {
+            this.isABC = false;
+            this.abcNumber = null;
+            this.abcSpaceNumber = null;
+        }
+
         this._solution = Utils.createEmptyBoard(this);
         this._task = Utils.createEmptyBoard(this);
-        this._board = Utils.createEmptyBoard(this);
+        this._board = Utils.createEmptyBoard(this, true);
     }
 }
