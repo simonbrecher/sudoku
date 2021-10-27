@@ -21,6 +21,8 @@ class Renderer {
 
     private static _boardCount: number = 0;
 
+    public static zeroSymbol = "?";
+
     private static setDefault = (() => {
         Renderer.default();
     })();
@@ -70,6 +72,92 @@ class Renderer {
         }
     }
 
+    private static convertBinary(binary: number, parent: ISudoku, squareInnerCount: number): string | string[] {
+        let bitCount = Utils.countBits32(binary);
+        if (bitCount > squareInnerCount) {
+            return " ";
+        }
+        if (parent.isABC && parent.abcNumber !== null) {
+            if (binary === (1 << parent.abcNumber + 1) - 1) {
+                return " ";
+            }
+        } else {
+            if (binary === (1 << parent.size) - 1) {
+                return " ";
+            }
+        }
+        if (bitCount === 1) {
+            return Utils.valueToChar(Utils.binaryToValue(binary), parent);
+        }
+        if (binary === 0) {
+            return this.zeroSymbol;
+        }
+        let values = [];
+        let number = 1;
+        while (binary !== 0) {
+            if ((binary & 1) === 1) {
+                values.push(Utils.valueToChar(number, parent));
+            }
+            binary >>>= 1;
+            number += 1;
+        }
+        return values;
+    }
+
+    private static convertAbcBoard(board: number[][], parent: ISudoku, squareInnerCount: number): (string | string[])[][] {
+        let task = parent.task;
+        let arr: (string | string[])[][] = [];
+
+        let row = [];
+        row.push(" ");
+        for (let x = 0; x < parent.size; x++) {
+            let add = this.convertBinary(task[2][x], parent, squareInnerCount)
+            row.push(add === "?" ? " " : add);
+        }
+        row.push(" ");
+        arr.push(row);
+
+        for (let y = 0; y < board.length; y++) {
+            row = [];
+            let add = this.convertBinary(task[0][y], parent, squareInnerCount)
+            row.push(add === "?" ? " " : add);
+            for (let x = 0; x < board[y].length; x++) {
+                row.push(this.convertBinary(board[y][x], parent, squareInnerCount));
+            }
+            add = this.convertBinary(task[1][y], parent, squareInnerCount)
+            row.push(add === "?" ? " " : add);
+            arr.push(row);
+        }
+
+        row = [];
+        row.push(" ");
+        for (let x = 0; x < parent.size; x++) {
+            let add = this.convertBinary(task[3][x], parent, squareInnerCount)
+            row.push(add === "?" ? " " : add);
+        }
+        row.push(" ");
+        arr.push(row);
+
+        return arr;
+    }
+
+    public static convertBoard(board: number[][], parent: ISudoku, squareInnerCount: number): (string | string[])[][] {
+        if (parent.isABC) {
+            return this.convertAbcBoard(board, parent, squareInnerCount);
+        }
+
+        let arr: (string | string[])[][] = [];
+        for (let y = 0; y < board.length; y++) {
+            let row = [];
+            for (let x = 0; x < board[y].length; x++) {
+                row.push(this.convertBinary(board[y][x], parent, squareInnerCount));
+            }
+            arr.push(row);
+        }
+
+        return arr;
+    }
+
     public static render(board: number[][] | null | undefined, parent: ISudoku | null | undefined, unsolved: number[][] | null = null, color: "red" | "green" | null = null): void {
         if (board === null || board === undefined || parent === null || parent === undefined) {
             return;
@@ -102,7 +190,7 @@ class Renderer {
 
         let squareInnerLinearCount = Math.ceil(Math.sqrt(Math.min(this._maxSquareInnerCount, parent.size)));
 
-        let renderBoard = Utils.convertBoard(board, parent, Math.min(this._maxSquareInnerCount, parent.size));
+        let renderBoard = this.convertBoard(board, parent, Math.min(this._maxSquareInnerCount, parent.size));
         let size;
         if (parent.isABC) {
             size = parent.size + 2;

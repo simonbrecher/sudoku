@@ -566,4 +566,13 @@ class Solver {
             return 1;
         }
     }
+
+    public static solveCycleEvaluate(board: number[][], parent: ISudoku): number[][] {
+        board = this.solveLineOneInSquare(board, parent);
+        board = this.solveRectangleOneInSquare(board, parent);
+        board = this.solveLineOnlyInSquare(board, parent);
+        board = this.solveRectangleOnlyInSquare(board, parent);
+
+        return board;
+    }
 }

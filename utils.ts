@@ -202,98 +202,12 @@ class Utils {
         return copied;
     }
 
-    private static valueToChar(value: number, parent: ISudoku): string {
+    public static valueToChar(value: number, parent: ISudoku): string {
         if (parent.isABC) {
             return ["-", "A", "B", "C", "D", "E", "F", "G", "H", "I"][value - 1];
         }
 
         return value.toString();
-    }
-
-    private static convertBinary(binary: number, parent: ISudoku, squareInnerCount: number): string | string[] {
-        let bitCount = this.countBits32(binary);
-        if (bitCount > squareInnerCount) {
-            return " ";
-        }
-        if (parent.isABC && parent.abcNumber !== null) {
-            if (binary === (1 << parent.abcNumber + 1) - 1) {
-                return " ";
-            }
-        } else {
-            if (binary === (1 << parent.size) - 1) {
-                return " ";
-            }
-        }
-        if (bitCount === 1) {
-            return this.valueToChar(this.binaryToValue(binary), parent);
-        }
-        if (binary === 0) {
-            return "?";
-        }
-        let values = [];
-        let number = 1;
-        while (binary !== 0) {
-            if ((binary & 1) === 1) {
-                values.push(this.valueToChar(number, parent));
-            }
-            binary >>>= 1;
-            number += 1;
-        }
-        return values;
-    }
-
-    private static convertAbcBoard(board: number[][], parent: ISudoku, squareInnerCount: number): (string | string[])[][] {
-        let task = parent.task;
-        let arr: (string | string[])[][] = [];
-
-        let row = [];
-        row.push(" ");
-        for (let x = 0; x < parent.size; x++) {
-            let add = this.convertBinary(task[2][x], parent, squareInnerCount)
-            row.push(add === "?" ? " " : add);
-        }
-        row.push(" ");
-        arr.push(row);
-
-        for (let y = 0; y < board.length; y++) {
-            row = [];
-            let add = this.convertBinary(task[0][y], parent, squareInnerCount)
-            row.push(add === "?" ? " " : add);
-            for (let x = 0; x < board[y].length; x++) {
-                row.push(this.convertBinary(board[y][x], parent, squareInnerCount));
-            }
-            add = this.convertBinary(task[1][y], parent, squareInnerCount)
-            row.push(add === "?" ? " " : add);
-            arr.push(row);
-        }
-
-        row = [];
-        row.push(" ");
-        for (let x = 0; x < parent.size; x++) {
-            let add = this.convertBinary(task[3][x], parent, squareInnerCount)
-            row.push(add === "?" ? " " : add);
-        }
-        row.push(" ");
-        arr.push(row);
-
-        return arr;
-    }
-
-    public static convertBoard(board: number[][], parent: ISudoku, squareInnerCount: number): (string | string[])[][] {
-        if (parent.isABC) {
-            return this.convertAbcBoard(board, parent, squareInnerCount);
-        }
-
-        let arr: (string | string[])[][] = [];
-        for (let y = 0; y < board.length; y++) {
-            let row = [];
-            for (let x = 0; x < board[y].length; x++) {
-                row.push(this.convertBinary(board[y][x], parent, squareInnerCount));
-            }
-            arr.push(row);
-        }
-
-        return arr;
     }
 
     public static hasPrompterInSum(task: number[][], parent: ISudoku): boolean {
@@ -352,5 +266,17 @@ class Utils {
         }
 
         return true;
+    }
+
+    public static getEmptyArray2d(width: number, height: number): number[][] {
+        let arr = [];
+        for (let y = 0; y < height; y++) {
+            let row = [];
+            for (let x = 0; x < width; x++) {
+                row.push(0);
+            }
+            arr.push(row);
+        }
+        return arr;
     }
 }

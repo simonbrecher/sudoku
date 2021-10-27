@@ -20,6 +20,7 @@ class SudokuBuilder {
         taskTries: 0,
         startSolutionTries: 0,
         startTaskTries: 0,
+        doPrint: true,
         addSolutionTries: () => {
             SudokuBuilder.STATS.solutionTries ++;
         },
@@ -45,9 +46,15 @@ class SudokuBuilder {
             SudokuBuilder.STATS.startTaskTries = 0;
         },
         print: () => {
-            console.log("ST: " + SudokuBuilder.STATS.solutionTries + " TT: " + SudokuBuilder.STATS.taskTries);
+            if (SudokuBuilder.STATS.doPrint) {
+                console.log("ST: " + SudokuBuilder.STATS.solutionTries + " TT: " + SudokuBuilder.STATS.taskTries);
+            }
         }
     };
+
+    public static setDoPrint(doPrint: boolean): void {
+        this.STATS.doPrint = doPrint;
+    }
 
     private static setDefault = (() => {
         SudokuBuilder.default();
@@ -135,8 +142,6 @@ class SudokuBuilder {
 
         parent.task = task;
         if (Utils.getExtraNum(Solver.solve(parent.board, parent)) > 0) {
-            // Renderer.render(Solver.solve(parent.board, parent), parent, null, "red"); ;
-            // console.log("ambiguous");
             if (this.STATS.isSolutionTriesEnd()) {
                 this.STATS.restartSolutionTries();
                 this.STATS.addTaskTries();
@@ -146,16 +151,8 @@ class SudokuBuilder {
             return null;
         }
 
-        // parent.task = task; console.log("successful return"); return task;
-
         let taskSolution = parent.task;
         let unknownOrder = Utils.getUnknownOrder(parent);
-
-        // Renderer.perPage(4, 1);
-        // Renderer.render(Solver.solve(parent.board, parent), parent);
-        // Renderer.render(Solver.solve(parent.board, parent), parent);
-        // Renderer.render(Solver.solve(parent.board, parent), parent);
-        // Renderer.render(Solver.solve(parent.board, parent), parent);
 
         for (let i = 0; i < unknownOrder.length; i++) {
             let dir, position;
@@ -165,15 +162,7 @@ class SudokuBuilder {
 
             parent.task = task;
 
-            // Renderer.render(Solver.solve(parent.board, parent), parent, null, "green");
-            // Renderer.render(Solver.solve(parent.board, parent), parent, null, "green");
-            // Renderer.render(Solver.solve(parent.board, parent), parent, null, "green");
-            // Renderer.render(Solver.solve(parent.board, parent), parent, null, "green");
-            // Solver.print = true;
-
             let numberOfSolutions = Solver.countSolutions(Solver.solve(parent.board, parent), parent);
-
-            // Solver.print = false;
 
             if (numberOfSolutions > 1) {
                 task[dir][position] = taskSolution[dir][position];
