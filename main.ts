@@ -40,27 +40,32 @@ function main(): void {
 
     // ---
 
-    // Sudoku with difficulty
-    let tries = [
-        [0, 1.6],
-        [1.6, 3],
-        [3, 5],
-        [5, 7],
-        [7, 10],
-        [10, 100],
-    ];
+    // // Sudoku with difficulty
+    // let tries = [
+    //     [0, 1.6],
+    //     [1.6, 3],
+    //     [3, 5],
+    //     [5, 7],
+    //     [7, 10],
+    //     [10, 100],
+    // ];
+    //
+    // SudokuBuilder.setDoPrint(false);
+    // SudokuBuilder.rectangular(true, 3, 3);
+    // for (let i = 0; i < tries.length; i++) {
+    //     let minPoints, maxPoints;
+    //     [minPoints, maxPoints] = tries[i];
+    //
+    //     let sudoku, points;
+    //     [sudoku, points] = SudokuEvaluator.build(minPoints, maxPoints, 128);
+    //
+    //     if (sudoku) {
+    //         Renderer.render(sudoku.task, sudoku);
+    //     }
+    // }
 
-    SudokuBuilder.setDoPrint(false);
-    SudokuBuilder.rectangular(true, 3, 3);
-    for (let i = 0; i < tries.length; i++) {
-        let minPoints, maxPoints;
-        [minPoints, maxPoints] = tries[i];
+    // ---
 
-        let sudoku, points;
-        [sudoku, points] = SudokuEvaluator.build(minPoints, maxPoints, 128);
-
-        if (sudoku) {
-            Renderer.render(sudoku.task, sudoku);
-        }
-    }
+    // // Mastermind
+    // MastermindBuilder.main();
 }

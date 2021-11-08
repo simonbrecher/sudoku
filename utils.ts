@@ -149,7 +149,7 @@ class Utils {
         return solutionValues;
     }
 
-    private static shuffle(arr: any[]): any[] {
+    public static shuffle(arr: any[]): any[] {
         return arr.map((value) => ({ value, sort: Math.random() }))
             .sort((a, b) => a.sort - b.sort)
             .map(({ value }) => value);
@@ -190,7 +190,7 @@ class Utils {
         return beginning;
     }
 
-    public static deepcopyBoard(board: number[][]): number[][] {
+    public static deepcopyArray2d(board: number[][]): number[][] {
         let copied = [];
         for (let y = 0; y < board.length; y++) {
             let row = [];

@@ -474,7 +474,7 @@ class Solver {
             return parent.solution;
         }
 
-        let board = Utils.deepcopyBoard(inputBoard);
+        let board = Utils.deepcopyArray2d(inputBoard);
 
         let lastExtraNum = -1;
         let extraNum = Utils.getExtraNum(board);

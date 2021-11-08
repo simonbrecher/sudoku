@@ -19,7 +19,7 @@ class Sudoku implements ISudoku {
     public hasSolution: boolean = false;
 
     public get solution(): number[][] {
-        return Utils.deepcopyBoard(this._solution);
+        return Utils.deepcopyArray2d(this._solution);
     }
 
     public set solution(solution: number[][]) {
@@ -27,7 +27,7 @@ class Sudoku implements ISudoku {
     }
 
     public get task(): number[][] {
-        return Utils.deepcopyBoard(this._task);
+        return Utils.deepcopyArray2d(this._task);
     }
 
     public set task(task: number[][]) {
@@ -35,7 +35,7 @@ class Sudoku implements ISudoku {
     }
 
     public get board(): number[][] {
-        return Utils.deepcopyBoard(this._board);
+        return Utils.deepcopyArray2d(this._board);
     }
 
     public set board(board: number[][]) {

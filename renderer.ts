@@ -185,7 +185,7 @@ class Renderer {
         this.setStyle(boardNum, parent);
 
         if (unsolved === null) {
-            unsolved = Utils.deepcopyBoard(board);
+            unsolved = Utils.deepcopyArray2d(board);
         }
 
         let squareInnerLinearCount = Math.ceil(Math.sqrt(Math.min(this._maxSquareInnerCount, parent.size)));
