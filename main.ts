@@ -68,4 +68,13 @@ function main(): void {
 
     // // Mastermind
     // MastermindBuilder.main();
+
+    // ---
+
+    // Coral (structure, not puzzle)
+    CoralGenerator.typeCoral();
+    // CoralGenerator.typeTapa();
+    // CoralGenerator.typeSlitherlink();
+    let coral = CoralGenerator.createCoral(8, 8);
+    CoralGenerator.render(coral);
 }

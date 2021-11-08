@@ -32,6 +32,11 @@
         table.mastermind-table div.square-with-text { line-height: 40px; font-size: 24px; }
         table.mastermind-table div.square-inner { width: 10px; height: 10px; margin: 14px 11px; border: 1px solid #000; position: absolute; }
 
+        table.coral-table { border-collapse: collapse; float: left; margin-left: 50px; margin-bottom: 20px; }
+        table.coral-table td { border: 1px #000 solid; padding: 0; }
+        table.coral-table div.square { text-align: center; width: 34px; height: 40px; line-height: 40px; font-size: 24px; }
+        table.coral-table div.black { background-color: #000; }
+
         table.red { background-color: #FDD; }
         table.green { background-color: #DFD; }
     </style>
@@ -43,6 +48,7 @@
     <script src="sudoku.js"></script>
     <script src="sudokuEvaluator.js"></script>
     <script src="mastermindBuilder.js"></script>
+    <script src="coralGenerator.js"></script>
     <script src="utils.js"></script>
 </head>
 <body onload="main()">
