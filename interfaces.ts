@@ -14,3 +14,13 @@ interface ISudoku {
 
     solution: number[][]; task: number[][]; board: number[][];
 }
+
+interface ICoral {
+    width: number;
+    height: number;
+    isSorted: boolean;
+
+    task: (number[] | null)[][];
+    solution: number[][];
+    board: number[][];
+}

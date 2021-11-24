@@ -4,11 +4,12 @@ function main(): void {
     // // Basic sudoku and variants
     // SudokuBuilder.rectangular(true, 3, 3); // basic sudoku
     // // SudokuBuilder.size(9); // without rectangles
-    // SudokuBuilder.diagonal(true); // add diagonal
+    // // SudokuBuilder.diagonal(true); // add diagonal
     // // SudokuBuilder.kropki(true); // kropki
-    // SudokuBuilder.vxSum(true, [[5, "V"], [10, "X"]]); SudokuBuilder.prompterNum(null, 3); // vx
+    // // SudokuBuilder.vxSum(true, [[5, "V"], [10, "X"]]); SudokuBuilder.prompterNum(null, 3); // vx
     //
-    // for (let i = 0; i < 60; i++) {
+    // Renderer.perPage(2, 3);
+    // for (let i = 0; i < 6; i++) {
     //     let sudoku = SudokuBuilder.build();
     //     if (sudoku !== null) {
     //         Renderer.render(sudoku.task, sudoku);
@@ -71,10 +72,20 @@ function main(): void {
 
     // ---
 
-    // Coral (structure, not puzzle)
-    CoralGenerator.typeCoral();
+    // // Coral (structure, not puzzle)
     // CoralGenerator.typeTapa();
-    // CoralGenerator.typeSlitherlink();
-    let coral = CoralGenerator.createCoral(8, 8);
-    CoralGenerator.render(coral);
+    // CoralGenerator.doLog = true;
+    // // CoralGenerator.typeTapa();
+    // // CoralGenerator.typeSlitherlink();
+    // let then = (new Date).getTime();
+    // let coral = CoralGenerator.createCoral(60, 60);
+    // let now = (new Date).getTime();
+    // console.log(now - then + "ms");
+    // CoralGenerator.render(coral);
+
+    // ---
+
+    // Coral
+    CoralBuilder.main();
+    // CoralSolver.main();
 }

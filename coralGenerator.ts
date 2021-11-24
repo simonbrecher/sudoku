@@ -11,9 +11,11 @@ class CoralGenerator {
     public static RULE_SQUARE: boolean;
     public static RULE_CYCLE: boolean;
 
+    public static doLog = false;
+
     // for coral (fast up to 15x15)
     public static typeCoral(): void {
-        this.START_CHANCE_FULL = 0.7;
+        this.START_CHANCE_FULL = 0.5;
         this.CHANCE_FILL_ORTHOGONAL = 0.7;
         this.CHANCE_FILL_ORTHOGONAL_RANDOM = 0.01;
         this.CHANCE_REMOVE_SQUARE = 1;
@@ -60,7 +62,7 @@ class CoralGenerator {
 
         let boardTable = document.createElement("table");
         pageWrapper?.appendChild(boardTable);
-        boardTable.classList.add("coral-table");
+        boardTable.classList.add("coral-structure-table");
 
         for (let y = 0; y < this.HEIGHT; y++) {
             let row = boardTable.insertRow();
@@ -78,9 +80,9 @@ class CoralGenerator {
                     squareDiv.classList.add("black");
                     // squareDiv.textContent = "X";
                 } else if (coral[y][x] === 3) {
-                    squareDiv.textContent = "??";
-                } else {
                     squareDiv.textContent = "?";
+                } else {
+                    squareDiv.textContent = "!";
                 }
             }
         }
@@ -346,7 +348,7 @@ class CoralGenerator {
         return coral;
     }
 
-    private static checkCoral(coral: number[][]): boolean {
+    public static checkCoral(coral: number[][]): boolean {
         if (this.RULE_ORTHOGONAL) {
             if (this.countOrthogonal(this.getOrthogonal(coral)) !== 1) {
                 return false;
@@ -392,7 +394,35 @@ class CoralGenerator {
         }
     }
 
-    public static createCoral(width: number, height: number): number[][] | null{
+    private static checkCoralEverywhere(coral: number[][]): boolean {
+        for (let y = 0; y < this.HEIGHT; y++) {
+            let hasCoral = false;
+            for (let x = 0; x < this.WIDTH; x++) {
+                if (coral[y][x] === 2) {
+                    hasCoral = true;
+                }
+            }
+            if (! hasCoral) {
+                return false;
+            }
+        }
+
+        for (let x = 0; x < this.WIDTH; x++) {
+            let hasCoral = false;
+            for (let y = 0; y < this.WIDTH; y++) {
+                if (coral[y][x] === 2) {
+                    hasCoral = true;
+                }
+            }
+            if (! hasCoral) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public static createCoral(width: number, height: number, doCheckEverywhere: boolean = true): number[][] | null{
         this.checkRules();
 
         this.WIDTH = width;
@@ -406,7 +436,14 @@ class CoralGenerator {
                 coral = this.repairAll(coral);
 
                 if (this.checkCoral(coral)) {
-                    console.log(i, j, "(" + (i * this.MAX_CHANGE_TRIES + j).toString() + ")");
+                    if (doCheckEverywhere) {
+                        if (! this.checkCoralEverywhere(coral)) {
+                            return null;
+                        }
+                    }
+                    if (this.doLog) {
+                        console.log(i, j, "(" + (i * this.MAX_CHANGE_TRIES + j).toString() + ")");
+                    }
                     return coral;
                 }
             }

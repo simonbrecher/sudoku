@@ -32,9 +32,20 @@
         table.mastermind-table div.square-with-text { line-height: 40px; font-size: 24px; }
         table.mastermind-table div.square-inner { width: 10px; height: 10px; margin: 14px 11px; border: 1px solid #000; position: absolute; }
 
-        table.coral-table { border-collapse: collapse; float: left; margin-left: 50px; margin-bottom: 20px; }
+        table.coral-structure-table { border-collapse: collapse; float: left; margin-left: 50px; margin-bottom: 20px; }
+        table.coral-structure-table td { border: 1px #000 solid; padding: 0; }
+        table.coral-structure-table div.square { text-align: center; width: 25px; height: 25px; line-height: 25px; font-size: 18px; }
+        table.coral-structure-table div.black { background-color: #000; }
+
+        table.coral-table { border-collapse: collapse; float: left; margin-left: 10px; margin-bottom: 10px; }
         table.coral-table td { border: 1px #000 solid; padding: 0; }
-        table.coral-table div.square { text-align: center; width: 34px; height: 40px; line-height: 40px; font-size: 24px; }
+        table.coral-table td.border-none { border: none; }
+        table.coral-table td.border-left { border-left-width: 3px; }
+        table.coral-table td.border-right { border-right-width: 3px; }
+        table.coral-table td.border-top { border-top-width: 3px; }
+        table.coral-table td.border-bottom { border-bottom-width: 3px; }
+        table.coral-table div.square { text-align: center; width: 25px; height: 25px; line-height: 25px; font-size: 18px; }
+        table.coral-table div.text-small { font-size: 9px; }
         table.coral-table div.black { background-color: #000; }
 
         table.red { background-color: #FDD; }
@@ -49,6 +60,9 @@
     <script src="sudokuEvaluator.js"></script>
     <script src="mastermindBuilder.js"></script>
     <script src="coralGenerator.js"></script>
+    <script src="coral.js"></script>
+    <script src="coralBuilder.js"></script>
+    <script src="coralSolver.js"></script>
     <script src="utils.js"></script>
 </head>
 <body onload="main()">
