@@ -4,55 +4,63 @@ class CoralGenerator {
 
     public static START_CHANCE_FULL: number;
     public static CHANCE_FILL_ORTHOGONAL: number;
-    public static CHANCE_FILL_ORTHOGONAL_RANDOM: number;
     public static CHANCE_REMOVE_SQUARE: number;
-    public static RULE_ORTHOGONAL: boolean;
-    public static RULE_SPACE_ORTHOGONAL: boolean;
-    public static RULE_SQUARE: boolean;
-    public static RULE_CYCLE: boolean;
+
+    public static RULE_ORTHOGONAL: number; // 2 bits : full-empty ; 1 - must be ; 0 - does not have to be
+    public static RULE_ORTHOGONAL_DIAGONAL: number; // 2 bits : full-empty ; can orthogonality be diagonally?
+    public static RULE_ORTHOGONAL_EDGE: number; // 2 bits : full-empty ; can orthogonality be by edge?
+    public static RULE_SQUARE: number; // 2 bits : full-empty ; if 1 : do not allow 2*2 box
 
     public static doLog = false;
 
-    // for coral (fast up to 15x15)
+    public static areRulesSet = false;
+
+    // for coral (fast up to 20x20)
     public static typeCoral(): void {
         this.START_CHANCE_FULL = 0.5;
-        this.CHANCE_FILL_ORTHOGONAL = 0.7;
-        this.CHANCE_FILL_ORTHOGONAL_RANDOM = 0.01;
+        this.CHANCE_FILL_ORTHOGONAL = 0.8;
         this.CHANCE_REMOVE_SQUARE = 1;
-        this.RULE_ORTHOGONAL = true;
-        this.RULE_SPACE_ORTHOGONAL = true;
-        this.RULE_SQUARE = true;
-        this.RULE_CYCLE = true;
+
+        this.RULE_ORTHOGONAL = 3;
+        this.RULE_ORTHOGONAL_DIAGONAL = 0;
+        this.RULE_ORTHOGONAL_EDGE = 1;
+        this.RULE_SQUARE = 2;
+
+        this.areRulesSet = true;
     }
 
-    // for tapa (fast up to 50x50)
+    // for tapa (fast up to 200x200)
     public static typeTapa(): void {
         this.START_CHANCE_FULL = 0.3;
-        this.CHANCE_FILL_ORTHOGONAL = 0.7;
-        this.CHANCE_FILL_ORTHOGONAL_RANDOM = 0.01;
+        this.CHANCE_FILL_ORTHOGONAL = 0.9;
         this.CHANCE_REMOVE_SQUARE = 1;
-        this.RULE_ORTHOGONAL = true;
-        this.RULE_SPACE_ORTHOGONAL = false;
-        this.RULE_SQUARE = true;
-        this.RULE_CYCLE = true;
+
+        this.RULE_ORTHOGONAL = 3;
+        this.RULE_ORTHOGONAL_DIAGONAL = 1;
+        this.RULE_ORTHOGONAL_EDGE = 1;
+        this.RULE_SQUARE = 2;
+
+        this.areRulesSet = true;
     }
 
-    // for slitherlink (fast up to 20x20)
+    // for slitherlink (fast up to 40x40)
     public static typeSlitherlink(): void {
         this.START_CHANCE_FULL = 0.5;
         this.CHANCE_FILL_ORTHOGONAL = 0.7;
-        this.CHANCE_FILL_ORTHOGONAL_RANDOM = 0.005;
-        // this.CHANCE_REMOVE_SQUARE = 1;
-        this.RULE_ORTHOGONAL = true;
-        this.RULE_SPACE_ORTHOGONAL = true;
-        this.RULE_SQUARE = false;
-        this.RULE_CYCLE = false;
+        this.CHANCE_REMOVE_SQUARE = 1;
+
+        this.RULE_ORTHOGONAL = 3;
+        this.RULE_ORTHOGONAL_DIAGONAL = 0;
+        this.RULE_ORTHOGONAL_EDGE = 1;
+        this.RULE_SQUARE = 0;
+
+        this.areRulesSet = true;
     }
 
-    private static MAX_CHANGE_TRIES = 2000;
+    private static MAX_CHANGE_TRIES = 5000;
     private static MAX_NEW_TRIES = 20;
 
-    public static render(coral: number[][] | null): void {
+    public static render(coral: number[][] | null, previous: number[][] | null = null, color: "black" | "red" = "black"): void {
         if (coral === null) {
             console.log("render null");
             return;
@@ -74,10 +82,16 @@ class CoralGenerator {
                 squareDiv.classList.add("square");
                 column.appendChild(squareDiv);
 
+                if (previous !== null) {
+                    if (coral[y][x] !== previous[y][x]) {
+                        squareDiv.textContent = "~";
+                    }
+                }
+
                 if (coral[y][x] === 1) {
                     // squareDiv.textContent = "-";
                 } else if (coral[y][x] === 2) {
-                    squareDiv.classList.add("black");
+                    squareDiv.classList.add(color);
                     // squareDiv.textContent = "X";
                 } else if (coral[y][x] === 3) {
                     squareDiv.textContent = "?";
@@ -86,6 +100,23 @@ class CoralGenerator {
                 }
             }
         }
+    }
+
+    private static renderPriority(coral: number[][], priority: boolean[][]): void {
+        let previous = [];
+        for (let y = 0; y < this.HEIGHT; y++) {
+            let row = [];
+            for (let x = 0; x < this.WIDTH; x++) {
+                if (priority[y][x]) {
+                    row.push(coral[y][x] ^ 3);
+                } else {
+                    row.push(coral[y][x]);
+                }
+            }
+            previous.push(row);
+        }
+
+        this.render(coral, previous, "red");
     }
 
     private static createRandomCoral(): number[][] {
@@ -101,21 +132,24 @@ class CoralGenerator {
         return coral;
     }
 
-    private static getOrthogonal(coral: number[][], isSpaceFilled: boolean = false): number[][] {
-        let coralConst = isSpaceFilled ? 1 : 2;
+    private static getOrthogonal(coral: number[][], coralConst: 1 | 2): number[][] {
+        let height = coral.length;
+        let width = coral[0].length;
+
+        let isDiagonal = (this.RULE_ORTHOGONAL_DIAGONAL & coralConst) !== 0;
 
         let orthogonal = [];
-        for (let y = 0; y < this.HEIGHT; y++) {
+        for (let y = 0; y < height; y++) {
             let row = [];
-            for (let x = 0; x < this.WIDTH; x++) {
+            for (let x = 0; x < width; x++) {
                 row.push(-1);
             }
             orthogonal.push(row);
         }
 
         let orthogonalPartId = 0;
-        for (let startY = 0; startY < this.HEIGHT; startY++) {
-            for (let startX = 0; startX < this.WIDTH; startX++) {
+        for (let startY = 0; startY < height; startY++) {
+            for (let startX = 0; startX < width; startX++) {
                 if (orthogonal[startY][startX] === -1 && coral[startY][startX] === coralConst) {
                     let deck = [[startX, startY]];
                     while (deck.length > 0) {
@@ -124,13 +158,15 @@ class CoralGenerator {
                         [x, y] = deck.pop();
                         if (orthogonal[y][x] === -1 && coral[y][x] === coralConst) {
                             orthogonal[y][x] = orthogonalPartId;
-                            for (let dir = 0; dir < 4; dir++) {
-                                let dirX, dirY;
-                                [dirX, dirY] = [[-1, 0], [0, -1], [1, 0], [0, 1]][dir];
-                                let newX = x + dirX;
-                                let newY = y + dirY;
-                                if (newX >= 0 && newX < this.WIDTH && newY >= 0 && newY < this.HEIGHT) {
-                                    deck.push([newX, newY]);
+                            for (let dirY = -1; dirY <= 1; dirY++) {
+                                for (let dirX = -1; dirX <= 1; dirX++) {
+                                    if ((dirX !== 0 || dirY !== 0) && (dirX === 0 || dirY === 0 || isDiagonal)) {
+                                        let newX = x + dirX;
+                                        let newY = y + dirY;
+                                        if (newX >= 0 && newX < width && newY >= 0 && newY < height) {
+                                            deck.push([newX, newY]);
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -190,9 +226,12 @@ class CoralGenerator {
     }
 
     private static countOrthogonal(orthogonal: number[][]): number {
+        let height = orthogonal.length;
+        let width = orthogonal[0].length;
+
         let max = -1;
-        for (let y = 0; y < this.HEIGHT; y++) {
-            for (let x = 0; x < this.WIDTH; x++) {
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
                 max = Math.max(max, orthogonal[y][x]);
             }
         }
@@ -200,51 +239,176 @@ class CoralGenerator {
         return max + 1;
     }
 
-    private static repairOrthogonality(coral: number[][], isSpaceFilled: boolean = false): number[][] {
-        let coralConst = isSpaceFilled ? 1 : 2;
-        let spaceConst = isSpaceFilled ? 2 : 1;
-
-        let orthogonal = this.getOrthogonal(coral, isSpaceFilled);
-        if (isSpaceFilled) {
+    private static repairSmallCoral(coral: number[][], coralConst: 1 | 2): number[][] {
+        let orthogonal = this.getOrthogonal(coral, coralConst);
+        if ((this.RULE_ORTHOGONAL_EDGE & coralConst) !== 0) {
             orthogonal = this.getOrthogonalOnSides(orthogonal);
         }
         let countOrthogonal = this.countOrthogonal(orthogonal);
 
-        let alreadyRepaired = [];
-        for (let i = 0; i < countOrthogonal; i++) {
-            alreadyRepaired.push(false);
-        }
+        let isDiagonal = (this.RULE_ORTHOGONAL_DIAGONAL & coralConst) !== 0;
 
-        for (let startY = 0; startY < this.HEIGHT; startY++) {
-            for (let startX = 0; startX < this.WIDTH; startX++) {
-                if (coral[startY][startX] === spaceConst) {
-                    let nextTo = new Set();
-                    let nextToNew = new Set();
-                    for (let dir = 0; dir < 4; dir++) {
-                        let dirX, dirY;
-                        [dirX, dirY] = [[-1, 0], [0, -1], [1, 0], [0, 1]][dir];
-                        let x = startX + dirX;
-                        let y = startY + dirY;
-                        if (x >= 0 && x < this.WIDTH && y >= 0 && y < this.HEIGHT) {
-                            if (coral[y][x] === coralConst && orthogonal[y][x] !== -1) {
-                                nextTo.add(orthogonal[y][x]);
-                                if (! alreadyRepaired[orthogonal[y][x]]) {
-                                    nextToNew.add(orthogonal[y][x]);
+        if (countOrthogonal > 1) {
+            let sizes = [];
+            for (let i = 0; i < countOrthogonal; i++) {
+                sizes.push(0);
+            }
+
+            for (let y = 0; y < this.HEIGHT; y++) {
+                for (let x = 0; x < this.WIDTH; x++) {
+                    if (orthogonal[y][x] !== -1) {
+                        sizes[orthogonal[y][x]] ++;
+                    }
+                }
+            }
+
+            let minIndex = 0;
+            let minSize = this.WIDTH * this.HEIGHT;
+            for (let i = 0; i < countOrthogonal; i++) {
+                if (sizes[i] < minSize) {
+                    minIndex = i;
+                    minSize = sizes[i];
+                }
+            }
+
+            let nextToMin = [];
+            for (let y = 0; y < this.HEIGHT; y++) {
+                for (let x = 0; x < this.WIDTH; x++) {
+                    if (orthogonal[y][x] === -1) {
+                        for (let dirY = -1; dirY <= 1; dirY++) {
+                            for (let dirX = -1; dirX <= 1; dirX++) {
+                                if ((dirX !== 0 || dirY !== 0) && (dirX === 0 || dirY === 0 || isDiagonal)) {
+                                    let newX = x + dirX;
+                                    let newY = y + dirY;
+                                    if (newX >= 0 && newX < this.WIDTH && newY >= 0 && newY < this.HEIGHT) {
+                                        if (orthogonal[newY][newX] === minIndex) {
+                                            nextToMin.push([x, y]);
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
+                }
+            }
 
-                    if (nextTo.size >= 2 && nextToNew.size >= 1 && Math.random() <= this.CHANCE_FILL_ORTHOGONAL || Math.random() <= this.CHANCE_FILL_ORTHOGONAL_RANDOM) {
-                        coral[startY][startX] = coralConst;
-                        // @ts-ignore
-                        nextToNew = Array.from(nextToNew);
-                        // @ts-ignore
-                        for (let i = 0; i < nextToNew.length; i++) {
-                            // @ts-ignore
-                            alreadyRepaired[nextToNew[i]] = true;
+            let randomNum = Math.floor(Math.random() * nextToMin.length);
+            let addPos = nextToMin[randomNum];
+            coral[addPos[1]][addPos[0]] ^= 3;
+        }
+
+        return coral;
+    }
+
+    private static getPriorityOne(square: number[][], coralConst: 1 | 2): boolean {
+        return this.countOrthogonal(this.getOrthogonal(square, coralConst)) <= 1;
+    }
+
+    private static getPriority(coral: number[][]): boolean[][] {
+        let priority: boolean[][] = [];
+        for (let y = 0; y < this.HEIGHT; y++) {
+            let row = [];
+            for (let x = 0; x < this.WIDTH; x++) {
+                // if ((this.RULE_ORTHOGONAL & coral[y][x]) !== 0 && (this.RULE_ORTHOGONAL_DIAGONAL & coral[y][x]) === 0) {
+                if (this.RULE_ORTHOGONAL_DIAGONAL === 0) {
+                    let square = [];
+                    for (let dirY = -1; dirY <= 1; dirY++) {
+                        let row = [];
+                        for (let dirX = -1; dirX <= 1; dirX++) {
+                            let newX = x + dirX;
+                            let newY = y + dirY;
+                            if (newX < 0 || newX >= this.WIDTH || newY < 0 || newY >= this.HEIGHT) {
+                                row.push(0);
+                            } else {
+                                row.push(coral[newY][newX]);
+                            }
+                        }
+                        square.push(row);
+                    }
+
+                    // @ts-ignore
+                    let before = this.getPriorityOne(square, coral[y][x]);
+
+                    square[1][1] ^= 3;
+
+                    // @ts-ignore
+                    let after = this.getPriorityOne(square, coral[y][x]);
+
+                    row.push(! before || after);
+                } else {
+                    row.push(true);
+                }
+            }
+
+            priority.push(row);
+        }
+
+        return priority;
+    }
+
+    private static repairOrthogonality(coral: number[][], coralConst: 1 | 2): number[][] {
+        let spaceConst = coralConst ^ 3;
+        let isDiagonal = (this.RULE_ORTHOGONAL_DIAGONAL & coralConst) !== 0;
+
+        let orthogonal = this.getOrthogonal(coral, coralConst);
+        if ((this.RULE_ORTHOGONAL_EDGE & coralConst) !== 0) {
+            orthogonal = this.getOrthogonalOnSides(orthogonal);
+        }
+        let countOrthogonal = this.countOrthogonal(orthogonal);
+
+        let priority = this.getPriority(coral);
+
+        let betweenPriority = [];
+        let betweenNormal = [];
+        for (let i = 0; i < countOrthogonal; i++) {
+            betweenPriority.push([]);
+            betweenNormal.push([]);
+        }
+
+        for (let y = 0; y < this.HEIGHT; y++) {
+            for (let x = 0; x < this.WIDTH; x++) {
+                if (coral[y][x] === spaceConst) {
+                    let nextTo = new Set();
+                    for (let dirY = -1; dirY <= 1; dirY++) {
+                        for (let dirX = -1; dirX <= 1; dirX++) {
+                            if ((dirX !== 0 || dirY !== 0) && (dirX === 0 || dirY === 0 || isDiagonal)) {
+                                let newX = x + dirX;
+                                let newY = y + dirY;
+                                if (newX >= 0 && newX < this.WIDTH && newY >= 0 && newY < this.HEIGHT) {
+                                    if (coral[newY][newX] === coralConst) {
+                                        nextTo.add(orthogonal[newY][newX]);
+                                    }
+                                }
+                            }
                         }
                     }
+                    if (nextTo.size >= 2) {
+                        // @ts-ignore
+                        let nextToArray = Array.from(nextTo);
+                        for (let i = 0; i < nextToArray.length; i++) {
+                            if (priority[y][x]) {
+                                // @ts-ignore
+                                betweenPriority[nextToArray[i]].push([x, y]);
+                            } else {
+                                // @ts-ignore
+                                betweenNormal[nextToArray[i]].push([x, y]);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        for (let i = 0; i < countOrthogonal; i++) {
+            if (Math.random() < this.CHANCE_FILL_ORTHOGONAL) {
+                if (betweenPriority[i].length > 0) {
+                    let randomNumber = Math.floor(Math.random() * betweenPriority[i].length);
+                    let chosen = betweenPriority[i][randomNumber];
+                    coral[chosen[1]][chosen[0]] ^= 3;
+                } else if (betweenNormal[i].length > 0) {
+                    let randomNumber = Math.floor(Math.random() * betweenNormal[i].length);
+                    let chosen = betweenNormal[i][randomNumber];
+                    coral[chosen[1]][chosen[0]] ^= 3;
                 }
             }
         }
@@ -255,125 +419,64 @@ class CoralGenerator {
     private static repairSquare(coral: number[][]): number[][] {
         for (let y = 0; y < this.HEIGHT - 1; y++) {
             for (let x = 0; x < this.WIDTH - 1; x++) {
-                if (coral[y][x] === 2 && coral[y][x + 1] === 2 && coral[y + 1][x] === 2 && coral[y + 1][x + 1] === 2 && Math.random() < this.CHANCE_REMOVE_SQUARE) {
+                let value = coral[y][x] & coral[y][x + 1] & coral[y + 1][x] & coral[y + 1][x + 1];
+                if (((value & this.RULE_SQUARE) !== 0 && Math.random() < this.CHANCE_REMOVE_SQUARE)) {
                     let relativeX = Math.floor(Math.random() * 2);
                     let relativeY = Math.floor(Math.random() * 2);
-                    coral[y + relativeY][x + relativeX] = 1;
+                    coral[y + relativeY][x + relativeX] ^= 3;
                 }
             }
         }
 
         return coral;
-    }
-
-    private static repairCycle(coral: number[][]): number[][] {
-        let already = [];
-        for (let y = 0; y < this.HEIGHT; y++) {
-            let row = [];
-            for (let x = 0; x < this.WIDTH; x++) {
-                row.push(false);
-            }
-            already.push(row);
-        }
-
-        for (let startY = 0; startY < this.HEIGHT; startY++) {
-            for (let startX = 0; startX < this.WIDTH; startX++) {
-                if (! already[startY][startX] && coral[startY][startX] === 2) {
-                    let deck = [[startX, startY, -1, -1]];
-                    while (deck.length > 0) {
-                        let x, y, prevX, prevY;
-                        // @ts-ignore
-                        [x, y, prevX, prevY] = deck.pop();
-                        if (coral[y][x] === 2) {
-                            if (already[y][x]) {
-                                if (prevX !== -1 && prevY !== -1) {
-                                    coral[prevY][prevX] = 1;
-                                }
-                            } else {
-                                already[y][x] = true;
-                                for (let dir = 0; dir < 4; dir++) {
-                                    let dirX, dirY;
-                                    [dirX, dirY] = [[-1, 0], [0, -1], [1, 0], [0, 1]][dir];
-                                    let newX = x + dirX;
-                                    let newY = y + dirY;
-                                    if (newX >= 0 && newX < this.WIDTH && newY >= 0 && newY < this.HEIGHT) {
-                                        if (coral[newY][newX] === 2) {
-                                            if (newX !== prevX || newY !== prevY) {
-                                                deck.push([newX, newY, x, y]);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return coral;
-    }
-
-    private static checkCycle(coral: number[][]): boolean {
-        let secondCoral = this.repairCycle(Utils.deepcopyArray2d(coral));
-
-        for (let y = 0; y < this.HEIGHT; y++) {
-            for (let x = 0; x < this.WIDTH; x++) {
-                if (coral[y][x] !== secondCoral[y][x]) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
     }
 
     private static repairAll(coral: number[][]): number[][] {
-        if (this.RULE_ORTHOGONAL) {
-            coral = this.repairOrthogonality(coral);
+        for (let coralConst = 1; coralConst <= 2; coralConst++) {
+            if ((this.RULE_ORTHOGONAL & coralConst) !== 0) {
+                // @ts-ignore
+                coral = this.repairSmallCoral(coral, coralConst);
+            }
+        }
+        for (let coralConst = 1; coralConst <= 2; coralConst++) {
+            if ((this.RULE_ORTHOGONAL & coralConst) !== 0) {
+                // @ts-ignore
+                coral = this.repairOrthogonality(coral, coralConst);
+            }
         }
 
-        if (this.RULE_SPACE_ORTHOGONAL) {
-            coral = this.repairOrthogonality(coral, true);
-        }
-
-        if (this.RULE_SQUARE) {
+        if (this.RULE_SQUARE !== 0) {
             coral = this.repairSquare(coral);
-        }
-
-        if (this.RULE_CYCLE) {
-            coral = this.repairCycle(coral);
         }
 
         return coral;
     }
 
     public static checkCoral(coral: number[][]): boolean {
-        if (this.RULE_ORTHOGONAL) {
-            if (this.countOrthogonal(this.getOrthogonal(coral)) !== 1) {
-                return false;
-            }
-        }
-
-        if (this.RULE_SPACE_ORTHOGONAL) {
-            if (this.countOrthogonal(this.getOrthogonalOnSides(this.getOrthogonal(coral, true))) !== 1) {
-                return false;
-            }
-        }
-
-        if (this.RULE_SQUARE) {
-            for (let y = 0; y < this.HEIGHT - 1; y++) {
-                for (let x = 0; x < this.WIDTH - 1; x++) {
-                    if (coral[y][x] === 2 && coral[y][x + 1] === 2 && coral[y + 1][x] === 2 && coral[y + 1][x + 1] === 2) {
+        for (let coralConst = 1; coralConst <= 2; coralConst++) {
+            if ((this.RULE_ORTHOGONAL & coralConst) !== 0) {
+                if ((this.RULE_ORTHOGONAL_EDGE & coralConst) !== 0) {
+                    // @ts-ignore
+                    if (this.countOrthogonal(this.getOrthogonalOnSides(this.getOrthogonal(coral, coralConst))) !== 1) {
+                        return false;
+                    }
+                } else {
+                    // @ts-ignore
+                    if (this.countOrthogonal(this.getOrthogonal(coral, coralConst)) !== 1) {
                         return false;
                     }
                 }
             }
         }
 
-        if (this.RULE_CYCLE) {
-            if (! this.checkCycle(coral)) {
-                return false;
+        if (this.RULE_SQUARE) {
+            for (let y = 0; y < this.HEIGHT - 1; y++) {
+                for (let x = 0; x < this.WIDTH - 1; x++) {
+                    let value = coral[y][x] & coral[y][x + 1] & coral[y + 1][x] & coral[y + 1][x + 1];
+                    if ((value & this.RULE_SQUARE) !== 0) {
+                        return false;
+                    }
+                }
             }
         }
 
@@ -381,20 +484,12 @@ class CoralGenerator {
     }
 
     private static checkRules(): void {
-        if (this.RULE_CYCLE) {
-            if (! this.RULE_SQUARE) {
-                throw "CoralGenerator->checkRule - RULE_CYCLE REQUIRES RULE_SQUARE";
-            }
-        }
-
-        if (this.RULE_SPACE_ORTHOGONAL && this.RULE_SQUARE) {
-            if (! this.RULE_CYCLE) {
-                throw "CoralGenerator->checkRule - RULE_SPACE_ORTHOGONAL + RULE_SQUARE REQUIRES RULE_CYCLE";
-            }
+        if (! this.areRulesSet) {
+            throw "CoralGenerator->checkRules - RULES ARE NOT SET";
         }
     }
 
-    private static checkCoralEverywhere(coral: number[][]): boolean {
+    private static checkIsCoralEverywhere(coral: number[][]): boolean {
         for (let y = 0; y < this.HEIGHT; y++) {
             let hasCoral = false;
             for (let x = 0; x < this.WIDTH; x++) {
@@ -402,7 +497,7 @@ class CoralGenerator {
                     hasCoral = true;
                 }
             }
-            if (! hasCoral) {
+            if (!hasCoral) {
                 return false;
             }
         }
@@ -433,21 +528,28 @@ class CoralGenerator {
             coral = this.createRandomCoral();
 
             for (let j = 0; j < this.MAX_CHANGE_TRIES; j++) {
-                coral = this.repairAll(coral);
+                let previous = Utils.deepcopyArray2d(coral);
 
                 if (this.checkCoral(coral)) {
+                    let isOk = true;
                     if (doCheckEverywhere) {
-                        if (! this.checkCoralEverywhere(coral)) {
-                            return null;
+                        if (! this.checkIsCoralEverywhere(coral)) {
+                            isOk = false;
                         }
                     }
-                    if (this.doLog) {
-                        console.log(i, j, "(" + (i * this.MAX_CHANGE_TRIES + j).toString() + ")");
+                    if (isOk) {
+                        if (this.doLog) {
+                            console.log(i + " " + j + " " + "(" + (i * this.MAX_CHANGE_TRIES + j).toString() + ")");
+                        }
+                        return coral;
                     }
-                    return coral;
                 }
-            }
 
+                coral = this.repairAll(coral);
+
+                // this.render(coral, previous);
+                // this.renderPriority(coral, this.getPriority(coral));
+            }
         }
 
         return null;

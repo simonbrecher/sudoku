@@ -180,14 +180,15 @@ class CoralBuilder {
 
     public static main(): void {
         let showSolution = false;
-        let isSorted = true;
-        let removePromters = true;
+        let isSorted = false;
+        let removePromters = false;
+        this.page([2, 1, 1], [30, 30], isSorted, removePromters, showSolution)
         // this.page([1, 1, 1], [6, 6], isSorted, removePromters, showSolution);
-        this.page([1, 4, 3], [6, 6], isSorted, removePromters, showSolution);
-        this.page([1, 3, 2], [7, 7], isSorted, removePromters, showSolution);
-        this.page([1, 3, 2], [8, 8], isSorted, removePromters, showSolution);
-        this.page([1, 2, 1], [10, 10], isSorted, removePromters, showSolution);
-        this.page([1, 2, 1], [11, 11], isSorted, removePromters, showSolution);
+        // this.page([1, 4, 3], [6, 6], isSorted, removePromters, showSolution);
+        // this.page([1, 3, 2], [7, 7], isSorted, removePromters, showSolution);
+        // this.page([1, 3, 2], [8, 8], isSorted, removePromters, showSolution);
+        // this.page([1, 2, 1], [10, 10], isSorted, removePromters, showSolution);
+        // this.page([1, 2, 1], [11, 11], isSorted, removePromters, showSolution);
         // this.page([1, 2, 1], [12, 12], isSorted, removePromters, showSolution);
         // this.page([1, 2, 1], [13, 13], isSorted, removePromters, showSolution);
         // this.page([1, 2, 1], [14, 14], isSorted, removePromters, showSolution);

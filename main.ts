@@ -72,20 +72,24 @@ function main(): void {
 
     // ---
 
-    // // Coral (structure, not puzzle)
-    // CoralGenerator.typeTapa();
-    // CoralGenerator.doLog = true;
-    // // CoralGenerator.typeTapa();
-    // // CoralGenerator.typeSlitherlink();
-    // let then = (new Date).getTime();
-    // let coral = CoralGenerator.createCoral(60, 60);
-    // let now = (new Date).getTime();
-    // console.log(now - then + "ms");
-    // CoralGenerator.render(coral);
+    // Coral (structure, not puzzle)
+    // CoralGenerator.typeCoral();
+    CoralGenerator.doLog = true;
+    CoralGenerator.typeTapa();
+    // CoralGenerator.typeSlitherlink();
+    let then, coral, now;
+
+    let size = [100, 100];
+
+    then = (new Date).getTime();
+    coral = CoralGenerator.createCoral(size[0], size[1]);
+    now = (new Date).getTime();
+    console.log(now - then + "ms");
+    CoralGenerator.render(coral);
 
     // ---
 
-    // Coral
-    CoralBuilder.main();
-    // CoralSolver.main();
+    // // Coral
+    // CoralBuilder.main();
+    // // CoralSolver.main();
 }
