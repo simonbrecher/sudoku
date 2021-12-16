@@ -138,7 +138,7 @@ class TapaBuilder {
             let now = (new Date).getTime();
             console.log(now - then +  "ms");
 
-            this.renderBig(tapa.board, tapa.task, tapa);
+            // this.renderBig(tapa.board, tapa.task, tapa);
 
             return tapa;
         }
