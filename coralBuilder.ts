@@ -102,7 +102,7 @@ class CoralBuilder {
 
     private static buildTry(width: number, height: number, isSorted: boolean): ICoral | null {
         CoralGenerator.typeCoral();
-        let solution = CoralGenerator.createCoral(width, height);
+        let solution = CoralGenerator.build(width, height);
         return solution !== null ? new Coral(width, height, isSorted, solution): null;
     }
 

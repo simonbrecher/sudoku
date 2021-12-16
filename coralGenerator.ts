@@ -275,14 +275,16 @@ class CoralGenerator {
             for (let y = 0; y < this.HEIGHT; y++) {
                 for (let x = 0; x < this.WIDTH; x++) {
                     if (orthogonal[y][x] === -1) {
+                        let isAlready = false;
                         for (let dirY = -1; dirY <= 1; dirY++) {
                             for (let dirX = -1; dirX <= 1; dirX++) {
                                 if ((dirX !== 0 || dirY !== 0) && (dirX === 0 || dirY === 0 || isDiagonal)) {
                                     let newX = x + dirX;
                                     let newY = y + dirY;
                                     if (newX >= 0 && newX < this.WIDTH && newY >= 0 && newY < this.HEIGHT) {
-                                        if (orthogonal[newY][newX] === minIndex) {
+                                        if (orthogonal[newY][newX] === minIndex && ! isAlready) {
                                             nextToMin.push([x, y]);
+                                            isAlready = true
                                         }
                                     }
                                 }
@@ -517,7 +519,7 @@ class CoralGenerator {
         return true;
     }
 
-    public static createCoral(width: number, height: number, doCheckEverywhere: boolean = true): number[][] | null{
+    public static build(width: number, height: number, doCheckEverywhere: boolean = true): number[][] | null{
         this.checkRules();
 
         this.WIDTH = width;

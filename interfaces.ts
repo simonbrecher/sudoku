@@ -24,3 +24,12 @@ interface ICoral {
     solution: number[][];
     board: number[][];
 }
+
+interface ITapa {
+    width: number;
+    height: number;
+
+    task: (number[] | null)[][];
+    solution: number[][];
+    board: number[][];
+}

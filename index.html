@@ -50,6 +50,17 @@
         table.coral-table div.text-small { font-size: 9px; }
         table.coral-table div.black { background-color: #000; }
 
+        table.tapa-table { border-collapse: collapse; float: left; margin: 20px; }
+        table.tapa-table td { border: 1px #000 solid; padding: 0; }
+        /*table.tapa-table div.square { text-align: center; width: 15px; height: 15px; line-height: 15px; font-size: 9px; }*/
+        table.tapa-table div.square { text-align: center; width: 28px; height: 28px; line-height: 28px; font-size: 15px; }
+        table.tapa-table div.black { background-color: #000; }
+        table.tapa-table div.orange { background-color: #FDB; }
+        table.tapa-table div.red { background-color: #FBB; }
+        hr.page-break-tapa { page-break-after: always; } /* 40 */
+        /*div.wrapper { border: 1px red dashed; }*/
+        /*hr.clear { clear: both; }*/
+
         table.red { background-color: #FDD; }
         table.green { background-color: #DFD; }
     </style>
@@ -65,6 +76,10 @@
     <script src="coral.js"></script>
     <script src="coralBuilder.js"></script>
     <script src="coralSolver.js"></script>
+    <script src="tapa.js"></script>
+    <script src="tapaBuilder.js"></script>
+    <script src="tapaSolver.js"></script>
+    <script src="tapaPuzzleBuilder.js"></script>
     <script src="utils.js"></script>
 </head>
 <body onload="main()">

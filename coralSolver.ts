@@ -403,7 +403,7 @@ class CoralSolver {
         let solution = null;
         CoralGenerator.typeCoral();
         while (solution === null) {
-            solution = CoralGenerator.createCoral(width, height);
+            solution = CoralGenerator.build(width, height);
         }
         let coral = new Coral(width, height, isSorted, solution);
         this.countSolutions(coral.task, coral);
