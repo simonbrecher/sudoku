@@ -1,4 +1,6 @@
 class TapaSolver {
+    public static depths: number[];
+
     private static solveNumberToEmpty(board: number[][], task: (number[] | null)[][], parent: ITapa): number[][] {
         for (let y = 0; y < parent.height; y++) {
             for (let x = 0; x < parent.width; x++) {
@@ -383,7 +385,7 @@ class TapaSolver {
         return board;
     }
 
-    private static countUnsolvedSquares(board: number[][], parent: ITapa): number {
+    public static countUnsolvedSquares(board: number[][], parent: ITapa): number {
         let unsolvedSquares = 0;
         for (let y = 0; y < parent.height; y++) {
             for (let x = 0; x < parent.width; x++) {
@@ -416,13 +418,13 @@ class TapaSolver {
 
         let now = (new Date).getTime();
 
-        console.log(count, now - then + "ms");
+        // console.log(count, now - then + "ms");
 
         return board;
     }
 
     public static countSolutions(solution: number[][], task: (number[] | null)[][], parent: ITapa): number {
-        let solvedSolution = this.solve(Utils.deepcopyArray2d(solution), parent.task, parent);
+        let solvedSolution = this.solve(Utils.deepcopyArray2d(solution), task, parent);
 
         let orthogonalCountBlack = this.countOrthogonal(this.getOrthogonal(solvedSolution, 2, parent), parent);
         let orthogonalCountWhite = this.countOrthogonal(this.getOrthogonalOnSides(this.getOrthogonal(solvedSolution, 1, parent), parent), parent);
@@ -449,5 +451,87 @@ class TapaSolver {
         } else {
             return 2;
         }
+    }
+
+    private static getSplitOrder(task: (number[] | null)[][], parent: ITapa): number[][] {
+        let order = [];
+        for (let y = 0; y < parent.height; y++) {
+            for (let x = 0; x < parent.width; x++) {
+                let hasPriority = false;
+                for (let dirY = -1; dirY <= 1; dirY++) {
+                    for (let dirX = -1; dirX <= 1; dirX++) {
+                        if (dirX !== 0 || dirY !== 0) {
+                            let newX = x + dirX;
+                            let newY = y + dirY;
+                            if (newX >= 0 && newX < parent.width && newY >= 0 && newY < parent.height) {
+                                if (task[newY][newX] !== null) {
+                                    hasPriority = true;
+                                }
+                            }
+                        }
+                    }
+                }
+                if (hasPriority) {
+                    order.push([x, y]);
+                }
+            }
+        }
+
+        for (let y = 0; y < parent.height; y++) {
+            for (let x = 0; x < parent.width; x++) {
+                order.push([x, y]);
+            }
+        }
+
+        return order;
+    }
+
+    public static splitSolve(inputBoard: number[][], task: (number[] | null)[][], parent: ITapa, depth = 0): number {
+        let board = Utils.deepcopyArray2d(inputBoard);
+        let solutionCount = this.countSolutions(board, task, parent);
+
+        // TapaBuilder.render(board, task, parent, true, true);
+        // TapaBuilder.render(this.solve(board, task, parent), task, parent, true, true);
+        // console.log(board);
+        // console.log("depth", depth, solutionCount);
+
+        if (depth === 0) {
+            this.depths = [1];
+        } else {
+            if (depth < this.depths.length) {
+                this.depths[depth] ++;
+                if (this.depths[depth] > 100) {
+                    return 2;
+                }
+            } else {
+                this.depths.push(1);
+            }
+        }
+
+        if (solutionCount <= 1) {
+            return solutionCount;
+        }
+
+        let splitSolutionCount = 0;
+        let order = this.getSplitOrder(task, parent);
+        for (let i = 0; i < order.length; i++) {
+            let x = order[i][0];
+            let y = order[i][1];
+            if (board[y][x] === 3) {
+                board[y][x] = 1;
+                splitSolutionCount += this.splitSolve(board, task, parent, depth + 1);
+
+                if (splitSolutionCount == 2) {
+                    return 2;
+                }
+
+                board[y][x] = 2;
+                splitSolutionCount += this.splitSolve(board, task, parent, depth + 1);
+
+                return Math.min(splitSolutionCount, 2);
+            }
+        }
+
+        throw "TapaSolver->splitSolve - DID NOT FIND SQUARE TO SPLIT"
     }
 }

@@ -85,7 +85,75 @@ class TapaBuilder {
         return Utils.shuffle(prompters);
     }
 
-    private static getTask(parent: ITapa): (number[] | null)[][] {
+    private static setTaskFirst(parent: ITapa): (number[] | null)[][] {
+        let task = parent.task;
+        let oldTask = parent.task;
+
+        let order = this.getPrompterRandomOrder(task, parent);
+
+        for (let y = 0; y < parent.height; y++) {
+            for (let x = 0; x < parent.width; x++) {
+                task[y][x] = null;
+            }
+        }
+
+        for (let i = 0; i < order.length; i++) {
+            let removeX = order[i][0];
+            let removeY = order[i][1];
+            let canBeAdded = true;
+            for (let dirY = -1; dirY <= 1; dirY++) {
+                for (let dirX = -1; dirX <= 1; dirX++) {
+                    if (dirX !== 0 || dirY !== 0) {
+                        let newX = removeX + dirX;
+                        let newY = removeY + dirY;
+                        if (newX >= 0 && newX < parent.width && newY >= 0 && newY < parent.height) {
+                            if (task[newY][newX] !== null) {
+                                canBeAdded = false;
+                            }
+                        }
+                    }
+                }
+            }
+            if (canBeAdded) {
+                task[removeY][removeX] = oldTask[removeY][removeX];
+            }
+        }
+
+        return task;
+
+        // // this.render(parent.board, task, parent, true, true);
+        // // this.render(TapaSolver.solve(parent.board, task, parent), task, parent, true, true);
+        //
+        // for (let i = 0; i < order.length; i++) {
+        //     let solutionCount = TapaSolver.splitSolve(parent.board, task, parent);
+        //     console.log(TapaSolver.depths);
+        //     console.log("setTaskFirst", solutionCount);
+        //     // this.render(parent.board, task, parent);
+        //     if (solutionCount === 0) {
+        //         throw "TapaBuilder->setTaskFirst - SOLUTION COUNT == 0"
+        //     } else if (solutionCount === 1) {
+        //         parent.task = task;
+        //         return;
+        //     }
+        //
+        //     let removeX = order[i][0];
+        //     let removeY = order[i][1];
+        //     task[removeY][removeX] = oldTask[removeY][removeX]
+        // }
+    }
+
+    private static getTask(parent: ITapa): (number[] | null)[][] | null {
+        parent.task = this.setTaskFirst(parent);
+
+        if (TapaSolver.splitSolve(parent.board, parent.task, parent) > 1) {
+            return null;
+        }
+        let countUnsolved = TapaSolver.countUnsolvedSquares(TapaSolver.solve(parent.board, parent.task, parent), parent);
+        if (countUnsolved < parent.width * parent.height / 2) {
+            return null;
+        }
+        console.log(TapaSolver.countUnsolvedSquares(TapaSolver.solve(parent.board, parent.task, parent), parent));
+
         let task = parent.task;
         let order = this.getPrompterRandomOrder(task, parent);
 
@@ -124,29 +192,58 @@ class TapaBuilder {
         let then = (new Date).getTime();
 
         CoralGenerator.typeTapa();
-        let coral = CoralGenerator.build(width, height);
-        if (coral !== null) {
-            let tapa = new Tapa(width, height, coral);
+        while (true) {
 
-            // this.render(tapa.board, tapa.task, tapa);
-            // this.breakPage();
+            let coral = CoralGenerator.build(width, height);
+            if (coral !== null) {
+                let tapa = new Tapa(width, height, coral);
 
-            tapa.task = this.getTask(tapa);
+                // this.render(tapa.board, tapa.task, tapa);
+                // this.breakPage();
 
-            // this.render(tapa.board, tapa.task, tapa);
+                let task = this.getTask(tapa);
 
-            let now = (new Date).getTime();
-            console.log(now - then +  "ms");
+                if (task !== null) {
 
-            // this.renderBig(tapa.board, tapa.task, tapa);
+                    tapa.task = task;
 
-            return tapa;
+                    // this.render(tapa.board, tapa.task, tapa);
+
+                    let now = (new Date).getTime();
+                    console.log(now - then + "ms");
+
+                    this.renderBig(tapa.board, tapa.task, tapa);
+
+                    return tapa;
+
+                }
+                console.log("NOT");
+            }
         }
 
         return null;
     }
 
     public static main(): void {
+        let then = (new Date).getTime();
+        for (let i = 0; i < 24; i++) {
+            if (i % 12 == 0) {
+                this.breakPage();
+            }
+            let now = (new Date).getTime();
+            console.log(9, i, Math.ceil((now - then) / 1000) + "s");
+            this.build(9, 9);
+        }
+        then = (new Date).getTime();
+        for (let i = 0; i < 24; i++) {
+            if (i % 12 == 0) {
+                this.breakPage();
+            }
+            let now = (new Date).getTime();
+            console.log(10, i, Math.ceil((now - then) / 1000) + "s");
+            this.build(10, 10);
+        }
+
         // this.build(10, 10);
         // this.breakPage();
         // for (let i = 0; i < 12; i++) {
@@ -159,7 +256,6 @@ class TapaBuilder {
         // }
         // this.breakPage();
         // this.build(30, 30);
-        this.build(9, 9);
         // this.breakPage();
         // this.build(40, 40);
         // this.breakPage();

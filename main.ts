@@ -96,7 +96,7 @@ function main(): void {
     // ---
 
     // Tapa
-    // TapaBuilder.main();
+    TapaBuilder.main();
     // TapaSolver.main();
-    TapaPuzzleBuilder.main();
+    // TapaPuzzleBuilder.main();
 }
