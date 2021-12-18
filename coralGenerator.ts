@@ -15,7 +15,7 @@ class CoralGenerator {
 
     public static areRulesSet = false;
 
-    // for coral (fast up to 20x20)
+    // for coral (fast up to 100x100)
     public static typeCoral(): void {
         this.START_CHANCE_FULL = 0.5;
         this.CHANCE_FILL_ORTHOGONAL = 0.8;
@@ -29,7 +29,7 @@ class CoralGenerator {
         this.areRulesSet = true;
     }
 
-    // for tapa (fast up to 200x200)
+    // for tapa (fast up to 100x100)
     public static typeTapa(): void {
         this.START_CHANCE_FULL = 0.3;
         this.CHANCE_FILL_ORTHOGONAL = 0.9;
@@ -43,7 +43,7 @@ class CoralGenerator {
         this.areRulesSet = true;
     }
 
-    // for slitherlink (fast up to 40x40)
+    // for slitherlink (fast up to 100x100)
     public static typeSlitherlink(): void {
         this.START_CHANCE_FULL = 0.5;
         this.CHANCE_FILL_ORTHOGONAL = 0.7;
