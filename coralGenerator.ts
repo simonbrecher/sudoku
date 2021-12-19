@@ -506,7 +506,7 @@ class CoralGenerator {
 
         for (let x = 0; x < this.WIDTH; x++) {
             let hasCoral = false;
-            for (let y = 0; y < this.WIDTH; y++) {
+            for (let y = 0; y < this.HEIGHT; y++) {
                 if (coral[y][x] === 2) {
                     hasCoral = true;
                 }
