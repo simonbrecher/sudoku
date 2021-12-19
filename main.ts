@@ -96,7 +96,14 @@ function main(): void {
     // ---
 
     // Tapa
-    TapaBuilder.main();
+    // TapaBuilder.main();
     // TapaSolver.main();
     // TapaPuzzleBuilder.main();
+
+    // ---
+
+    // Slitherlink
+    // Slitherlink.main();
+    // SlitherlinkSolver.main();
+    SlitherlinkBuilder.main();
 }

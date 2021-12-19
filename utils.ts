@@ -202,6 +202,18 @@ class Utils {
         return copied;
     }
 
+    public static deepcopy(value: any): any {
+        if (typeof value === "object") {
+            let output = [];
+            for (let i = 0; i < value.length; i++) {
+                output.push(this.deepcopy(value[i]));
+            }
+            return output;
+        } else {
+            return value;
+        }
+    }
+
     public static valueToChar(value: number, parent: ISudoku): string {
         if (parent.isABC) {
             return ["-", "A", "B", "C", "D", "E", "F", "G", "H", "I"][value - 1];

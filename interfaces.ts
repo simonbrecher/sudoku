@@ -33,3 +33,21 @@ interface ITapa {
     solution: number[][];
     board: number[][];
 }
+
+interface ISlitherlink {
+    width: number;
+    height: number;
+
+    coral: number[][];
+    task: (number | null)[][];
+    squares: boolean[][][];
+    crosses: boolean[][][];
+
+    updateArrays: () => void;
+    countAllPossible: () => number;
+    countSolutions: () => number;
+    getLines: () => number[][][];
+
+    renderCount: () => void;
+    render: (isSolved: boolean, isEmpty: boolean) => void;
+}
