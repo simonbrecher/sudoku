@@ -289,14 +289,14 @@ class SudokuBuilder {
             }
 
             if (this._prompterNumMin !== null) {
-                if (Utils.getPrompterNum(task) < this._prompterNumMin) {
+                if (Utils.getPrompterNum(task) <= this._prompterNumMin) {
                     return task;
                 }
             }
         }
 
         if (this._prompterNumMax !== null) {
-            if (Utils.getPrompterNum(task) > this._prompterNumMax) {
+            if (Utils.getPrompterNum(task) >= this._prompterNumMax) {
                 this.STATS.addTaskTries();
                 return null;
             }

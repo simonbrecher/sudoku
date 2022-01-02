@@ -1,4 +1,6 @@
 class SlitherlinkSolver {
+    public static doLog = false;
+
     private static getTwoFromNeighbour(possible: boolean[], first: number, second: number): boolean[] {
         let possibleTwo = [];
         for (let i = 0; i < 4; i++) {
@@ -77,11 +79,39 @@ class SlitherlinkSolver {
         while (missingCount !== previousMissingCount) {
             this.solveAll(parent);
             // parent.renderCount();
-            // parent.render(true);
+            if (this.doLog) {
+                parent.render(true, false);
+            }
 
             previousMissingCount = missingCount;
             missingCount = parent.countAllPossible();
         }
+    }
+
+    public static countCanAdd(parent: ISlitherlink): number {
+        let previousMissingCount = null;
+        let missingCount = parent.countAllPossible();
+        while (missingCount !== previousMissingCount) {
+            this.solveAll(parent);
+
+            previousMissingCount = missingCount;
+            missingCount = parent.countAllPossible();
+
+            let lines = parent.getLines();
+            for (let i = 0; i < lines.length; i++) {
+                for (let j = 0; j < lines[i].length; j++) {
+                    for (let k = 0; k < lines[i][j].length; k++) {
+                        if (lines[i][j][k] === 0) {
+                            return 0;
+                        } else if (lines[i][j][k] !== 3) {
+                            return 1;
+                        }
+                    }
+                }
+            }
+        }
+
+        return 2;
     }
 
     public static main(): void {

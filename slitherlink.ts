@@ -9,13 +9,35 @@ class Slitherlink implements ISlitherlink {
     private lastPrintedSquares: null | boolean[][][] = null;
     private lastPrintedCrosses: null | boolean[][][] = null;
 
-    constructor(width: number, height: number, coral: number[][]) {
+    constructor(width: number, height: number, coral: number[][] | null) {
         this.width = width;
         this.height = height;
-        this.coral = Utils.deepcopyArray2d(coral);
-        this.task = this.createTask();
-        this.squares = this.createSquares();
-        this.crosses = this.createCrosses();
+        if (coral !== null) {
+            this.coral = Utils.deepcopyArray2d(coral);
+            this.task = this.createTask();
+            this.squares = this.createSquares();
+            this.crosses = this.createCrosses();
+        } else {
+            this.coral = Utils.createArray2d(width, height, 1);
+            this.task = Utils.createArray2d(width, height, null);
+            this.squares = Utils.createArray3d(width, height, 16, false);
+            this.crosses = Utils.createArray3d(width + 1, height + 1, 16, false);
+        }
+    }
+
+    public setTask(inputTask: string[]): void {
+        for (let y = 0; y < this.height; y++) {
+            for (let x = 0; x < this.width; x++) {
+                let value = inputTask[y][x];
+                if (value === "x") {
+                    this.task[y][x] = null;
+                } else {
+                    this.task[y][x] = parseInt(inputTask[y][x]);
+                }
+            }
+        }
+
+        this.updateArrays();
     }
 
     public updateArrays(): void {
@@ -54,6 +76,19 @@ class Slitherlink implements ISlitherlink {
         return possibleCount;
     }
 
+    public countPrompters(): number {
+        let total = 0;
+        for (let y = 0; y < this.height; y++) {
+            for (let x = 0; x < this.width; x++) {
+                if (this.task[y][x] !== null) {
+                    total ++;
+                }
+            }
+        }
+
+        return total;
+    }
+
     public countAllPossible(): number {
         let total = 0;
         for (let y = 0; y < this.height + 1; y++) {
@@ -66,6 +101,14 @@ class Slitherlink implements ISlitherlink {
         }
 
         return total;
+    }
+
+    public deleteTask(): void {
+        for (let y = 0; y < this.height; y++) {
+            for (let x = 0; x < this.width; x++) {
+                this.task[y][x] = null;
+            }
+        }
     }
 
     public countSolutions(): number {
@@ -179,7 +222,8 @@ class Slitherlink implements ISlitherlink {
                     squareDiv.textContent = prompter.toString();
                 }
 
-                if (isSolved && lines !== null) {
+                if (isSolved || isEmpty) {
+                    // @ts-ignore
                     this.setBorderColor(column, x, y, lines, isEmpty);
                 } else {
                     let value = this.coral[y][x];
@@ -198,25 +242,25 @@ class Slitherlink implements ISlitherlink {
                 }
 
                 let diagonal = document.createElement("div");
-                diagonal.classList.add("diagonal-black");
-                diagonal.classList.add("diagonal-black-top-left");
+                diagonal.classList.add("diagonal-small");
+                diagonal.classList.add("diagonal-small-top-left");
                 column.appendChild(diagonal);
                 if (x === this.width - 1) {
                     let diagonal2 = document.createElement("div");
-                    diagonal2.classList.add("diagonal-black");
-                    diagonal2.classList.add("diagonal-black-top-right");
+                    diagonal2.classList.add("diagonal-small");
+                    diagonal2.classList.add("diagonal-small-top-right");
                     column.appendChild(diagonal2);
                 }
                 if (y === this.height - 1) {
                     let diagonal2 = document.createElement("div");
-                    diagonal2.classList.add("diagonal-black");
-                    diagonal2.classList.add("diagonal-black-bottom-left");
+                    diagonal2.classList.add("diagonal-small");
+                    diagonal2.classList.add("diagonal-small-bottom-left");
                     column.appendChild(diagonal2);
                 }
                 if (x === this.width - 1 && y === this.height - 1) {
                     let diagonal2 = document.createElement("div");
-                    diagonal2.classList.add("diagonal-black");
-                    diagonal2.classList.add("diagonal-black-bottom-right");
+                    diagonal2.classList.add("diagonal-small");
+                    diagonal2.classList.add("diagonal-small-bottom-right");
                     column.appendChild(diagonal2);
                 }
             }
@@ -254,10 +298,7 @@ class Slitherlink implements ISlitherlink {
         }
     }
 
-    private getColorClassForLines(value: number, isEmpty: boolean): string {
-        if (isEmpty) {
-            return "white";
-        }
+    private getColorClassForLines(value: number): string {
         switch (value) {
             case 1: {
                 return "white";
@@ -275,10 +316,10 @@ class Slitherlink implements ISlitherlink {
     }
 
     private setBorderColor(td: HTMLTableDataCellElement, x: number, y: number, lines: number[][][], isEmpty: boolean): void {
-        td.classList.add(`border-top-${this.getColorClassForLines(lines[0][y][x], isEmpty)}`);
-        td.classList.add(`border-right-${this.getColorClassForLines(lines[1][y][x + 1], isEmpty)}`);
-        td.classList.add(`border-bottom-${this.getColorClassForLines(lines[0][y + 1][x], isEmpty)}`);
-        td.classList.add(`border-left-${this.getColorClassForLines(lines[1][y][x], isEmpty)}`);
+        td.classList.add(`border-top-${isEmpty ? "white" : this.getColorClassForLines(lines[0][y][x])}`);
+        td.classList.add(`border-right-${isEmpty ? "white" : this.getColorClassForLines(lines[1][y][x + 1])}`);
+        td.classList.add(`border-bottom-${isEmpty ? "white" : this.getColorClassForLines(lines[0][y + 1][x])}`);
+        td.classList.add(`border-left-${isEmpty ? "white" : this.getColorClassForLines(lines[1][y][x])}`);
     }
 
     public renderCount(): void {

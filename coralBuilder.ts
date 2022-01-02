@@ -88,6 +88,7 @@ class CoralBuilder {
                         // nothing
                     } else if (board[y - extraHeight][x - extraWidth] === 2) {
                         squareDiv.classList.add("black");
+                        squareDiv.textContent = "X";
                     } else if (board[y - extraHeight][x - extraWidth] === 3) {
                         if (showEmpty) {
                             squareDiv.textContent = "?";

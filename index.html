@@ -14,23 +14,23 @@
         table.board-table div.square-inner { float: left; }
         table.board-table td.unsolved div { color: #AAA ; }
         @media print {
-            hr.page-break { page-break-before: always; margin-bottom: 35px; } /* 40 */
+            hr.page-break { page-break-before: always; margin-bottom: 0; } /* 40 */
             div.left-margin { width: 20px; height: 10px; float: left; }
         }
-        hr.page-break { page-break-before: always; margin-bottom: 35px; border: 1px white solid; } /* 40 */
+        hr.page-break { page-break-before: always; margin-bottom: 0; border: 1px white solid; } /* 40 */
         table.board-table div.orthogonal { position: absolute; background-color: #FFF; border: none; }
         table.board-table div.orthogonal-white { background-color: #FFF; border: 1px #000 solid; }
         table.board-table div.orthogonal-black { background-color: #000; border: 1px #000 solid; }
 
-        table.mastermind-table { border-collapse: collapse; float: left; margin-left: 50px; margin-bottom: 20px; }
+        table.mastermind-table { border-collapse: collapse; float: left; margin-right: 50px; margin-bottom: 20px; }
         table.mastermind-table tr:last-child td { border-top-width: 3px; }
         table.mastermind-table td { border: 1px #000 solid; padding: 0; }
         table.mastermind-table div { text-align: center; }
         table.mastermind-table div.black-point { background-color: #000; }
         table.mastermind-table div.white-point { background-color: #FFF; }
-        table.mastermind-table div.square-full { width: 34px; height: 40px; }
-        table.mastermind-table div.square-with-text { line-height: 40px; font-size: 24px; }
-        table.mastermind-table div.square-inner { width: 10px; height: 10px; margin: 14px 11px; border: 1px solid #000; position: absolute; }
+        table.mastermind-table div.square-full { width: 28px; height: 32px; }
+        table.mastermind-table div.square-with-text { line-height: 32px; font-size: 19px; }
+        table.mastermind-table div.square-inner { width: 8px; height: 8px; margin: 11px 9px; border: 1px solid #000; position: absolute; }
 
         table.coral-structure-table { border-collapse: collapse; float: left; margin: 10px; }
         table.coral-structure-table td { border: 1px #000 solid; padding: 0; }
@@ -46,15 +46,21 @@
         table.coral-table td.border-right { border-right-width: 3px; }
         table.coral-table td.border-top { border-top-width: 3px; }
         table.coral-table td.border-bottom { border-bottom-width: 3px; }
-        table.coral-table div.square { text-align: center; width: 25px; height: 25px; line-height: 25px; font-size: 18px; }
+        table.coral-table div.square { text-align: center; width: 23px; height: 23px; line-height: 23px; font-size: 17px; }
         table.coral-table div.text-small { font-size: 9px; }
         table.coral-table div.black { background-color: #000; }
+        @media print {
+            table.coral-table div.black { background-color: #FFF; color: #000; }
+        }
 
         table.tapa-table { border-collapse: collapse; float: left; margin: 10px; }
         table.tapa-table td { border: 1px #000 solid; padding: 0; }
-        /*table.tapa-table div.square { text-align: center; width: 15px; height: 15px; line-height: 15px; font-size: 9px; }*/
-        table.tapa-table div.square { text-align: center; width: 20px; height: 20px; line-height: 20px; font-size: 10px; }
+        table.tapa-table div.square { text-align: center; width: 30px; height: 30px; line-height: 30px; font-size: 15px; }
+        /*table.tapa-table div.square { text-align: center; width: 20px; height: 20px; line-height: 20px; font-size: 10px; }*/
         table.tapa-table div.black { background-color: #000; }
+        @media print {
+            table.tapa-table div.black { background-color: #FFF; color: #000; }
+        }
         table.tapa-table div.orange { background-color: #FDB; }
         table.tapa-table div.red { background-color: #FBB; }
         hr.page-break-tapa { page-break-after: always; } /* 40 */

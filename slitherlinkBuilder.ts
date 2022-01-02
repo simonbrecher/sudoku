@@ -11,6 +11,8 @@ class SlitherlinkBuilder {
     }
 
     public static build(width: number, height: number): ISlitherlink {
+        CoralGenerator.typeSlitherlink();
+
         let then = (new Date).getTime();
 
         let coral = CoralGenerator.build(width, height);
@@ -37,6 +39,7 @@ class SlitherlinkBuilder {
             }
         }
 
+        slitherlink.updateArrays();
         SlitherlinkSolver.solve(slitherlink);
 
         let now = (new Date).getTime();
@@ -48,12 +51,32 @@ class SlitherlinkBuilder {
     public static main() {
         CoralGenerator.typeSlitherlink();
 
-        for (let i = 0; i < 36; i++) {
-            if (i % 6 === 0) {
-                TapaBuilder.breakPage();
-            }
-            let slitherlink = this.build(10, 10);
-            slitherlink.render(true, true);
-        }
+        let slitherlink;
+
+        let task = [
+            "xx2xxx2x",
+            "113x23xx",
+            "212x2x3x",
+            "2x2x2x2x",
+            "xxx32xx2",
+            "x322x1xx",
+            "302xx002",
+            "xxx1xxxx",
+        ];
+
+        slitherlink = this.build(8, 8);
+        SlitherlinkSolver.doLog = true;
+        slitherlink.setTask(task);
+        SlitherlinkSolver.solve(slitherlink);
+
+        slitherlink.render(true, true);
+
+        // for (let i = 0; i < 72; i++) {
+        //     if (i % 12 === 0 && i !== 0) {
+        //         TapaBuilder.breakPage();
+        //     }
+        //     slitherlink = this.build(10, 10);
+        //     slitherlink.render(true, true);
+        // }
     }
 }

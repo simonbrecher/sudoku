@@ -47,6 +47,7 @@ class TapaBuilder {
                 } else if (board[y][x] === 1) {
                     // nothing
                 } else if (board[y][x] === 2) {
+                    squareDiv.textContent = "X";
                     squareDiv.classList.add("black");
                 } else if (board[y][x] === 3) {
                     if (renderDebug) {
@@ -212,7 +213,7 @@ class TapaBuilder {
                     let now = (new Date).getTime();
                     console.log(now - then + "ms");
 
-                    this.renderBig(tapa.board, tapa.task, tapa);
+                    // this.renderBig(tapa.board, tapa.task, tapa);
 
                     return tapa;
 

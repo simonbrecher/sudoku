@@ -31,12 +31,12 @@ class Renderer {
         this._width = 310;
         this._height = 310;
         this._fontRelativeSize = 0.7;
-        this._vxBoxSizeRelative = 0.6;
+        this._vxBoxSizeRelative = 0.5;
         this._vxBoxFontSizeRelative = 0.8;
         this._kropkiBoxSizeRelative = 0.2;
         this._innerFontRelativeSize = 0.8;
-        this._marginLeft = 5; // 10
-        this._marginBottom = 5; // 10
+        this._marginLeft = 15; // 10
+        this._marginBottom = 15; // 10
         this._smallBorderWidth = 1;
         this._bigBorderWidth = 3;
         this._maxSquareInnerCount = 4;
@@ -70,6 +70,25 @@ class Renderer {
             this._pageUsedWidth = 0;
             this._pageLineHeight = 0;
         }
+    }
+
+    public static refreshFormatting(): void {
+        this._pageUsedHeight = 0;
+        this._pageUsedWidth = 0;
+        this._pageLineHeight = 0;
+    }
+
+    public static breakPageForce(): void {
+        let pageWrapper = document.getElementById("page-wrapper");
+        let pageBreak = document.createElement("hr");
+        pageBreak.classList.add("page-break");
+        pageWrapper?.appendChild(pageBreak);
+    }
+
+    public static breakLineForce(): void {
+        let pageWrapper = document.getElementById("page-wrapper");
+        let hr = document.createElement("hr");
+        pageWrapper?.appendChild(hr);
     }
 
     private static convertBinary(binary: number, parent: ISudoku, squareInnerCount: number): string | string[] {
@@ -166,6 +185,8 @@ class Renderer {
         this.formatPage();
 
         let pageWrapper = document.getElementById("page-wrapper");
+
+        console.log(pageWrapper);
 
         let boardNum = this._boardCount;
         this._boardCount++;

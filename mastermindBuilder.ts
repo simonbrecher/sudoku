@@ -427,7 +427,7 @@ class MastermindBuilder {
         }
     }
 
-    public static build(letterNum: number, wordLength: number, wordNum: number): string[] | null {
+    public static build(letterNum: number, wordLength: number, wordNum: number): [string[], number[][], string] | null {
         let success = false;
         while (! success) {
             success = this.buildTry(letterNum, wordLength, wordNum);
@@ -448,10 +448,10 @@ class MastermindBuilder {
                 }
             }
 
-            this.render(this._last[0], this._last[1]);
+            // this.render(this._last[0], this._last[1], this._last[2]);
         }
 
-        return null;
+        return this._last;
     }
 
     private static breakPage() {
@@ -461,7 +461,7 @@ class MastermindBuilder {
         pageWrapper?.appendChild(pageBreak);
     }
 
-    private static render(words: string[], task: number[][]): void {
+    public static render(words: string[], task: number[][], code: string | null): void {
         let pageWrapper = document.getElementById("page-wrapper");
 
         let boardNum = this._boardCount;
@@ -516,6 +516,9 @@ class MastermindBuilder {
 
             if (x < wordLength) {
                 squareDiv.classList.add("square-with-text");
+                if (code !== null) {
+                    squareDiv.textContent = code[x].toUpperCase();
+                }
             } else {
                 squareDiv.classList.add("square-outer");
                 let squareInnerDiv = document.createElement("div");
