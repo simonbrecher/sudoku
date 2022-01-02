@@ -203,7 +203,7 @@ class Utils {
     }
 
     public static deepcopy(value: any): any {
-        if (typeof value === "object") {
+        if (typeof value === "object" && value !== null) {
             let output = [];
             for (let i = 0; i < value.length; i++) {
                 output.push(this.deepcopy(value[i]));
@@ -212,6 +212,36 @@ class Utils {
         } else {
             return value;
         }
+    }
+
+    public static createArray2d(width: number, height: number, value: any): any[][] {
+        let arr = [];
+        for (let y = 0; y < height; y++) {
+            let row = [];
+            for (let x = 0; x < width; x++) {
+                row.push(value);
+            }
+            arr.push(row);
+        }
+
+        return arr;
+    }
+
+    public static createArray3d(width: number, height: number, third: number, value: any): any[][][] {
+        let arr = [];
+        for (let y = 0; y < height; y++) {
+            let row = [];
+            for (let x = 0; x < width; x++) {
+                let column = [];
+                for (let z = 0; z < third; z++) {
+                    column.push(value);
+                }
+                row.push(column);
+            }
+            arr.push(row);
+        }
+
+        return arr;
     }
 
     public static valueToChar(value: number, parent: ISudoku): string {

@@ -57,7 +57,7 @@ class CoralGenerator {
         this.areRulesSet = true;
     }
 
-    private static MAX_CHANGE_TRIES = 5000;
+    private static MAX_CHANGE_TRIES = 300;
     private static MAX_NEW_TRIES = 20;
 
     public static render(coral: number[][] | null, previous: number[][] | null = null, color: "black" | "red" = "black"): void {

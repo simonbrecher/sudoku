@@ -73,15 +73,17 @@
         table.slitherlink-table td.border-top { border-top-color: #000; }
         table.slitherlink-table td.border-bottom { border-bottom-color: #000; }
         table.slitherlink-table div.diagonal { position: absolute; border: 1px #000 solid; width: 10px; height: 10px; line-height: 10px; font-size: 8px; background-color: #FFF; text-align: center; }
-        table.slitherlink-table div.diagonal-black { position: absolute; border: 1px #000 solid; width: 4px; height: 4px; background-color: #FFF; }
+        table.slitherlink-table div.diagonal-small { position: absolute; border: 1px #000 solid; width: 4px; height: 4px; background-color: #FFF; }
         table.slitherlink-table div.diagonal-top-left { margin-top: -31px; margin-left: -6px; }
         table.slitherlink-table div.diagonal-top-right { margin-top: -31px; margin-left: 19px; }
         table.slitherlink-table div.diagonal-bottom-right { margin-top: -6px; margin-left: 19px; }
         table.slitherlink-table div.diagonal-bottom-left { margin-top: -6px; margin-left: -6px; }
-        table.slitherlink-table div.diagonal-black-top-left { margin-top: -29px; margin-left: -4px; }
-        table.slitherlink-table div.diagonal-black-top-right { margin-top: -29px; margin-left: 23px; }
-        table.slitherlink-table div.diagonal-black-bottom-right { margin-top: -2px; margin-left: 23px; }
-        table.slitherlink-table div.diagonal-black-bottom-left { margin-top: -2px; margin-left: -4px; }
+        table.slitherlink-table div.diagonal-small-top-left { margin-top: -29px; margin-left: -4px; }
+        table.slitherlink-table div.diagonal-small-top-right { margin-top: -29px; margin-left: 23px; }
+        table.slitherlink-table div.diagonal-small-bottom-right { margin-top: -2px; margin-left: 23px; }
+        table.slitherlink-table div.diagonal-small-bottom-left { margin-top: -2px; margin-left: -4px; }
+        table.slitherlink-table div.diagonal-small-edge, table.slitherlink-table div.diagonal-small-corner { background-color: #000; }
+        /*table.slitherlink-table div.diagonal-small-corner { background-color: #000; width: 8px; height: 8px; margin-top: -31px; margin-left: -6px; }*/
         table.slitherlink-table div.error { background-color: #F00; }
         table.slitherlink-table div.just-solved { background-color: #CFF; }
         table.slitherlink-table div.solved { background-color: #DDF; }
@@ -99,6 +101,11 @@
         table.slitherlink-table td.border-right-black { border-right-color: #000; }
         table.slitherlink-table td.border-top-black { border-top-color: #000; }
         table.slitherlink-table td.border-bottom-black { border-bottom-color: #000; }
+        table.slitherlink-table td.border-left-red { border-left-color: #F00; }
+        table.slitherlink-table td.border-right-red { border-right-color: #F00; }
+        table.slitherlink-table td.border-top-red { border-top-color: #F00; }
+        table.slitherlink-table td.border-bottom-red { border-bottom-color: #F00; }
+        div.page-break-configslitherlink { clear: both; page-break-after: always; background-color: #F00; height: 3px; margin: 2px; } /* 40 */
 
         table.red { background-color: #FDD; }
         table.green { background-color: #DFD; }
@@ -122,6 +129,9 @@
     <script src="slitherlink.js"></script>
     <script src="slitherlinkSolver.js"></script>
     <script src="slitherlinkBuilder.js"></script>
+    <script src="configSlitherlink.js"></script>
+    <script src="configSlitherlinkBuilder.js"></script>
+    <script src="configSlitherlinkSolver.js"></script>
     <script src="utils.js"></script>
 </head>
 <body onload="main()">
