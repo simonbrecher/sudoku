@@ -283,45 +283,43 @@ function tournament(taskNum: number, solutionNum: number): void {
 function main(): void {
     console.log("Hello world");
 
-    tournament(3, 1);
+    // tournament(3, 1);
 
-    // // Basic sudoku and variants
-    // SudokuBuilder.rectangular(true, 3, 3); // basic sudoku
-    // // SudokuBuilder.size(9); // without rectangles
-    // // SudokuBuilder.diagonal(true); // add diagonal
-    // // SudokuBuilder.kropki(true); // kropki
-    // // SudokuBuilder.vxSum(true, [[5, "V"], [10, "X"]]); SudokuBuilder.prompterNum(null, 3); // vx
-    //
-    // Renderer.perPage(2, 3);
-    // for (let i = 0; i < 6; i++) {
-    //     let sudoku = SudokuBuilder.build();
-    //     if (sudoku !== null) {
-    //         Renderer.render(sudoku.task, sudoku);
-    //     }
-    // }
+    // Basic sudoku and variants
+    SudokuBuilder.rectangular(true, 3, 2); // basic sudoku
+    // SudokuBuilder.size(9); // without rectangles
+    // SudokuBuilder.diagonal(true); // add diagonal
+    // SudokuBuilder.kropki(true); // kropki
+    // SudokuBuilder.vxSum(true, [[5, "V"], [10, "X"]]); SudokuBuilder.prompterNum(null, 3); // vx
+    SudokuBuilder.pieceMoves(true, false); // king move
+    // SudokuBuilder.pieceMoves(false, true); // knight move
+
+    Renderer.perPage(3, 4);
+    for (let i = 0; i < 12; i++) {
+        let sudoku = SudokuBuilder.build();
+        if (sudoku !== null) {
+            Renderer.render(sudoku.task, sudoku);
+            // Renderer.render(sudoku.solution, sudoku);
+        }
+    }
+
 
     // ---
 
-    // // Easy as abc
-    // SudokuBuilder.size(6);
-    // SudokuBuilder.abc(true, 3);
-    //
-    // Renderer.perPage(3, 4);
-    // for (let i = 0; i < 72; i++) {
-    //     let sudoku = SudokuBuilder.build();
-    //     if (sudoku !== null) {
-    //         // Renderer.render(sudoku?.solution, sudoku);
-    //         Renderer.render(sudoku?.board, sudoku);
-    //     }
-    // }
-    // SudokuBuilder.abc(true, 4);
-    // for (let i = 0; i < 24; i++) {
-    //     let sudoku = SudokuBuilder.build();
-    //     if (sudoku !== null) {
-    //         // Renderer.render(sudoku?.solution, sudoku);
-    //         Renderer.render(sudoku?.board, sudoku);
-    //     }
-    // }
+    // Easy as abc
+    SudokuBuilder.size(6);
+    SudokuBuilder.abc(true, 3);
+    SudokuBuilder.pieceMoves(true, false); // king move
+    // SudokuBuilder.pieceMoves(false, true); // knight move
+
+    Renderer.perPage(2, 3);
+    for (let i = 0; i < 6; i++) {
+        let sudoku = SudokuBuilder.build();
+        if (sudoku !== null) {
+            Renderer.render(sudoku?.board, sudoku);
+            // Renderer.render(sudoku?.solution, sudoku);
+        }
+    }
 
     // ---
 

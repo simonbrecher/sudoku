@@ -11,6 +11,8 @@ class SudokuBuilder {
     private static _isKropki: boolean;
     private static _isABC: boolean;
     private static _abcNumber: number | null;
+    private static _isKingMove: boolean;
+    private static _isKnightMove: boolean;
 
     private static readonly MAX_TRIES_SOLUTION = 1000;
     private static readonly MAX_TRIES_TASK = 300;
@@ -73,6 +75,8 @@ class SudokuBuilder {
         this._isKropki = false;
         this._isABC = false;
         this._abcNumber = null;
+        this._isKingMove = false;
+        this._isKnightMove = false;
     }
 
     private static removeVariation(): void {
@@ -95,6 +99,8 @@ class SudokuBuilder {
             this._isKropki,
             this._isABC,
             this._abcNumber,
+            this._isKingMove,
+            this._isKnightMove,
         );
 
         sudoku.isFinished = false;
@@ -372,5 +378,10 @@ class SudokuBuilder {
             this._isABC = false;
             this._abcNumber = null;
         }
+    }
+
+    public static pieceMoves(isKingMove: boolean, isKnightMove: boolean): void {
+        this._isKingMove = isKingMove;
+        this._isKnightMove = isKnightMove;
     }
 }

@@ -10,6 +10,8 @@ class Sudoku implements ISudoku {
     public readonly isABC: boolean;
     public readonly abcNumber: number | null;
     public readonly abcSpaceNumber: number | null;
+    public readonly isKingMove: boolean;
+    public readonly isKnightMove: boolean;
 
     private _solution: number[][];
     private _task: number[][]; // sudoku - [y][x]; abc - line first, line last, column first, column last
@@ -76,6 +78,8 @@ class Sudoku implements ISudoku {
         isKropki: boolean,
         isABC: boolean,
         abcNumber: number | null,
+        isKingMove: boolean,
+        isKnightMove: boolean,
     ) {
         this.isRectangular = isRectangular;
 
@@ -118,6 +122,9 @@ class Sudoku implements ISudoku {
             this.abcNumber = null;
             this.abcSpaceNumber = null;
         }
+
+        this.isKingMove = isKingMove;
+        this.isKnightMove = isKnightMove;
 
         this._solution = Utils.createEmptyBoard(this);
         this._task = Utils.createEmptyBoard(this);

@@ -1,6 +1,9 @@
 class Solver {
     public static print = false;
 
+    private static readonly kingMoves = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]];
+    private static readonly knightMoves = [[-2, -1], [-1, -2], [-2, 1], [-1, 2], [2, -1], [1, -2], [2, 1], [1, 2]];
+
     private static solveAbcOneInSquare(board: number[][], parent: ISudoku): number[][] {
         if (parent.abcSpaceNumber === null) {
             return board;
@@ -186,6 +189,14 @@ class Solver {
         }
 
         board = this.solveAbcPrompter(board, parent);
+
+        if (this.print) {
+            Renderer.render(board, parent, null, "red");
+        }
+
+        if (parent.isKingMove || parent.isKnightMove) {
+            board = this.solveChessMoves(board, parent);
+        }
 
         if (this.print) {
             Renderer.render(board, parent, null, "red");
@@ -446,6 +457,36 @@ class Solver {
         return board;
     }
 
+    private static solveChessMoves(board: number[][], parent: ISudoku): number[][] {
+        for (let y = 0; y < parent.size; y++) {
+            for (let x = 0; x < parent.size; x++) {
+                if (Utils.countBits32(board[y][x]) === 1 && ! (board[y][x] === 1 && parent.isABC)) {
+                    let notRemove = ~ board[y][x];
+                    if (parent.isKingMove) {
+                        for (let i = 0; i < this.kingMoves.length; i++) {
+                            let newX = x + this.kingMoves[i][0];
+                            let newY = y + this.kingMoves[i][1];
+                            if (newX >= 0 && newX < parent.size && newY >= 0 && newY < parent.size) {
+                                board[newY][newX] &= notRemove;
+                            }
+                        }
+                    }
+                    if (parent.isKnightMove) {
+                        for (let i = 0; i < this.knightMoves.length; i++) {
+                            let newX = x + this.knightMoves[i][0];
+                            let newY = y + this.knightMoves[i][1];
+                            if (newX >= 0 && newX < parent.size && newY >= 0 && newY < parent.size) {
+                                board[newY][newX] &= notRemove;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return board;
+    }
+
     private static solveCycle(board: number[][], parent: ISudoku): number[][] {
         if (parent.isABC && parent.hasSolution) {
             return this.solveCycleAbc(board, parent);
@@ -464,6 +505,9 @@ class Solver {
         if (parent.isVX && parent.hasSolution) {
             board = this.solveVxInSum(board, parent);
             board = this.solveVxOutSum(board, parent);
+        }
+        if (parent.isKingMove || parent.isKnightMove) {
+            board = this.solveChessMoves(board, parent);
         }
 
         return board;

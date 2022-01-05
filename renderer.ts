@@ -1,6 +1,6 @@
 class Renderer {
     private static readonly PAPER_HEIGHT = 1000;
-    private static readonly PAPER_WIDTH = 710;
+    private static readonly PAPER_WIDTH = 750;
 
     private static _pageUsedHeight = 0;
     private static _pageUsedWidth = 0;
@@ -11,6 +11,8 @@ class Renderer {
     private static _fontRelativeSize: number;
     private static _vxBoxSizeRelative: number;
     private static _vxBoxFontSizeRelative: number;
+    private static _typeDiagonalBoxSizeRelative: number;
+    private static _typeDiagonalBoxFontSizeRelative: number;
     private static _kropkiBoxSizeRelative: number;
     private static _innerFontRelativeSize: number;
     private static _marginLeft: number;
@@ -34,9 +36,11 @@ class Renderer {
         this._vxBoxSizeRelative = 0.5;
         this._vxBoxFontSizeRelative = 0.8;
         this._kropkiBoxSizeRelative = 0.2;
+        this._typeDiagonalBoxSizeRelative = 0.4;
+        this._typeDiagonalBoxFontSizeRelative = 0.9;
         this._innerFontRelativeSize = 0.8;
-        this._marginLeft = 15; // 10
-        this._marginBottom = 15; // 10
+        this._marginLeft = 20; // 10
+        this._marginBottom = 20; // 10
         this._smallBorderWidth = 1;
         this._bigBorderWidth = 3;
         this._maxSquareInnerCount = 4;
@@ -63,9 +67,9 @@ class Renderer {
             let pageBreak = document.createElement("hr");
             pageBreak.classList.add("page-break");
             pageWrapper?.appendChild(pageBreak);
-            let leftMargin = document.createElement("div");
-            leftMargin.classList.add("left-margin");
-            pageWrapper?.appendChild(leftMargin);
+            // let leftMargin = document.createElement("div");
+            // leftMargin.classList.add("left-margin");
+            // pageWrapper?.appendChild(leftMargin);
             this._pageUsedHeight = 0;
             this._pageUsedWidth = 0;
             this._pageLineHeight = 0;
@@ -235,8 +239,18 @@ class Renderer {
                     }
                 }
                 column.appendChild(div);
-                if (parent?.isABC && y === 0 && x === 0 && parent.abcNumber !== null) {
+                if (parent?.isABC && y === 0 && x === 0) {
+                    // @ts-ignore
                     div.textContent = parent.abcNumber.toString();
+                    div.classList.add("square-full");
+                    div.classList.add("small-font");
+                } else if (parent?.isABC && (parent.isKingMove || parent?.isKnightMove) && x === parent.size + 1 && y === 0) {
+                    if (parent.isKingMove) {
+                        div.textContent += "K";
+                    }
+                    if (parent.isKnightMove) {
+                        div.textContent += "N";
+                    }
                     div.classList.add("square-full");
                     div.classList.add("small-font");
                 } else if (typeof renderBoard[y][x] === "string") {
@@ -309,6 +323,19 @@ class Renderer {
                         }
                     }
                 }
+                if ((parent?.isKingMove || parent?.isKnightMove) && ! parent.isABC) {
+                    if (x === parent.size - 1 && y === 0) {
+                        let chessDiagonal = document.createElement("div");
+                        chessDiagonal.classList.add("chess-diagonal");
+                        column.appendChild(chessDiagonal);
+                        if (parent.isKingMove) {
+                            chessDiagonal.textContent += "K";
+                        }
+                        if (parent.isKnightMove) {
+                            chessDiagonal.textContent += "N";
+                        }
+                    }
+                }
             }
         }
     }
@@ -320,9 +347,9 @@ class Renderer {
             let pageBreak = document.createElement("hr");
             pageBreak.classList.add("page-break");
             pageWrapper?.appendChild(pageBreak);
-            let leftMargin = document.createElement("div");
-            leftMargin.classList.add("left-margin");
-            pageWrapper?.appendChild(leftMargin);
+            // let leftMargin = document.createElement("div");
+            // leftMargin.classList.add("left-margin");
+            // pageWrapper?.appendChild(leftMargin);
         }
         if (this._pageUsedWidth + this._width > this.PAPER_WIDTH) {
             this._pageUsedHeight += this._pageLineHeight + this._marginBottom;
@@ -335,15 +362,15 @@ class Renderer {
                 let pageBreak = document.createElement("hr");
                 pageBreak.classList.add("page-break");
                 pageWrapper?.appendChild(pageBreak);
-                let leftMargin = document.createElement("div");
-                leftMargin.classList.add("left-margin");
-                pageWrapper?.appendChild(leftMargin);
+                // let leftMargin = document.createElement("div");
+                // leftMargin.classList.add("left-margin");
+                // pageWrapper?.appendChild(leftMargin);
             } else {
                 let hr = document.createElement("hr");
                 pageWrapper?.appendChild(hr);
-                let leftMargin = document.createElement("div");
-                leftMargin.classList.add("left-margin");
-                pageWrapper?.appendChild(leftMargin);
+                // let leftMargin = document.createElement("div");
+                // leftMargin.classList.add("left-margin");
+                // pageWrapper?.appendChild(leftMargin);
             }
         }
 
@@ -368,7 +395,7 @@ class Renderer {
             size = parent.size;
         }
 
-        let squareFullSize = Math.floor(this._width / size);
+        let squareFullSize = Math.floor(this._width / size - 1.5);
         let squareFullFontSize = Math.floor(this._width / size * this._fontRelativeSize);
         let squareInnerSize = Math.floor(squareFullSize / squareInnerLinearCount);
         let squareInnerFontSize = Math.floor(squareFullSize / squareInnerLinearCount * this._innerFontRelativeSize);
@@ -377,7 +404,7 @@ class Renderer {
         let styleHtml = `table.board-table-${boardNum} div.square-full { ${styles} }`;
         style.textContent += styleHtml + "\n";
 
-        styleHtml = `table.board-table-${boardNum} { margin-left: ${this._marginLeft}px; margin-bottom: ${this._marginBottom}px; }`;
+        styleHtml = `table.board-table-${boardNum} { margin-right: ${this._marginLeft}px; margin-bottom: ${this._marginBottom}px; }`;
         style.textContent += styleHtml + "\n";
 
         styles = `width: ${squareInnerSize}px; height: ${squareInnerSize}px; line-height: ${squareInnerSize}px; font-size: ${squareInnerFontSize}px;`;
@@ -416,6 +443,17 @@ class Renderer {
             vxBoxMarginLeft = squareFullSize / 2 - orthogonalBoxSize / 2;
             styles = `margin-top: ${vxBoxMarginTop}px; margin-left: ${vxBoxMarginLeft}px;`;
             styleHtml = `table.board-table-${boardNum} div.orthogonal-vertical { ${styles} }`;
+            style.textContent += styleHtml + "\n";
+        }
+
+        if (parent.isKingMove || parent.isKnightMove) {
+            let chessDiagonalBoxSize = Math.floor(squareFullSize * this._typeDiagonalBoxSizeRelative);
+            let chessDiagonalFontBoxSize = Math.floor(chessDiagonalBoxSize * this._typeDiagonalBoxFontSizeRelative);
+            let chessDiagonalBoxTop = - squareFullSize - chessDiagonalBoxSize / 2;
+            let chessDiagonalBoxLeft = squareFullSize - chessDiagonalBoxSize / 2;
+            let styles1 = `width: ${chessDiagonalBoxSize}px; height: ${chessDiagonalBoxSize}px; line-height: ${chessDiagonalBoxSize}px; font-size: ${chessDiagonalFontBoxSize}px;`;
+            let styles2 = `margin-top: ${chessDiagonalBoxTop}px; margin-left: ${chessDiagonalBoxLeft}px; `;
+            styleHtml = `table.board-table-${boardNum} div.chess-diagonal { ${styles1}${styles2} }`;
             style.textContent += styleHtml + "\n";
         }
 
