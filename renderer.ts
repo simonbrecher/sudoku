@@ -42,12 +42,12 @@ class Renderer {
         this._maxSquareInnerCount = 4;
     }
 
-    private static getKropkiColor(value1: number, value2: number): "white" | "black" | null {
+    private static getKropkiColor(value1: number, value2: number, x: number, y: number, parent: ISudoku): "white" | "black" | null {
         let isWhite = value1 - value2 === 1 || value1 - value2 === -1;
         let isBlack = value1 === value2 * 2 || value1 * 2 === value2;
 
         if (isWhite && isBlack) {
-            return Math.random() > 0.5 ? "white" : "black";
+            return (Utils.countBits32(parent.solution[0][x] ^ parent.solution[y][0] ^ value1)) % 2 === 0 ? "white" : "black";
         } else if (isWhite) {
             return "white";
         } else if (isBlack) {
@@ -186,8 +186,6 @@ class Renderer {
 
         let pageWrapper = document.getElementById("page-wrapper");
 
-        console.log(pageWrapper);
-
         let boardNum = this._boardCount;
         this._boardCount++;
 
@@ -289,7 +287,7 @@ class Renderer {
                 if (parent?.isKropki) {
                     let solution = parent.solution;
                     if (x !== size - 1) {
-                        let color = this.getKropkiColor(Utils.binaryToValue(solution[y][x]), Utils.binaryToValue(solution[y][x + 1]));
+                        let color = this.getKropkiColor(Utils.binaryToValue(solution[y][x]), Utils.binaryToValue(solution[y][x + 1]), x, y, parent);
                         if (color !== null) {
                             let div = document.createElement("div");
                             div.textContent = " ";
@@ -300,7 +298,7 @@ class Renderer {
                         }
                     }
                     if (y !== size - 1) {
-                        let color = this.getKropkiColor(Utils.binaryToValue(solution[y][x]), Utils.binaryToValue(solution[y + 1][x]));
+                        let color = this.getKropkiColor(Utils.binaryToValue(solution[y][x]), Utils.binaryToValue(solution[y + 1][x]), x, y, parent);
                         if (color !== null) {
                             let div = document.createElement("div");
                             div.textContent = " ";

@@ -1,4 +1,4 @@
-function tournamentSudokuSmall(): void {
+function tournamentSudokuSmall(taskNum: number, solutionNum: number): void {
     Renderer.perPage(2, 3);
 
     SudokuBuilder.rectangular(true, 3, 2);
@@ -33,7 +33,7 @@ function tournamentSudokuSmall(): void {
     SudokuBuilder.kropki(false);
     SudokuBuilder.diagonal(false);
 
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < taskNum; i++) {
         Renderer.render(sudoku1?.task, sudoku1);
         Renderer.render(sudoku2?.task, sudoku2);
         Renderer.render(sudoku3?.task, sudoku3);
@@ -48,21 +48,23 @@ function tournamentSudokuSmall(): void {
         Renderer.breakPage();
     }
 
-    Renderer.render(sudoku1?.solution, sudoku1);
-    Renderer.render(sudoku2?.solution, sudoku2);
-    Renderer.render(sudoku3?.solution, sudoku3);
-    Renderer.render(sudokuDiagonal1?.solution, sudokuDiagonal1);
-    Renderer.render(sudokuDiagonal2?.solution, sudokuDiagonal2);
-    Renderer.render(sudokuVx1?.solution, sudokuVx1);
-    Renderer.render(sudokuVxDiagonal?.solution, sudokuVxDiagonal);
-    Renderer.render(noRectangle?.solution, noRectangle);
-    Renderer.render(noRectangleDiagonal?.solution, noRectangleDiagonal);
-    Renderer.render(sudokuKropki?.solution, sudokuKropki);
+    for (let i = 0; i < solutionNum; i++) {
+        Renderer.render(sudoku1?.solution, sudoku1);
+        Renderer.render(sudoku2?.solution, sudoku2);
+        Renderer.render(sudoku3?.solution, sudoku3);
+        Renderer.render(sudokuDiagonal1?.solution, sudokuDiagonal1);
+        Renderer.render(sudokuDiagonal2?.solution, sudokuDiagonal2);
+        Renderer.render(sudokuVx1?.solution, sudokuVx1);
+        Renderer.render(sudokuVxDiagonal?.solution, sudokuVxDiagonal);
+        Renderer.render(noRectangle?.solution, noRectangle);
+        Renderer.render(noRectangleDiagonal?.solution, noRectangleDiagonal);
+        Renderer.render(sudokuKropki?.solution, sudokuKropki);
 
-    Renderer.breakPage();
+        Renderer.breakPage();
+    }
 }
 
-function tournamentSudokuBig(): void {
+function tournamentSudokuBig(taskNum: number, solutionNum: number): void {
     Renderer.perPage(2, 3);
 
     SudokuBuilder.rectangular(true, 3, 3);
@@ -97,7 +99,7 @@ function tournamentSudokuBig(): void {
     SudokuBuilder.kropki(false);
     SudokuBuilder.diagonal(false);
 
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < taskNum; i++) {
         Renderer.render(sudoku1?.task, sudoku1);
         Renderer.render(sudoku2?.task, sudoku2);
         Renderer.render(sudokuDiagonal1?.task, sudokuDiagonal1);
@@ -110,19 +112,21 @@ function tournamentSudokuBig(): void {
         Renderer.breakPage();
     }
 
-    Renderer.render(sudoku1?.solution, sudoku1);
-    Renderer.render(sudoku2?.solution, sudoku2);
-    Renderer.render(sudokuDiagonal1?.solution, sudokuDiagonal1);
-    Renderer.render(sudokuVx1?.solution, sudokuVx1);
-    Renderer.render(sudokuVxDiagonal?.solution, sudokuVxDiagonal);
-    Renderer.render(noRectangle?.solution, noRectangle);
-    Renderer.render(noRectangleDiagonal?.solution, noRectangleDiagonal);
-    Renderer.render(sudokuKropki?.solution, sudokuKropki);
+    for (let i = 0; i < solutionNum; i++) {
+        Renderer.render(sudoku1?.solution, sudoku1);
+        Renderer.render(sudoku2?.solution, sudoku2);
+        Renderer.render(sudokuDiagonal1?.solution, sudokuDiagonal1);
+        Renderer.render(sudokuVx1?.solution, sudokuVx1);
+        Renderer.render(sudokuVxDiagonal?.solution, sudokuVxDiagonal);
+        Renderer.render(noRectangle?.solution, noRectangle);
+        Renderer.render(noRectangleDiagonal?.solution, noRectangleDiagonal);
+        Renderer.render(sudokuKropki?.solution, sudokuKropki);
 
-    Renderer.breakPage();
+        Renderer.breakPage();
+    }
 }
 
-function tournamentLogicSmall(): void {
+function tournamentLogicSmall(taskNum: number, solutionNum: number): void {
     let mastermind1 = MastermindBuilder.build(10, 4, 5);
     let mastermind2 = MastermindBuilder.build(12, 4, 5);
 
@@ -137,7 +141,7 @@ function tournamentLogicSmall(): void {
     let slitherlink1 = SlitherlinkBuilder.build(6, 6);
     let slitherlink2 = SlitherlinkBuilder.build(7, 7);
 
-    Renderer.perPage(3, 2);
+    Renderer.perPage(2, 3);
     SudokuBuilder.size(5);
     SudokuBuilder.abc(true, 2);
     let abc1 = SudokuBuilder.build();
@@ -145,7 +149,7 @@ function tournamentLogicSmall(): void {
     SudokuBuilder.abc(true, 3);
     let abc2 = SudokuBuilder.build();
 
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < taskNum; i++) {
         // @ts-ignore
         MastermindBuilder.render(mastermind1[0], mastermind1[1], null);
         // @ts-ignore
@@ -176,37 +180,39 @@ function tournamentLogicSmall(): void {
         Renderer.breakPageForce();
     }
 
-    // @ts-ignore
-    MastermindBuilder.render(mastermind1[0], mastermind1[1], mastermind1[2]);
-    // @ts-ignore
-    MastermindBuilder.render(mastermind2[0], mastermind2[1], mastermind2[2]);
-    Renderer.breakLineForce();
-    // @ts-ignore
-    CoralBuilder.render(coral.task, coral.solution, coral);
-    // @ts-ignore
-    CoralBuilder.render(coralRemoved.task, coralRemoved.solution, coralRemoved);
-    Renderer.breakLineForce();
-    // @ts-ignore
-    CoralBuilder.render(coralSorted.task, coralSorted.solution, coralSorted);
-    // @ts-ignore
-    CoralBuilder.render(coralSortedRemoved.task, coralSortedRemoved.solution, coralSortedRemoved);
-    Renderer.breakPageForce();
-    // @ts-ignore
-    TapaBuilder.render(tapa1.solution, tapa1.task, tapa1);
-    // @ts-ignore
-    TapaBuilder.render(tapa2.solution, tapa2.task, tapa2);
-    Renderer.breakLineForce();
-    slitherlink1.render(true, false);
-    slitherlink2.render(true, false);
-    Renderer.breakLineForce();
-    Renderer.render(abc1?.solution, abc1);
-    Renderer.refreshFormatting();
-    Renderer.render(abc2?.solution, abc2);
+    for (let i = 0; i < solutionNum; i++) {
+        // @ts-ignore
+        MastermindBuilder.render(mastermind1[0], mastermind1[1], mastermind1[2]);
+        // @ts-ignore
+        MastermindBuilder.render(mastermind2[0], mastermind2[1], mastermind2[2]);
+        Renderer.breakLineForce();
+        // @ts-ignore
+        CoralBuilder.render(coral.task, coral.solution, coral);
+        // @ts-ignore
+        CoralBuilder.render(coralRemoved.task, coralRemoved.solution, coralRemoved);
+        Renderer.breakLineForce();
+        // @ts-ignore
+        CoralBuilder.render(coralSorted.task, coralSorted.solution, coralSorted);
+        // @ts-ignore
+        CoralBuilder.render(coralSortedRemoved.task, coralSortedRemoved.solution, coralSortedRemoved);
+        Renderer.breakPageForce();
+        // @ts-ignore
+        TapaBuilder.render(tapa1.solution, tapa1.task, tapa1);
+        // @ts-ignore
+        TapaBuilder.render(tapa2.solution, tapa2.task, tapa2);
+        Renderer.breakLineForce();
+        slitherlink1.render(true, false);
+        slitherlink2.render(true, false);
+        Renderer.breakLineForce();
+        Renderer.render(abc1?.solution, abc1);
+        Renderer.refreshFormatting();
+        Renderer.render(abc2?.solution, abc2);
 
-    Renderer.breakPageForce();
+        Renderer.breakPageForce();
+    }
 }
 
-function tournamentLogicBig(): void {
+function tournamentLogicBig(taskNum: number, solutionNum: number): void {
     let mastermind = MastermindBuilder.build(12, 6, 6);
 
     let coralRemoved = CoralBuilder.build(12, 12, false, true);
@@ -216,7 +222,7 @@ function tournamentLogicBig(): void {
 
     let slitherlink1 = SlitherlinkBuilder.build(10, 10);
 
-    Renderer.perPage(3, 2);
+    Renderer.perPage(2, 3);
     SudokuBuilder.size(6);
     SudokuBuilder.abc(true, 4);
     let abc1 = SudokuBuilder.build();
@@ -224,7 +230,7 @@ function tournamentLogicBig(): void {
     SudokuBuilder.abc(true, 3);
     let abc2 = SudokuBuilder.build();
 
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < taskNum; i++) {
         // @ts-ignore
         MastermindBuilder.render(mastermind[0], mastermind[1], null);
         Renderer.breakLineForce();
@@ -245,33 +251,39 @@ function tournamentLogicBig(): void {
         Renderer.breakPageForce();
     }
 
-    // @ts-ignore
-    MastermindBuilder.render(mastermind[0], mastermind[1], mastermind[2]);
-    Renderer.breakLineForce();
-    // @ts-ignore
-    CoralBuilder.render(coralRemoved.task, coralRemoved.solution, coralRemoved);
-    Renderer.breakLineForce();
-    // @ts-ignore
-    CoralBuilder.render(coralSorted.task, coralSorted.solution, coralSorted);
-    Renderer.breakPageForce();
-    // @ts-ignore
-    TapaBuilder.render(tapa1.solution, tapa1.task, tapa1);
-    slitherlink1.render(true, false);
-    Renderer.breakLineForce();
-    Renderer.render(abc1?.solution, abc1);
-    Renderer.refreshFormatting();
-    Renderer.render(abc2?.solution, abc2);
+    for (let i = 0; i < solutionNum; i++) {
+        // @ts-ignore
+        MastermindBuilder.render(mastermind[0], mastermind[1], mastermind[2]);
+        Renderer.breakLineForce();
+        // @ts-ignore
+        CoralBuilder.render(coralRemoved.task, coralRemoved.solution, coralRemoved);
+        Renderer.breakLineForce();
+        // @ts-ignore
+        CoralBuilder.render(coralSorted.task, coralSorted.solution, coralSorted);
+        Renderer.breakPageForce();
+        // @ts-ignore
+        TapaBuilder.render(tapa1.solution, tapa1.task, tapa1);
+        slitherlink1.render(true, false);
+        Renderer.breakLineForce();
+        Renderer.render(abc1?.solution, abc1);
+        Renderer.refreshFormatting();
+        Renderer.render(abc2?.solution, abc2);
 
-    Renderer.breakPageForce();
+        Renderer.breakPageForce();
+    }
+}
+
+function tournament(taskNum: number, solutionNum: number): void {
+    tournamentSudokuSmall(taskNum, solutionNum);
+    tournamentSudokuBig(taskNum, solutionNum);
+    tournamentLogicSmall(taskNum, solutionNum);
+    tournamentLogicBig(taskNum, solutionNum);
 }
 
 function main(): void {
     console.log("Hello world");
 
-    tournamentSudokuSmall();
-    tournamentSudokuBig();
-    tournamentLogicSmall();
-    tournamentLogicBig();
+    tournament(3, 1);
 
     // // Basic sudoku and variants
     // SudokuBuilder.rectangular(true, 3, 3); // basic sudoku
