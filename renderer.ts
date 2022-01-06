@@ -57,7 +57,13 @@ class Renderer {
         let isBlack = value1 === value2 * 2 || value1 * 2 === value2;
 
         if (isWhite && isBlack) {
-            return (Utils.countBits32(parent.solution[0][x] ^ parent.solution[y][0] ^ value1)) % 2 === 0 ? "white" : "black";
+            let vx1 = Utils.binaryToValue(parent.solution[0][x]);
+            let vy1 = Utils.binaryToValue(parent.solution[y][0]);
+            let vx2 = Utils.binaryToValue(parent.solution[parent.size - 1][x]);
+            let vy2 = Utils.binaryToValue(parent.solution[y][parent.size - 1]);
+            let vx = Utils.binaryToValue(parent.solution[vx1][vy2]);
+            let vy = Utils.binaryToValue(parent.solution[vy1][vx2]);
+            return (Utils.countBits32(vx ^ vy ^ value1)) % 2 === 0 ? "white" : "black";
         } else if (isWhite) {
             return "white";
         } else if (isBlack) {
