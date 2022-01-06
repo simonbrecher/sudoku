@@ -7,6 +7,8 @@ class Sudoku implements ISudoku {
     public readonly isVX: boolean;
     public readonly vxSum: [number, string][] | null;
     public readonly isKropki: boolean;
+    public readonly isMinusOne: boolean;
+    public readonly isInequality: boolean;
     public readonly isABC: boolean;
     public readonly abcNumber: number | null;
     public readonly abcSpaceNumber: number | null;
@@ -76,6 +78,8 @@ class Sudoku implements ISudoku {
         isVX: boolean,
         vxSum: [number, string][] | null,
         isKropki: boolean,
+        isMinusOne: boolean,
+        isInequality: boolean,
         isABC: boolean,
         abcNumber: number | null,
         isKingMove: boolean,
@@ -112,6 +116,8 @@ class Sudoku implements ISudoku {
         }
 
         this.isKropki = isKropki;
+        this.isMinusOne = isMinusOne;
+        this.isInequality = isInequality;
 
         if (isABC && abcNumber !== null) {
             this.isABC = true;

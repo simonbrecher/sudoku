@@ -14,6 +14,9 @@ class Renderer {
     private static _typeDiagonalBoxSizeRelative: number;
     private static _typeDiagonalBoxFontSizeRelative: number;
     private static _kropkiBoxSizeRelative: number;
+    private static _minusOneBoxSizeRelative: number;
+    private static _inequalityBoxFontSizeRelative: number;
+    private static _inequalityBoxSizeRelative: number;
     private static _innerFontRelativeSize: number;
     private static _marginLeft: number;
     private static _marginBottom: number;
@@ -33,9 +36,12 @@ class Renderer {
         this._width = 310;
         this._height = 310;
         this._fontRelativeSize = 0.7;
-        this._vxBoxSizeRelative = 0.5;
-        this._vxBoxFontSizeRelative = 0.8;
+        this._vxBoxSizeRelative = 0.4;
+        this._vxBoxFontSizeRelative = 1;
         this._kropkiBoxSizeRelative = 0.2;
+        this._minusOneBoxSizeRelative = 0.2;
+        this._inequalityBoxSizeRelative = 0.45;
+        this._inequalityBoxFontSizeRelative = 1;
         this._typeDiagonalBoxSizeRelative = 0.4;
         this._typeDiagonalBoxFontSizeRelative = 0.9;
         this._innerFontRelativeSize = 0.8;
@@ -186,6 +192,10 @@ class Renderer {
             return;
         }
 
+        if (! parent.hasSolution) {
+            return;
+        }
+
         this.formatPage();
 
         let pageWrapper = document.getElementById("page-wrapper");
@@ -257,6 +267,7 @@ class Renderer {
                     div.textContent = renderBoard[y][x].toString();
                     div.classList.add("square-full");
                 } else {
+                    div.classList.add("square-full");
                     for (let innerY = 0; innerY < squareInnerLinearCount; innerY++) {
                         for (let innerX = 0; innerX < squareInnerLinearCount; innerX++) {
                             let innerId = innerY * squareInnerLinearCount + innerX;
@@ -323,6 +334,48 @@ class Renderer {
                         }
                     }
                 }
+                if (parent?.isMinusOne && parent.hasSolution) {
+                    let solution = parent.solution;
+                    if (x !== size - 1) {
+                        if (Math.abs(Utils.binaryToValue(solution[y][x]) - Utils.binaryToValue(solution[y][x + 1])) === 1) {
+                            let div = document.createElement("div");
+                            div.textContent = " ";
+                            div.classList.add("orthogonal");
+                            div.classList.add(`orthogonal-white`);
+                            div.classList.add("orthogonal-horizontal")
+                            column.appendChild(div);
+                        }
+                    }
+                    if (y !== size - 1) {
+                        if (Math.abs(Utils.binaryToValue(solution[y][x]) - Utils.binaryToValue(solution[y + 1][x])) === 1) {
+                            let div = document.createElement("div");
+                            div.textContent = " ";
+                            div.classList.add("orthogonal");
+                            div.classList.add(`orthogonal-white`);
+                            div.classList.add("orthogonal-vertical")
+                            column.appendChild(div);
+                        }
+                    }
+                }
+                if (parent?.isInequality && parent.hasSolution) {
+                    let solution = parent.solution;
+                    if (x !== size - 1) {let div = document.createElement("div");
+                        div.textContent = " ";
+                        div.classList.add("orthogonal");
+                        div.classList.add("orthogonal-horizontal");
+                        div.textContent += solution[y][x] < solution[y][x + 1] ? "<" : ">";
+                        column.appendChild(div);
+                    }
+                    if (y !== size - 1) {
+                        let div = document.createElement("div");
+                        div.textContent = " ";
+                        div.classList.add("orthogonal");
+                        div.classList.add("orthogonal-vertical");
+                        div.classList.add("orthogonal-rotate");
+                        div.textContent += solution[y][x] < solution[y + 1][x] ? "<" : ">";
+                        column.appendChild(div);
+                    }
+                }
                 if ((parent?.isKingMove || parent?.isKnightMove) && ! parent.isABC) {
                     if (x === parent.size - 1 && y === 0) {
                         let chessDiagonal = document.createElement("div");
@@ -333,6 +386,19 @@ class Renderer {
                         }
                         if (parent.isKnightMove) {
                             chessDiagonal.textContent += "N";
+                        }
+                    }
+                }
+                if (parent?.isKropki || parent?.isMinusOne) {
+                    if (x === 0 && y === 0) {
+                        let typeDiagonal = document.createElement("div");
+                        typeDiagonal.classList.add("type-diagonal");
+                        column.appendChild(typeDiagonal);
+                        if (parent.isKropki) {
+                            typeDiagonal.textContent += "K";
+                        }
+                        if (parent.isMinusOne) {
+                            typeDiagonal.textContent += "-";
                         }
                     }
                 }
@@ -418,16 +484,22 @@ class Renderer {
         style.textContent += `table.board-table-${boardNum} td.border-left { border-left-width: ${this._bigBorderWidth}px; }\n`;
         style.textContent += `table.board-table-${boardNum} td.border-right { border-right-width: ${this._bigBorderWidth}px; }\n`;
 
-        if (parent.isVX || parent.isKropki) {
+        if (parent.isVX || parent.isKropki || parent.isMinusOne || parent.isInequality) {
             let orthogonalBoxSize = 0;
             if (parent.isVX) {
                 orthogonalBoxSize = Math.floor(squareFullSize * this._vxBoxSizeRelative);
             } else if (parent.isKropki) {
                 orthogonalBoxSize = Math.floor(squareFullSize * this._kropkiBoxSizeRelative);
+            } else if (parent.isMinusOne) {
+                orthogonalBoxSize = Math.floor(squareFullSize * this._minusOneBoxSizeRelative);
+            } else if (parent.isInequality) {
+                orthogonalBoxSize = Math.floor(squareFullSize * this._inequalityBoxSizeRelative);
             }
             let orthogonalBoxFontSize = 0;
             if (parent.isVX) {
                 orthogonalBoxFontSize = Math.floor(orthogonalBoxSize * this._vxBoxFontSizeRelative);
+            } else if (parent.isInequality) {
+                orthogonalBoxFontSize = Math.floor(orthogonalBoxSize * this._inequalityBoxFontSizeRelative);
             }
             styles = `width: ${orthogonalBoxSize}px; height: ${orthogonalBoxSize}px; line-height: ${orthogonalBoxSize}px; font-size: ${orthogonalBoxFontSize}px;`;
             styleHtml = `table.board-table-${boardNum} div.orthogonal { ${styles} }`;
@@ -443,6 +515,17 @@ class Renderer {
             vxBoxMarginLeft = squareFullSize / 2 - orthogonalBoxSize / 2;
             styles = `margin-top: ${vxBoxMarginTop}px; margin-left: ${vxBoxMarginLeft}px;`;
             styleHtml = `table.board-table-${boardNum} div.orthogonal-vertical { ${styles} }`;
+            style.textContent += styleHtml + "\n";
+        }
+
+        if (parent.isKropki || parent.isMinusOne) {
+            let typeDiagonalBoxSize = Math.floor(squareFullSize * this._typeDiagonalBoxSizeRelative);
+            let typeDiagonalFontBoxSize = Math.floor(typeDiagonalBoxSize * this._typeDiagonalBoxFontSizeRelative);
+            let typeDiagonalBoxTop = - squareFullSize - typeDiagonalBoxSize / 2;
+            let typeDiagonalBoxLeft = - typeDiagonalBoxSize / 2;
+            let styles1 = `width: ${typeDiagonalBoxSize}px; height: ${typeDiagonalBoxSize}px; line-height: ${typeDiagonalBoxSize}px; font-size: ${typeDiagonalFontBoxSize}px;`;
+            let styles2 = `margin-top: ${typeDiagonalBoxTop}px; margin-left: ${typeDiagonalBoxLeft}px; `;
+            styleHtml = `table.board-table-${boardNum} div.type-diagonal { ${styles1}${styles2} }`;
             style.textContent += styleHtml + "\n";
         }
 

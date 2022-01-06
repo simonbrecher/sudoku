@@ -9,6 +9,8 @@ class SudokuBuilder {
     private static _prompterNumMin: number | null;
     private static _prompterNumMax: number | null;
     private static _isKropki: boolean;
+    private static _isMinusOne: boolean;
+    private static _isInequality: boolean;
     private static _isABC: boolean;
     private static _abcNumber: number | null;
     private static _isKingMove: boolean;
@@ -85,6 +87,8 @@ class SudokuBuilder {
         this._isKropki = false;
         this._isABC = false;
         this._abcNumber = null;
+        this._isMinusOne = false;
+        this._isInequality = false;
     }
 
     public static build(): ISudoku | null {
@@ -97,6 +101,8 @@ class SudokuBuilder {
             this._isVX,
             this._vxSum,
             this._isKropki,
+            this._isMinusOne,
+            this._isInequality,
             this._isABC,
             this._abcNumber,
             this._isKingMove,
@@ -370,7 +376,21 @@ class SudokuBuilder {
         this._isKropki = isKropki;
     }
 
+    public static minusOne(isMinusOne: boolean): void {
+        this.removeVariation();
+
+        this._isMinusOne = true;
+    }
+
+    public static inequality(isInequality: boolean): void {
+        this.removeVariation();
+
+        this._isInequality = isInequality;
+    }
+
     public static abc(isABC: boolean, abcNumber: number | null): void {
+        this.removeVariation();
+
         if (isABC && abcNumber !== null) {
             this._isABC = true;
             this._abcNumber = abcNumber;

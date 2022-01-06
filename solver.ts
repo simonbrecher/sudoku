@@ -457,6 +457,72 @@ class Solver {
         return board;
     }
 
+    private static solveMinusOneSquare(x1: number, y1: number, x2: number, y2: number, board: number[][], solution: number[][]): number[][] {
+        if (Math.abs(Utils.binaryToValue(solution[y1][x1]) - Utils.binaryToValue(solution[y2][x2])) === 1) {
+            board[y2][x2] &= board[y1][x1] << 1 | board[y1][x1] >>> 1;
+        } else if (Utils.countBits32(board[y1][x1]) === 1) {
+            board[y2][x2] &= ~ (board[y1][x1] << 1 & board[y1][x1] >>> 1);
+        }
+
+        return board;
+    }
+
+    private static solveMinusOne(board: number[][], parent: ISudoku): number[][] {
+        let solution = parent.solution;
+
+        for (let y = 0; y < parent.size; y++) {
+            for (let x = 0; x < parent.size; x++) {
+                if (x !== parent.size - 1) {
+                    board = this.solveMinusOneSquare(x, y, x + 1, y, board, solution);
+                    board = this.solveMinusOneSquare(x + 1, y, x, y, board, solution);
+                }
+                if (y !== parent.size - 1) {
+                    board = this.solveMinusOneSquare(x, y, x, y + 1, board, solution);
+                    board = this.solveMinusOneSquare(x, y + 1, x, y, board, solution);
+                }
+            }
+        }
+
+        return board;
+    }
+
+    private static solveInequalityOneSquare(x1: number, y1: number, x2: number, y2: number, board: number[][], solution: number[][]): number[][] {
+        if (solution[y1][x1] < solution[y2][x2]) {
+            // console.log(solution[y1][x1], solution[y2][x2], board[y1][x1], board[y2][x2], (board[y1][x1] ^ (board[y1][x1] - 1)) >> 1, board[y2][x2] & (board[y1][x1] ^ (board[y1][x1] - 1)) >> 1);
+            board[y2][x2] &= ~ ((board[y1][x1] ^ (board[y1][x1] - 1)) >> 1);
+            // if (board[y2][x2] === 0) {
+            //     throw "XX";
+            // }
+            // console.log(board[y2][x2]);
+        } else {
+            let reversed = Utils.reverseBits32(board[y1][x1]);
+            // console.log(solution[y1][x1], solution[y2][x2], board[y1][x1], board[y2][x2], Utils.reverseBits32((reversed ^ (reversed - 1)) >> 1) & (1 << 6) - 1);
+            board[y2][x2] &= ~ Utils.reverseBits32((reversed ^ (reversed - 1)) >> 1);
+            // console.log(board[y2][x2]);
+        }
+
+        return board;
+    }
+
+    private static solveInequality(board: number[][], parent: ISudoku): number[][] {
+        let solution = parent.solution;
+
+        for (let y = 0; y < parent.size; y++) {
+            for (let x = 0; x < parent.size; x++) {
+                if (x !== parent.size - 1) {
+                    board = this.solveInequalityOneSquare(x, y, x + 1, y, board, solution);
+                    board = this.solveInequalityOneSquare(x + 1, y, x, y, board, solution);
+                }
+                if (y !== parent.size - 1) {
+                    board = this.solveInequalityOneSquare(x, y, x, y + 1, board, solution);
+                    board = this.solveInequalityOneSquare(x, y + 1, x, y, board, solution);
+                }
+            }
+        }
+
+        return board;
+    }
+
     private static solveChessMoves(board: number[][], parent: ISudoku): number[][] {
         for (let y = 0; y < parent.size; y++) {
             for (let x = 0; x < parent.size; x++) {
@@ -508,6 +574,21 @@ class Solver {
         }
         if (parent.isKingMove || parent.isKnightMove) {
             board = this.solveChessMoves(board, parent);
+        }
+        if (parent.isMinusOne && parent.hasSolution) {
+            board = this.solveMinusOne(board, parent);
+        }
+
+        if (this.print && parent.hasSolution) {
+            Renderer.render(board, parent);
+        }
+
+        if (parent.isInequality && parent.hasSolution) {
+            board = this.solveInequality(board, parent);
+        }
+
+        if (this.print && parent.hasSolution) {
+            Renderer.render(board, parent, null, "green");
         }
 
         return board;
