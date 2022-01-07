@@ -42,6 +42,31 @@
         table.coral-structure-table div.black { background-color: #000; color: #FFF; }
         table.coral-structure-table div.red { background-color: #F00; color: #FFF; }
 
+        table.group-table { border-collapse: collapse; float: left; margin: 10px; }
+        table.group-table div.square { text-align: center; width: 25px; height: 25px; line-height: 25px; font-size: 18px; }
+        table.group-table td { border: 3px #DDD solid; padding: 0; }
+        table.group-table td.border-top { border-top-width: 3px; border-top-color: black; }
+        table.group-table td.border-bottom { border-bottom-width: 3px; border-bottom-color: black; }
+        table.group-table td.border-left { border-left-width: 3px; border-left-color: black; }
+        table.group-table td.border-right { border-right-width: 3px; border-right-color: black; }
+        table.group-table td.empty { background-color: #CCC; }
+
+        table.group-table td.border-top:before {
+            position: absolute; content: ' '; width: 3px; height: 3px; background-color: #000; margin-top: -3px; margin-left: -3px;
+        }
+        table.group-table td.border-right:after {
+            position: absolute; content: ' '; width: 3px; height: 3px; background-color: #000; margin-top: 0; margin-left: 25px;
+        }
+        table.group-table td.border-left:before {
+            position: absolute; content: ' '; width: 3px; height: 3px; background-color: #000; margin-top: -3px; margin-left: -3px;
+        }
+        table.group-table td.border-left:after {
+            position: absolute; content: ' '; width: 3px; height: 3px; background-color: #000; margin-left: -3px;
+        }
+        table.group-table tr:after {
+            position: absolute; content: ' '; width: 3px; height: 3px; background-color: #000; margin-top: -1.5px; margin-left: -3px;
+        }
+
         table.coral-table { border-collapse: collapse; float: left; margin-left: 10px; margin-bottom: 10px; }
         table.coral-table td { border: 1px #000 solid; padding: 0; }
         table.coral-table td.border-none { border: none; }
@@ -142,6 +167,7 @@
     <script src="configSlitherlinkBuilder.js"></script>
     <script src="configSlitherlinkSolver.js"></script>
     <script src="utils.js"></script>
+    <script src="groupGenerator.js"></script>
 </head>
 <body onload="main()">
 

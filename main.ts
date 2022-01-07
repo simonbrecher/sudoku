@@ -284,57 +284,27 @@ function tournament(taskNum: number, solutionNum: number): void {
 function main(): void {
     console.log("Hello world");
 
-    // tournament(3, 1);
-
-    // Basic sudoku and variants
-    SudokuBuilder.rectangular(true, 3, 2); // basic sudoku
-    // SudokuBuilder.size(9); // without rectangles
-    // SudokuBuilder.diagonal(true); // add diagonal
-    // SudokuBuilder.kropki(true); // kropki
-    SudokuBuilder.minusOne(true); // show all squares with difference of 1
-    // SudokuBuilder.inequality(true); // show all inequalities
-    // SudokuBuilder.vxSum(true, [[5, "V"], [10, "X"]]); SudokuBuilder.prompterNum(null, 3); // vx
-    // SudokuBuilder.pieceMoves(true, false); // king move
-    // SudokuBuilder.pieceMoves(false, true); // knight move
-
-    Renderer.perPage(3, 4);
-    for (let i = 0; i < 12; i++) {
-        let sudoku = SudokuBuilder.build();
-        if (sudoku !== null) {
-            Renderer.render(sudoku.task, sudoku);
-            // Renderer.render(sudoku.solution, sudoku);
-        }
-    }
-    Renderer.perPage(2, 3);
-    SudokuBuilder.rectangular(true, 3, 3);
-    Renderer.perPage(2, 3);
-    for (let i = 0; i < 6; i++) {
-        let sudoku = SudokuBuilder.build();
-        if (sudoku !== null) {
-            Renderer.render(sudoku.task, sudoku);
-            // Renderer.render(sudoku.solution, sudoku);
-        }
-    }
-    SudokuBuilder.inequality(true);
-    SudokuBuilder.rectangular(true, 3, 2);
-    Renderer.perPage(3, 4);
-    for (let i = 0; i < 12; i++) {
-        let sudoku = SudokuBuilder.build();
-        if (sudoku !== null) {
-            Renderer.render(sudoku.task, sudoku);
-            // Renderer.render(sudoku.solution, sudoku);
-        }
-    }
-    Renderer.perPage(2, 3);
-    SudokuBuilder.rectangular(true, 3, 3);
-    Renderer.perPage(2, 3);
-    for (let i = 0; i < 6; i++) {
-        let sudoku = SudokuBuilder.build();
-        if (sudoku !== null) {
-            Renderer.render(sudoku.task, sudoku);
-            // Renderer.render(sudoku.solution, sudoku);
-        }
-    }
+    // // tournament(3, 1);
+    //
+    // // Basic sudoku and variants
+    // SudokuBuilder.rectangular(true, 3, 2); // basic sudoku
+    // // SudokuBuilder.size(9); // without rectangles
+    // // SudokuBuilder.diagonal(true); // add diagonal
+    // // SudokuBuilder.kropki(true); // kropki
+    // SudokuBuilder.minusOne(true); // show all squares with difference of 1
+    // // SudokuBuilder.inequality(true); // show all inequalities
+    // // SudokuBuilder.vxSum(true, [[5, "V"], [10, "X"]]); SudokuBuilder.prompterNum(null, 3); // vx
+    // // SudokuBuilder.pieceMoves(true, false); // king move
+    // // SudokuBuilder.pieceMoves(false, true); // knight move
+    //
+    // Renderer.perPage(3, 4);
+    // for (let i = 0; i < 12; i++) {
+    //     let sudoku = SudokuBuilder.build();
+    //     if (sudoku !== null) {
+    //         Renderer.render(sudoku.task, sudoku);
+    //         // Renderer.render(sudoku.solution, sudoku);
+    //     }
+    // }
 
 
     // ---
@@ -422,4 +392,9 @@ function main(): void {
     // SlitherlinkSolver.main();
     // SlitherlinkBuilder.main();
     // ConfigSlitherlinkBuilder.main();
+
+    // ---
+
+    // Group generator
+    GroupGenerator.main();
 }
