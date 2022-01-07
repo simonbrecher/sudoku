@@ -245,8 +245,21 @@ class GroupGenerator {
         return border;
     }
 
+    private static checkGroupSizesInput(size: number, groupSizesInput: number[]): boolean {
+        let total = 0;
+        for (let i = 0; i < groupSizesInput.length; i++) {
+            total += groupSizesInput[i];
+        }
+
+        return total === size * size;
+    }
+
     public static build(size: number, groupSizesInput: number[]): number[][] {
         let then = (new Date).getTime();
+
+        if (! this.checkGroupSizesInput(size, groupSizesInput)) {
+            throw "GroupGenerator->build - SUM OF GROUP SIZES INPUT IS NOT SIZE * SIZE";
+        }
 
         let groupSizes = Utils.shuffle(Utils.deepcopy(groupSizesInput));
 
@@ -256,7 +269,6 @@ class GroupGenerator {
 
         let isFinished = false;
         for (let tries = 0; tries < 1000; tries++) {
-            console.log("AAA");
             let canBeRemoved = this.getCanBeRemoved(groups, size);
 
             for (let smallId = 0; smallId < groups.length; smallId++) {
@@ -308,7 +320,7 @@ class GroupGenerator {
         }
 
         let now = (new Date).getTime();
-        console.log(`${now - then}ms`);
+        // console.log(`${now - then}ms`);
 
         return board;
     }

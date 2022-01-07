@@ -7,6 +7,9 @@ interface ISudoku {
     isKropki: boolean;
     isMinusOne: boolean;
     isInequality: boolean;
+    isKiller: boolean;
+    killerGroups: number[][][] | null;
+    killerSums: number[] | null;
     isABC: boolean; abcNumber: number | null; abcSpaceNumber: number | null;
     isKingMove: boolean;
     isKnightMove: boolean;
@@ -16,6 +19,8 @@ interface ISudoku {
 
     getVxSumName: (sum: number) => (string | null);
     getVxSumValues: () => (number[]);
+    setKillerSums: () => (void);
+    refreshKillerGroups: (groupSizes: number[]) => (void);
 
     solution: number[][]; task: number[][]; board: number[][];
 }

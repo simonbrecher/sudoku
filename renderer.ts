@@ -17,6 +17,8 @@ class Renderer {
     private static _minusOneBoxSizeRelative: number;
     private static _inequalityBoxFontSizeRelative: number;
     private static _inequalityBoxSizeRelative: number;
+    private static _killerSumBoxFontSizeRelative: number;
+    private static _killerSumBoxSizeRelative: number;
     private static _innerFontRelativeSize: number;
     private static _marginLeft: number;
     private static _marginBottom: number;
@@ -42,6 +44,8 @@ class Renderer {
         this._minusOneBoxSizeRelative = 0.2;
         this._inequalityBoxSizeRelative = 0.45;
         this._inequalityBoxFontSizeRelative = 1;
+        this._killerSumBoxSizeRelative = 0.35;
+        this._killerSumBoxFontSizeRelative = 1;
         this._typeDiagonalBoxSizeRelative = 0.4;
         this._typeDiagonalBoxFontSizeRelative = 0.9;
         this._innerFontRelativeSize = 0.8;
@@ -193,6 +197,73 @@ class Renderer {
         return arr;
     }
 
+    private static addKillerLine(svg: SVGSVGElement, x1: number, y1: number, x2: number, y2: number): void {
+        var line = document.createElementNS('http://www.w3.org/2000/svg','line');
+        line.setAttribute('x1',`${x1}px`);
+        line.setAttribute('y1',`${y1}px`);
+        line.setAttribute('x2',`${x2}px`);
+        line.setAttribute('y2',`${y2}px`);
+        line.setAttribute("stroke", "black");
+        line.setAttribute("stroke-dasharray", "3 1");
+        svg.appendChild(line);
+    }
+
+    private static addKillerLines(x: number, y: number, column: HTMLElement, killerBoard: number[][], parent: ISudoku): void {
+        let isSame = [];
+        for (let dirY = -1; dirY <= 1; dirY++) {
+            let row = [];
+            for (let dirX = -1; dirX <= 1; dirX++) {
+                let newX = x + dirX;
+                let newY = y + dirY;
+                if (newX >= 0 && newX < parent.size && newY >= 0 && newY < parent.size) {
+                    row.push(killerBoard[y][x] === killerBoard[newY][newX]);
+                } else {
+                    row.push(false);
+                }
+            }
+            isSame.push(row);
+        }
+
+        let svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'),
+            useElem = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+        useElem.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', '#down-arrow');
+        svg.appendChild(useElem);
+
+        column.appendChild(svg);
+
+        let size = this.getSquareFullSize(parent);
+        let padding = 2;
+
+        if (! isSame[1][0]) {
+            this.addKillerLine(svg, padding, isSame[0][1] ? 0 : padding, padding, size - (isSame[2][1] ? 0 : padding));
+        }
+        if (! isSame[1][2]) {
+            this.addKillerLine(svg, size - padding, isSame[0][1] ? 0 : padding, size - padding, size - (isSame[2][1] ? 0 : padding));
+        }
+        if (! isSame[0][1]) {
+            this.addKillerLine(svg, isSame[1][0] ? 0 : padding, padding, size - (isSame[1][2] ? 0 : padding), padding);
+        }
+        if (! isSame[2][1]) {
+            this.addKillerLine(svg, isSame[1][0] ? 0 : padding, size - padding, size - (isSame[1][2] ? 0 : padding), size - padding);
+        }
+        if (! isSame[0][0] && isSame[0][1] && isSame[1][0]) {
+            this.addKillerLine(svg, 0, padding, padding, padding);
+            this.addKillerLine(svg, padding, 0, padding, padding);
+        }
+        if (! isSame[0][2] && isSame[0][1] && isSame[1][2]) {
+            this.addKillerLine(svg, size, padding, size - padding, padding);
+            this.addKillerLine(svg, size - padding, 0, size - padding, padding);
+        }
+        if (! isSame[2][0] && isSame[1][0] && isSame[2][1]) {
+            this.addKillerLine(svg, 0, size - padding, padding, size - padding);
+            this.addKillerLine(svg, padding, size, padding, size - padding);
+        }
+        if (! isSame[2][2] && isSame[1][2] && isSame[2][1]) {
+            this.addKillerLine(svg, size, size - padding, size - padding, size - padding);
+            this.addKillerLine(svg, size - padding, size, size - padding, size - padding);
+        }
+    }
+
     public static render(board: number[][] | null | undefined, parent: ISudoku | null | undefined, unsolved: number[][] | null = null, color: "red" | "green" | null = null): void {
         if (board === null || board === undefined || parent === null || parent === undefined) {
             return;
@@ -241,6 +312,17 @@ class Renderer {
             // @ts-ignore
             irregularBoard = GroupGenerator.groupsToBoard(parent.irregularGroups, parent.size);
         }
+        let killerBoard;
+        let killerAlreadyAdded;
+        if (parent.isKiller) {
+            // @ts-ignore
+            killerBoard = GroupGenerator.groupsToBoard(parent.killerGroups, parent.size);
+            killerAlreadyAdded = [];
+            // @ts-ignore
+            for (let i = 0; i < parent.killerGroups; i++) {
+                killerAlreadyAdded.push(false);
+            }
+        }
         for (let y = 0; y < size; y++) {
             let row = boardTable.insertRow();
 
@@ -260,7 +342,7 @@ class Renderer {
                     }
                 }
                 column.appendChild(div);
-                if (parent?.isABC && y === 0 && x === 0) {
+                if (parent.isABC && y === 0 && x === 0) {
                     // @ts-ignore
                     div.textContent = parent.abcNumber.toString();
                     div.classList.add("square-full");
@@ -297,7 +379,7 @@ class Renderer {
                         }
                     }
                 }
-                if (parent?.isVX) {
+                if (parent.isVX) {
                     let solution = parent.solution;
                     if (x !== size - 1) {
                         let sum = Utils.binaryToValue(solution[y][x]) + Utils.binaryToValue(solution[y][x + 1]);
@@ -320,7 +402,7 @@ class Renderer {
                         }
                     }
                 }
-                if (parent?.isKropki) {
+                if (parent.isKropki) {
                     let solution = parent.solution;
                     if (x !== size - 1) {
                         let color = this.getKropkiColor(Utils.binaryToValue(solution[y][x]), Utils.binaryToValue(solution[y][x + 1]), x, y, parent);
@@ -345,7 +427,7 @@ class Renderer {
                         }
                     }
                 }
-                if (parent?.isMinusOne && parent.hasSolution) {
+                if (parent.isMinusOne && parent.hasSolution) {
                     let solution = parent.solution;
                     if (x !== size - 1) {
                         if (Math.abs(Utils.binaryToValue(solution[y][x]) - Utils.binaryToValue(solution[y][x + 1])) === 1) {
@@ -368,7 +450,7 @@ class Renderer {
                         }
                     }
                 }
-                if (parent?.isInequality && parent.hasSolution) {
+                if (parent.isInequality && parent.hasSolution) {
                     let solution = parent.solution;
                     if (x !== size - 1) {let div = document.createElement("div");
                         div.textContent = " ";
@@ -387,7 +469,7 @@ class Renderer {
                         column.appendChild(div);
                     }
                 }
-                if ((parent?.isKingMove || parent?.isKnightMove) && ! parent.isABC) {
+                if ((parent.isKingMove || parent.isKnightMove) && ! parent.isABC) {
                     if (x === parent.size - 1 && y === 0) {
                         let chessDiagonal = document.createElement("div");
                         chessDiagonal.classList.add("chess-diagonal");
@@ -400,7 +482,7 @@ class Renderer {
                         }
                     }
                 }
-                if (parent?.isKropki || parent?.isMinusOne) {
+                if (parent.isKropki || parent.isMinusOne) {
                     if (x === 0 && y === 0) {
                         let typeDiagonal = document.createElement("div");
                         typeDiagonal.classList.add("type-diagonal");
@@ -411,6 +493,20 @@ class Renderer {
                         if (parent.isMinusOne) {
                             typeDiagonal.textContent += "-";
                         }
+                    }
+                }
+                if (parent.isKiller) {
+                    // @ts-ignore
+                    this.addKillerLines(x, y, column, killerBoard, parent);
+                    // @ts-ignore
+                    if (! killerAlreadyAdded[killerBoard[y][x]]) {
+                        let sumBox = document.createElement("div");
+                        sumBox.classList.add("killer-sum");
+                        // @ts-ignore
+                        sumBox.textContent = parent.killerSums[killerBoard[y][x]];
+                        // @ts-ignore
+                        killerAlreadyAdded[killerBoard[y][x]] = true;
+                        column.appendChild(sumBox);
                     }
                 }
             }
@@ -455,6 +551,17 @@ class Renderer {
         this._pageUsedWidth += this._width;
     }
 
+    private static getSquareFullSize(parent: ISudoku): number {
+        let size;
+        if (parent.isABC) {
+            size = parent.size + 2;
+        } else {
+            size = parent.size;
+        }
+
+        return Math.floor(this._width / size - 1.5);
+    }
+
     public static setStyle(boardNum: number, parent: ISudoku): void {
         let style = document.getElementById("style");
         if (style === null) {
@@ -465,15 +572,8 @@ class Renderer {
 
         let squareInnerLinearCount = Math.ceil(Math.sqrt(Math.min(this._maxSquareInnerCount, parent.size)));;
 
-        let size;
-        if (parent.isABC) {
-            size = parent.size + 2;
-        } else {
-            size = parent.size;
-        }
-
-        let squareFullSize = Math.floor(this._width / size - 1.5);
-        let squareFullFontSize = Math.floor(this._width / size * this._fontRelativeSize);
+        let squareFullSize = this.getSquareFullSize(parent);
+        let squareFullFontSize = Math.floor(squareFullSize * this._fontRelativeSize);
         let squareInnerSize = Math.floor(squareFullSize / squareInnerLinearCount);
         let squareInnerFontSize = Math.floor(squareFullSize / squareInnerLinearCount * this._innerFontRelativeSize);
 
@@ -538,6 +638,16 @@ class Renderer {
             let styles2 = `margin-top: ${typeDiagonalBoxTop}px; margin-left: ${typeDiagonalBoxLeft}px; `;
             styleHtml = `table.board-table-${boardNum} div.type-diagonal { ${styles1}${styles2} }`;
             style.textContent += styleHtml + "\n";
+        }
+
+        if (parent.isKiller) {
+            styles = `width: ${squareFullSize}px; height: ${squareFullSize}px; margin-top: ${- squareFullSize}px;`;
+            style.textContent += `table.board-table-${boardNum} svg { ${styles} }\n`;
+            let killerSumBoxSize = Math.floor(squareFullSize * this._killerSumBoxSizeRelative);
+            let killerSumBoxFontSize = Math.floor(killerSumBoxSize * this._killerSumBoxFontSizeRelative);
+            let styles1 = `width: ${killerSumBoxSize}px; height: ${killerSumBoxSize}px; line-height: ${killerSumBoxSize}px;`;
+            let styles2 =  `font-size: ${killerSumBoxFontSize}px; margin-top: ${- squareFullSize}px;`;
+            style.textContent += `table.board-table-${boardNum} div.killer-sum { ${styles1} ${styles2} }\n`;
         }
 
         if (parent.isKingMove || parent.isKnightMove) {

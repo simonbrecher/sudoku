@@ -12,12 +12,14 @@ class SudokuBuilder {
     private static _isKropki: boolean;
     private static _isMinusOne: boolean;
     private static _isInequality: boolean;
+    private static _isKiller: boolean;
+    private static _killerGroupSizes: number[] | null;
     private static _isABC: boolean;
     private static _abcNumber: number | null;
     private static _isKingMove: boolean;
     private static _isKnightMove: boolean;
 
-    private static readonly MAX_TRIES_SOLUTION = 1000;
+    private static readonly MAX_TRIES_SOLUTION = 500;
     private static readonly MAX_TRIES_TASK = 300;
 
     private static readonly STATS = {
@@ -76,6 +78,10 @@ class SudokuBuilder {
         this._prompterNumMin = null;
         this._prompterNumMax = null;
         this._isKropki = false;
+        this._isMinusOne = false;
+        this._isInequality = false;
+        this._isKiller = false;
+        this._killerGroupSizes = null;
         this._isABC = false;
         this._abcNumber = null;
         this._isKingMove = false;
@@ -90,9 +96,11 @@ class SudokuBuilder {
         this._abcNumber = null;
         this._isMinusOne = false;
         this._isInequality = false;
+        this._isKiller = false;
+        this._killerGroupSizes = null;
     }
 
-    public static build(): ISudoku | null {
+    private static getNewSudoku(): ISudoku {
         let sudoku = new Sudoku(
             this._size,
             this._isRectangular,
@@ -105,6 +113,8 @@ class SudokuBuilder {
             this._isKropki,
             this._isMinusOne,
             this._isInequality,
+            this._isKiller,
+            this._killerGroupSizes,
             this._isABC,
             this._abcNumber,
             this._isKingMove,
@@ -113,6 +123,12 @@ class SudokuBuilder {
 
         sudoku.isFinished = false;
         sudoku.hasSolution = false;
+
+        return sudoku;
+    }
+
+    public static build(): ISudoku | null {
+        let sudoku = this.getNewSudoku();
 
         this.STATS.restart();
         let isTaskSuccess = this.getTask(sudoku);
@@ -218,10 +234,20 @@ class SudokuBuilder {
 
         let isSolutionSuccess = false;
         while (! this.STATS.isSolutionTriesEnd() && ! isSolutionSuccess) {
+            if (this.STATS.taskTries % 50 === 0 && this.STATS.taskTries > 0) {
+                // @ts-ignore
+                parent.refreshKillerGroups(this._killerGroupSizes);
+            }
+
             let solution = this.getSolutionTry(parent);
 
             if (solution !== null) {
                 parent.solution = solution;
+
+                if (parent.isKiller) {
+                    parent.setKillerSums();
+                }
+
                 isSolutionSuccess = true;
             }
         }
@@ -310,7 +336,7 @@ class SudokuBuilder {
         }
 
         if (this._prompterNumMax !== null) {
-            if (Utils.getPrompterNum(task) >= this._prompterNumMax) {
+            if (Utils.getPrompterNum(task) > this._prompterNumMax) {
                 this.STATS.addTaskTries();
                 return null;
             }
@@ -353,6 +379,24 @@ class SudokuBuilder {
             this.rectangular(false, null, null);
         } else {
             this._isIrregular = false;
+        }
+    }
+
+    public static killer(isKiller: boolean, killerGroupSizeCounts: number[][] | null): void {
+        if (isKiller && killerGroupSizeCounts !== null) {
+            this.removeVariation();
+
+            let killerGroupSizes = [];
+            for (let i = 0; i < killerGroupSizeCounts.length; i++) {
+                for (let j = 0; j < killerGroupSizeCounts[i][1]; j++) {
+                    killerGroupSizes.push(killerGroupSizeCounts[i][0]);
+                }
+            }
+            this._isKiller = true;
+            this._killerGroupSizes = killerGroupSizes;
+        } else {
+            this._isKiller = false;
+            this._killerGroupSizes = null;
         }
     }
 

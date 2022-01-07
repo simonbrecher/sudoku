@@ -571,6 +571,135 @@ class Solver {
         return board;
     }
 
+    private static getSameBlocks(parent: ISudoku): number[][][] {
+        let sameBlocks = [];
+
+        let sameRows = [];
+        let sameColumns = [];
+        for (let y = 0; y < parent.size; y++) {
+            let sameRowsLine = [];
+            let sameColumnsLine = [];
+            for (let x = 0; x < parent.size; x++) {
+                sameRowsLine.push(y);
+                sameColumnsLine.push(x);
+            }
+            sameRows.push(sameRowsLine);
+            sameColumns.push(sameColumnsLine);
+        }
+        sameBlocks.push(sameRows);
+        sameBlocks.push(sameColumns);
+
+        if (parent.isRectangular) {
+            let sameRectangles = [];
+            for (let y = 0; y < parent.size; y++) {
+                let row = [];
+                for (let x = 0; x < parent.size; x++) {
+                    // @ts-ignore
+                    row.push(y - y % parent.rectangleHeight + Math.floor(x / parent.rectangleWidth));
+                }
+                sameRectangles.push(row);
+            }
+            sameBlocks.push(sameRectangles);
+        }
+
+        if (parent.isIrregular) {
+            let sameIrregular = Utils.createArray2d(parent.size, parent.size, -1);
+            for (let i = 0; i < parent.size; i++) {
+                for (let j = 0; j < parent.size; j++) {
+                    // @ts-ignore
+                    let x = parent.irregularGroups[i][j][0];
+                    // @ts-ignore
+                    let y = parent.irregularGroups[i][j][1];
+                    sameIrregular[y][x] = i;
+                }
+            }
+            sameBlocks.push(sameIrregular);
+        }
+
+        return sameBlocks;
+    }
+
+    private static isInSameBlock(x1: number, y1: number, x2: number, y2: number, sameBlocks: number[][][]): boolean {
+        for (let i = 0; i < sameBlocks.length; i++) {
+            if (sameBlocks[i][y1][x1] === sameBlocks[i][y2][x2]) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bruteforceKillerGroupRecursion(
+        group: number[][], sum: number, board: number[][], sameBlocks: number[][][], parent: ISudoku,
+        depth: number, possible: number[], possibleAdd: number[],
+    ): number[] {
+        if (depth === group.length) {
+            let total = 0;
+            for (let i = 0; i < possibleAdd.length; i++) {
+                total += Utils.binaryToValue(possibleAdd[i]);
+            }
+            if (total === sum) {
+                for (let i = 0; i < possible.length; i++) {
+                    possible[i] |= possibleAdd[i];
+                }
+            }
+
+            return possible;
+        }
+
+        let x = group[depth][0];
+        let y = group[depth][1];
+        for (let shift = 0; shift < parent.size; shift++) {
+            let binary = 1 << shift;
+            let isOk = true;
+            if ((board[y][x] & binary) === 0) {
+                isOk = false;
+            }
+            for (let i = 0; i < depth; i++) {
+                if (this.isInSameBlock(x, y, group[i][0], group[i][1], sameBlocks)) {
+                    if (board[y][x] === possibleAdd[i]) {
+                        isOk = false;
+                        break;
+                    }
+                }
+            }
+            if (isOk) {
+                possibleAdd[depth] = binary;
+
+                possible = this.bruteforceKillerGroupRecursion(group, sum, board, sameBlocks, parent, depth + 1, possible, possibleAdd);
+
+                possibleAdd[depth] = 0;
+            }
+        }
+
+        return possible;
+    }
+
+    private static solveKiller(board: number[][], parent: ISudoku): number[][] {
+        let sameBlocks = this.getSameBlocks(parent);
+
+        // @ts-ignore
+        for (let i = 0; i < parent.killerGroups.length; i++) {
+            // @ts-ignore
+            let group = parent.killerGroups[i];
+
+            let possible = [];
+            let possibleAdd = [];
+            for (let i = 0; i < group.length; i++) {
+                possible.push(0);
+                possibleAdd.push(0);
+            }
+            // @ts-ignore
+            possible = this.bruteforceKillerGroupRecursion(group, parent.killerSums[i], board, sameBlocks, parent, 0, possible, possibleAdd);
+
+            for (let j = 0; j < group.length; j++) {
+                board[group[j][1]][group[j][0]] &= possible[j];
+            }
+        }
+
+        return board;
+    }
+
     private static solveChessMoves(board: number[][], parent: ISudoku): number[][] {
         for (let y = 0; y < parent.size; y++) {
             for (let x = 0; x < parent.size; x++) {
@@ -631,16 +760,12 @@ class Solver {
             board = this.solveMinusOne(board, parent);
         }
 
-        if (this.print && parent.hasSolution) {
-            Renderer.render(board, parent);
-        }
-
         if (parent.isInequality && parent.hasSolution) {
             board = this.solveInequality(board, parent);
         }
 
-        if (this.print && parent.hasSolution) {
-            Renderer.render(board, parent, null, "green");
+        if (parent.isKiller && parent.hasSolution) {
+            board = this.solveKiller(board, parent);
         }
 
         return board;

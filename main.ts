@@ -289,18 +289,33 @@ function main(): void {
     // ---
 
     // Basic sudoku and variants
-    // SudokuBuilder.rectangular(true, 3, 2); // basic sudoku
-    SudokuBuilder.irregular(true); // irregular blocks
-    SudokuBuilder.size(9); // without rectangles
+    SudokuBuilder.rectangular(true, 3, 2); // basic sudoku
+    // SudokuBuilder.irregular(true); // irregular blocks
+    // SudokuBuilder.size(9); // without rectangles
     // SudokuBuilder.diagonal(true); // add diagonal
     // SudokuBuilder.kropki(true); // kropki
     // SudokuBuilder.minusOne(true); // show all squares with difference of 1
     // SudokuBuilder.inequality(true); // show all inequalities
+    // SudokuBuilder.killer(true, [[2, 11], [3, 9], [4, 8]]); // killer 3x3
+    SudokuBuilder.prompterNum(null, 0);
+    SudokuBuilder.killer(true, [[1, 1], [2, 9], [3, 3], [4, 2]]); // killer 3x2
     // SudokuBuilder.vxSum(true, [[5, "V"], [10, "X"]]); SudokuBuilder.prompterNum(null, 3); // vx
     // SudokuBuilder.pieceMoves(true, false); // king move
     // SudokuBuilder.pieceMoves(false, true); // knight move
 
     Renderer.perPage(3, 4);
+    for (let i = 0; i < 24; i++) {
+        let sudoku = SudokuBuilder.build();
+        if (sudoku !== null) {
+            Renderer.render(sudoku.task, sudoku);
+            // Renderer.render(sudoku.solution, sudoku);
+        }
+    }
+
+    SudokuBuilder.prompterNum(null, 1);
+    SudokuBuilder.rectangular(true, 3, 3);
+    SudokuBuilder.killer(true, [[1, 6], [2, 11], [3, 11], [4, 5]]); // killer 3x3
+    Renderer.perPage(2, 3);
     for (let i = 0; i < 12; i++) {
         let sudoku = SudokuBuilder.build();
         if (sudoku !== null) {

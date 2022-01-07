@@ -11,6 +11,9 @@ class Sudoku implements ISudoku {
     public readonly isKropki: boolean;
     public readonly isMinusOne: boolean;
     public readonly isInequality: boolean;
+    public readonly isKiller: boolean;
+    public killerGroups: number[][][] | null;
+    public killerSums: number[] | null;
     public readonly isABC: boolean;
     public readonly abcNumber: number | null;
     public readonly abcSpaceNumber: number | null;
@@ -71,6 +74,31 @@ class Sudoku implements ISudoku {
         return arr;
     }
 
+    private getKillerSums(): number[] {
+        let sums = [];
+        // @ts-ignore
+        for (let i = 0; i < this.killerGroups.length; i++) {
+            let sum = 0;
+            // @ts-ignore
+            for (let j = 0; j < this.killerGroups[i].length; j++) {
+                // @ts-ignore
+                let position = this.killerGroups[i][j];
+                sum += Utils.binaryToValue(this._solution[position[1]][position[0]]);
+            }
+            sums.push(sum);
+        }
+
+        return sums;
+    }
+
+    public setKillerSums(): void {
+        this.killerSums = this.getKillerSums();
+    }
+
+    public refreshKillerGroups(groupSizes: number[]): void {
+        this.killerGroups = GroupGenerator.boardToGroups(GroupGenerator.build(this.size, groupSizes), this.size);
+    }
+
     constructor(
         size: number,
         isRectangular: boolean,
@@ -83,6 +111,8 @@ class Sudoku implements ISudoku {
         isKropki: boolean,
         isMinusOne: boolean,
         isInequality: boolean,
+        isKiller: boolean,
+        killerGroupSizes: number[] | null,
         isABC: boolean,
         abcNumber: number | null,
         isKingMove: boolean,
@@ -148,6 +178,17 @@ class Sudoku implements ISudoku {
         }
 
         this._solution = Utils.createEmptyBoard(this);
+
+        if (isKiller && killerGroupSizes !== null) {
+            this.isKiller = true;
+            this.killerGroups = GroupGenerator.boardToGroups(GroupGenerator.build(this.size, killerGroupSizes), this.size);
+            this.killerSums = null;
+        } else {
+            this.isKiller = false;
+            this.killerGroups = null;
+            this.killerSums = null;
+        }
+
         this._task = Utils.createEmptyBoard(this);
         this._board = Utils.createEmptyBoard(this, true);
     }
