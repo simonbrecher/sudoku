@@ -284,28 +284,30 @@ function tournament(taskNum: number, solutionNum: number): void {
 function main(): void {
     console.log("Hello world");
 
-    // // tournament(3, 1);
-    //
-    // // Basic sudoku and variants
-    // SudokuBuilder.rectangular(true, 3, 2); // basic sudoku
-    // // SudokuBuilder.size(9); // without rectangles
-    // // SudokuBuilder.diagonal(true); // add diagonal
-    // // SudokuBuilder.kropki(true); // kropki
-    // SudokuBuilder.minusOne(true); // show all squares with difference of 1
-    // // SudokuBuilder.inequality(true); // show all inequalities
-    // // SudokuBuilder.vxSum(true, [[5, "V"], [10, "X"]]); SudokuBuilder.prompterNum(null, 3); // vx
-    // // SudokuBuilder.pieceMoves(true, false); // king move
-    // // SudokuBuilder.pieceMoves(false, true); // knight move
-    //
-    // Renderer.perPage(3, 4);
-    // for (let i = 0; i < 12; i++) {
-    //     let sudoku = SudokuBuilder.build();
-    //     if (sudoku !== null) {
-    //         Renderer.render(sudoku.task, sudoku);
-    //         // Renderer.render(sudoku.solution, sudoku);
-    //     }
-    // }
+    // tournament(3, 1);
 
+    // ---
+
+    // Basic sudoku and variants
+    // SudokuBuilder.rectangular(true, 3, 2); // basic sudoku
+    SudokuBuilder.irregular(true); // irregular blocks
+    SudokuBuilder.size(9); // without rectangles
+    // SudokuBuilder.diagonal(true); // add diagonal
+    // SudokuBuilder.kropki(true); // kropki
+    // SudokuBuilder.minusOne(true); // show all squares with difference of 1
+    // SudokuBuilder.inequality(true); // show all inequalities
+    // SudokuBuilder.vxSum(true, [[5, "V"], [10, "X"]]); SudokuBuilder.prompterNum(null, 3); // vx
+    // SudokuBuilder.pieceMoves(true, false); // king move
+    // SudokuBuilder.pieceMoves(false, true); // knight move
+
+    Renderer.perPage(3, 4);
+    for (let i = 0; i < 12; i++) {
+        let sudoku = SudokuBuilder.build();
+        if (sudoku !== null) {
+            Renderer.render(sudoku.task, sudoku);
+            // Renderer.render(sudoku.solution, sudoku);
+        }
+    }
 
     // ---
 
@@ -380,14 +382,14 @@ function main(): void {
 
     // ---
 
-    // Tapa
+    // // Tapa
     // TapaBuilder.main();
     // TapaSolver.main();
     // TapaPuzzleBuilder.main();
 
     // ---
 
-    // Slitherlink
+    // // Slitherlink
     // Slitherlink.main();
     // SlitherlinkSolver.main();
     // SlitherlinkBuilder.main();
@@ -395,6 +397,6 @@ function main(): void {
 
     // ---
 
-    // Group generator
-    GroupGenerator.main();
+    // // Group generator
+    // GroupGenerator.main();
 }

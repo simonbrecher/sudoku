@@ -331,6 +331,61 @@ class Solver {
         return board;
     }
 
+    private static solveIrregularOneInSquare(board: number[][], parent: ISudoku): number[][] {
+        let hasOneNumber = Utils.getHasOneBit(board);
+        for (let i = 0; i < parent.size; i++) {
+            let rowOne = 0;
+            for (let j = 0; j < parent.size; j++) {
+                // @ts-ignore
+                let x = parent.irregularGroups[i][j][0];
+                // @ts-ignore
+                let y = parent.irregularGroups[i][j][1];
+                if (hasOneNumber[y][x]) {
+                    rowOne |= board[y][x];
+                }
+            }
+            let notRowOne = ~ rowOne;
+            for (let j = 0; j < parent.size; j++) {
+                // @ts-ignore
+                let x = parent.irregularGroups[i][j][0];
+                // @ts-ignore
+                let y = parent.irregularGroups[i][j][1];
+                if (! hasOneNumber[y][x]) {
+                    board[y][x] &= notRowOne;
+                }
+            }
+        }
+
+        return board;
+    }
+
+    private static solveIrregularOnlyInSquare(board: number[][], parent: ISudoku): number[][] {
+        for (let i = 0; i < parent.size; i++) {
+            let rowOne = 0;
+            let rowMultiple = 0;
+            for (let j = 0; j < parent.size; j++) {
+                // @ts-ignore
+                let x = parent.irregularGroups[i][j][0];
+                // @ts-ignore
+                let y = parent.irregularGroups[i][j][1];
+                rowMultiple |= rowOne & board[y][x];
+                rowOne |= board[y][x];
+                rowOne &= ~ rowMultiple;
+            }
+            for (let j = 0; j < parent.size; j++) {
+                // @ts-ignore
+                let x = parent.irregularGroups[i][j][0];
+                // @ts-ignore
+                let y = parent.irregularGroups[i][j][1];
+                if ((board[y][x] & rowOne) !== 0) {
+                    board[y][x] &= rowOne;
+                }
+            }
+        }
+
+        return board;
+    }
+
     private static solveDiagonalOneInSquare(board: number[][], parent: ISudoku): number[][] {
         let hasOneNumber = [];
         let diagonalOne = 0;
@@ -488,17 +543,10 @@ class Solver {
 
     private static solveInequalityOneSquare(x1: number, y1: number, x2: number, y2: number, board: number[][], solution: number[][]): number[][] {
         if (solution[y1][x1] < solution[y2][x2]) {
-            // console.log(solution[y1][x1], solution[y2][x2], board[y1][x1], board[y2][x2], (board[y1][x1] ^ (board[y1][x1] - 1)) >> 1, board[y2][x2] & (board[y1][x1] ^ (board[y1][x1] - 1)) >> 1);
             board[y2][x2] &= ~ ((board[y1][x1] ^ (board[y1][x1] - 1)) >> 1);
-            // if (board[y2][x2] === 0) {
-            //     throw "XX";
-            // }
-            // console.log(board[y2][x2]);
         } else {
             let reversed = Utils.reverseBits32(board[y1][x1]);
-            // console.log(solution[y1][x1], solution[y2][x2], board[y1][x1], board[y2][x2], Utils.reverseBits32((reversed ^ (reversed - 1)) >> 1) & (1 << 6) - 1);
             board[y2][x2] &= ~ Utils.reverseBits32((reversed ^ (reversed - 1)) >> 1);
-            // console.log(board[y2][x2]);
         }
 
         return board;
@@ -563,6 +611,10 @@ class Solver {
         if (parent.isRectangular) {
             board = this.solveRectangleOneInSquare(board, parent);
             board = this.solveRectangleOnlyInSquare(board, parent);
+        }
+        if (parent.isIrregular) {
+            board = this.solveIrregularOneInSquare(board, parent);
+            board = this.solveIrregularOnlyInSquare(board, parent);
         }
         if (parent.isDiagonal) {
             board = this.solveDiagonalOneInSquare(board, parent);
@@ -668,6 +720,21 @@ class Solver {
             }
             if (diagonal !== (1 << parent.size) - 1) {
                 return false;
+            }
+        }
+        if (parent.isIrregular) {
+            for (let i = 0; i < parent.size; i++) {
+                let row = 0;
+                for (let j = 0; j < parent.size; j++) {
+                    // @ts-ignore
+                    let x = parent.irregularGroups[i][j][0];
+                    // @ts-ignore
+                    let y = parent.irregularGroups[i][j][1];
+                    row |= board[y][x];
+                }
+                if (row !== (1 << parent.size) - 1) {
+                    return false;
+                }
             }
         }
         return true;

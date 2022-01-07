@@ -69,7 +69,7 @@ class GroupGenerator {
         return board;
     }
 
-    private static boardToGroups(board: number[][], size: number): number[][][] {
+    public static boardToGroups(board: number[][], size: number): number[][][] {
         let groups: number[][][] = [];
         for (let y = 0; y < size; y++) {
             for (let x = 0; x < size; x++) {

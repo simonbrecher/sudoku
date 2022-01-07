@@ -3,6 +3,8 @@ class Sudoku implements ISudoku {
     public readonly isRectangular: boolean;
     public readonly rectangleWidth: number | null;
     public readonly rectangleHeight: number | null;
+    public readonly isIrregular: boolean;
+    public readonly irregularGroups: number[][][] | null;
     public readonly isDiagonal: boolean;
     public readonly isVX: boolean;
     public readonly vxSum: [number, string][] | null;
@@ -72,6 +74,7 @@ class Sudoku implements ISudoku {
     constructor(
         size: number,
         isRectangular: boolean,
+        isIrregular: boolean,
         rectangleWidth: number | null,
         rectangleHeight: number | null,
         isDiagonal: boolean,
@@ -103,6 +106,8 @@ class Sudoku implements ISudoku {
 
         this.isDiagonal = isDiagonal;
 
+        this.isIrregular = isIrregular;
+
         this.isVX = isVX;
 
         if (isVX) {
@@ -131,6 +136,16 @@ class Sudoku implements ISudoku {
 
         this.isKingMove = isKingMove;
         this.isKnightMove = isKnightMove;
+
+        if (this.isIrregular) {
+            let groupSizes = [];
+            for (let i = 0; i < this.size; i++) {
+                groupSizes.push(this.size);
+            }
+            this.irregularGroups = GroupGenerator.boardToGroups(GroupGenerator.build(this.size, groupSizes), this.size);
+        } else {
+            this.irregularGroups = null;
+        }
 
         this._solution = Utils.createEmptyBoard(this);
         this._task = Utils.createEmptyBoard(this);

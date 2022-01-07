@@ -236,12 +236,17 @@ class Renderer {
         } else {
             size = parent.size;
         }
+        let irregularBoard;
+        if (parent.isIrregular) {
+            // @ts-ignore
+            irregularBoard = GroupGenerator.groupsToBoard(parent.irregularGroups, parent.size);
+        }
         for (let y = 0; y < size; y++) {
             let row = boardTable.insertRow();
 
             for (let x = 0; x < size; x++) {
                 let column = row.insertCell();
-                this.addBorderStyle(x, y, column, parent);
+                this.addBorderStyle(x, y, column, irregularBoard, parent);
 
                 let div = document.createElement("div");
                 if (size === parent.size) {
@@ -551,7 +556,7 @@ class Renderer {
         }
     }
 
-    public static addBorderStyle(x: number, y: number, column: HTMLElement, parent: ISudoku): void {
+    public static addBorderStyle(x: number, y: number, column: HTMLElement, irregularBoard: number[][] | undefined, parent: ISudoku): void {
         if (parent.isABC) {
             if (x === 0 || x === parent.size + 1 || y === 0 || y === parent.size + 1) {
                 column.classList.add("border-none");
@@ -590,6 +595,29 @@ class Renderer {
                     column.classList.add("border-top");
                 } else if (y % parent.rectangleHeight === parent.rectangleHeight - 1) {
                     column.classList.add("border-bottom");
+                }
+            }
+
+            if (parent.isIrregular && irregularBoard !== undefined) {
+                if (x !== 0) {
+                    if (irregularBoard[y][x] !== irregularBoard[y][x - 1]) {
+                        column.classList.add("border-left");
+                    }
+                }
+                if (x !== parent.size - 1) {
+                    if (irregularBoard[y][x] !== irregularBoard[y][x + 1]) {
+                        column.classList.add("border-right");
+                    }
+                }
+                if (y !== 0) {
+                    if (irregularBoard[y][x] !== irregularBoard[y - 1][x]) {
+                        column.classList.add("border-top");
+                    }
+                }
+                if (y !== parent.size - 1) {
+                    if (irregularBoard[y][x] !== irregularBoard[y + 1][x]) {
+                        column.classList.add("border-bottom");
+                    }
                 }
             }
         }

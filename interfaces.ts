@@ -1,6 +1,7 @@
 interface ISudoku {
     size: number;
     isRectangular: boolean; rectangleWidth: number | null; rectangleHeight: number | null;
+    isIrregular: boolean; irregularGroups: number[][][] | null;
     isDiagonal: boolean;
     isVX: boolean; vxSum: [number, string][] | null;
     isKropki: boolean;

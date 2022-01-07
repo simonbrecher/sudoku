@@ -1,6 +1,7 @@
 class SudokuBuilder {
     private static _size: number;
     private static _isRectangular: boolean;
+    private static _isIrregular: boolean;
     private static _rectangleWidth: number | null;
     private static _rectangleHeight: number | null;
     private static _isDiagonal: boolean;
@@ -95,6 +96,7 @@ class SudokuBuilder {
         let sudoku = new Sudoku(
             this._size,
             this._isRectangular,
+            this._isIrregular,
             this._rectangleWidth,
             this._rectangleHeight,
             this._isDiagonal,
@@ -296,7 +298,7 @@ class SudokuBuilder {
             if (numberOfSolutions > 1) {
                 task[y][x] = solution[y][x];
             } else if (numberOfSolutions === 0) {
-                console.log(parent.solution);
+                Renderer.render(parent.solution, parent, null, "red");
                 throw "TASK ERROR";
             }
 
@@ -337,10 +339,20 @@ class SudokuBuilder {
             this._rectangleWidth = rectangleWidth;
             this._rectangleHeight = rectangleHeight;
             this._size = rectangleWidth * rectangleHeight;
+            this._isIrregular = false;
         } else if (! isRectangular) {
             this._isRectangular = false;
             this._rectangleWidth = null;
             this._rectangleHeight = null;
+        }
+    }
+
+    public static irregular(isIrregular: boolean): void {
+        if (isIrregular) {
+            this._isIrregular = true;
+            this.rectangular(false, null, null);
+        } else {
+            this._isIrregular = false;
         }
     }
 
