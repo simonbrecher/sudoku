@@ -1,6 +1,6 @@
 class Renderer {
     private static readonly PAPER_HEIGHT = 1000;
-    private static readonly PAPER_WIDTH = 750;
+    private static readonly PAPER_WIDTH = 710;
 
     private static _pageUsedHeight = 0;
     private static _pageUsedWidth = 0;
@@ -61,12 +61,12 @@ class Renderer {
         let isBlack = value1 === value2 * 2 || value1 * 2 === value2;
 
         if (isWhite && isBlack) {
-            let vx1 = Utils.binaryToValue(parent.solution[0][x]);
-            let vy1 = Utils.binaryToValue(parent.solution[y][0]);
-            let vx2 = Utils.binaryToValue(parent.solution[parent.size - 1][x]);
-            let vy2 = Utils.binaryToValue(parent.solution[y][parent.size - 1]);
-            let vx = Utils.binaryToValue(parent.solution[vx1][vy2]);
-            let vy = Utils.binaryToValue(parent.solution[vy1][vx2]);
+            let vx1 = Utils.binaryToValue(parent.solution[0][x]) - 1;
+            let vy1 = Utils.binaryToValue(parent.solution[y][0]) - 1;
+            let vx2 = Utils.binaryToValue(parent.solution[parent.size - 1][x]) - 1;
+            let vy2 = Utils.binaryToValue(parent.solution[y][parent.size - 1]) - 1;
+            let vx = Utils.binaryToValue(parent.solution[vx1][vy2]) - 1;
+            let vy = Utils.binaryToValue(parent.solution[vy1][vx2]) - 1;
             return (Utils.countBits32(vx ^ vy ^ value1)) % 2 === 0 ? "white" : "black";
         } else if (isWhite) {
             return "white";
