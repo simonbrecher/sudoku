@@ -158,6 +158,14 @@ class GroupGenerator {
             while (to === from || ! Array.from(neighbours[to]).includes(from)) {
                 from = arr[Math.floor(Math.random() * groupIndexes.size)];
                 to = arr[Math.floor(Math.random() * groupIndexes.size)];
+
+                let guessMaxSize = Math.ceil(size * size / groupNumber);
+                if (squares[from].length >= guessMaxSize) {
+                    from = arr[Math.floor(Math.random() * groupIndexes.size)];
+                }
+                if (squares[to].length >= guessMaxSize) {
+                    to = arr[Math.floor(Math.random() * groupIndexes.size)];
+                }
             }
 
             groupIndexes.delete(from);
@@ -189,8 +197,17 @@ class GroupGenerator {
 
     private static getCanBeRemoved(groups: number[][][], size: number): boolean[][] {
         let canBeRemoved = Utils.createArray2d(size, size, false);
+        let updatedGroups = [];
         for (let i = 0; i < groups.length; i++) {
-            if (groups[i].length > 1) {
+            updatedGroups.push(true);
+        }
+
+        return this.updateCanBeRemoved(canBeRemoved, groups, updatedGroups);
+    }
+
+    private static updateCanBeRemoved(canBeRemoved: boolean[][], groups: number[][][], updatedGroups: boolean[]): boolean[][] {
+        for (let i = 0; i < groups.length; i++) {
+            if (groups[i].length > 1 && updatedGroups[i]) {
                 for (let j = 0; j < groups[i].length; j++) {
                     let group2 = [];
                     for (let k = 0; k < groups[i].length; k++) {
@@ -268,8 +285,13 @@ class GroupGenerator {
         let groups = this.boardToGroups(board, size);
 
         let isFinished = false;
-        for (let tries = 0; tries < 1000; tries++) {
-            let canBeRemoved = this.getCanBeRemoved(groups, size);
+        let canBeRemoved = this.getCanBeRemoved(groups, size);
+        for (let tries = 0; tries < 500; tries++) {
+
+            let updatedGroups = [];
+            for (let i = 0; i < groups.length; i++) {
+                updatedGroups.push(false);
+            }
 
             for (let smallId = 0; smallId < groups.length; smallId++) {
                 if (groups[smallId].length < groupSizes[smallId]) {
@@ -282,26 +304,29 @@ class GroupGenerator {
                         if (canBeRemoved[removeY][removeX] && groups[board[removeY][removeX]].length !== 1) {
                             let removeGroup = board[removeY][removeX];
                             groups[smallId].push([removeX, removeY]);
+                            updatedGroups[smallId] = true;
                             board[removeY][removeX] = smallId;
                             for (let j = 0; j < groups[removeGroup].length; j++) {
                                 if (groups[removeGroup][j][0] === removeX && groups[removeGroup][j][1] === removeY) {
                                     groups[removeGroup].splice(j, 1);
+                                    updatedGroups[removeGroup] = true;
                                     break;
                                 }
                             }
                             for (let j = 0; j < groups[removeGroup].length; j++) {
                                 canBeRemoved[groups[removeGroup][j][1]][groups[removeGroup][j][0]] = false;
-                            }for (let j = 0; j < groups[smallId].length; j++) {
+                            }
+                            for (let j = 0; j < groups[smallId].length; j++) {
                                 canBeRemoved[groups[smallId][j][1]][groups[smallId][j][0]] = false;
                             }
-
-                            canBeRemoved[removeY][removeX] = false;
 
                             break;
                         }
                     }
                 }
             }
+
+            canBeRemoved = this.updateCanBeRemoved(canBeRemoved, groups, updatedGroups);
 
             let isOk = true;
             for (let i = 0; i < groups.length; i++) {

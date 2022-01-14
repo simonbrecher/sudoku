@@ -21,6 +21,7 @@ interface ISudoku {
     getVxSumValues: () => (number[]);
     setKillerSums: () => (void);
     refreshKillerGroups: (groupSizes: number[]) => (void);
+    refreshIrregularGroups: () => (void);
 
     solution: number[][]; task: number[][]; board: number[][];
 }

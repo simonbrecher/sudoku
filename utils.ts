@@ -157,6 +157,7 @@ class Utils {
 
     public static getUnknownOrder(parent: ISudoku): number[][] {
         let solution = parent.solution;
+        let task = parent.task;
 
         let width, height;
         if (parent.isABC) {
@@ -168,26 +169,32 @@ class Utils {
         }
 
         // let removeFirstBinary = 1 << Math.floor(Math.random() * parent.size);
-        let beginning = [];
+        // let beginning = [];
         let arr: number[][] = [];
         for (let y = 0; y < height; y++) {
             for (let x = 0; x < width; x++) {
-                if (solution === null) {
+                if (parent.isABC) {
                     arr.push([x, y]);
+                } else if (task[y][x] === (1 << parent.size) - 1) {
+                    arr.push([x, y]);
+                }
+                // if (solution === null) {
+                //     arr.push([x, y]);
                 // } else if (solution[y][x] === removeFirstBinary && parent.isRemoveOne) {
                 //     beginning.push([x, y]);
                 // } else if (isVX && isSquareInVxSum[y][x]) {
                 //     beginning.push([x, y]);
-                } else {
-                    arr.push([x, y]);
-                }
+                // } else {
+                //     arr.push([x, y]);
+                // }
             }
         }
         arr = this.shuffle(arr);
-        for (let i = 0; i < arr.length; i++) {
-            beginning.push(arr[i]);
-        }
-        return beginning;
+        // for (let i = 0; i < arr.length; i++) {
+        //     beginning.push(arr[i]);
+        // }
+        // return beginning;
+        return arr;
     }
 
     public static deepcopyArray2d(board: number[][]): number[][] {

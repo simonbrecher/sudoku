@@ -19,7 +19,7 @@ class SudokuBuilder {
     private static _isKingMove: boolean;
     private static _isKnightMove: boolean;
 
-    private static readonly MAX_TRIES_SOLUTION = 500;
+    private static readonly MAX_TRIES_SOLUTION = 50;
     private static readonly MAX_TRIES_TASK = 300;
 
     private static readonly STATS = {
@@ -234,9 +234,17 @@ class SudokuBuilder {
 
         let isSolutionSuccess = false;
         while (! this.STATS.isSolutionTriesEnd() && ! isSolutionSuccess) {
-            if (this.STATS.taskTries % 50 === 0 && this.STATS.taskTries > 0) {
-                // @ts-ignore
-                parent.refreshKillerGroups(this._killerGroupSizes);
+            if (parent.isKiller) {
+                if (this.STATS.taskTries % 50 === 0 && this.STATS.taskTries > 0) {
+                    // @ts-ignore
+                    parent.refreshKillerGroups(this._killerGroupSizes);
+                }
+            }
+            if (parent.isIrregular) {
+                if (this.STATS.taskTries % 5 === 0 && this.STATS.taskTries > 0) {
+                    // @ts-ignore
+                    parent.refreshIrregularGroups();
+                }
             }
 
             let solution = this.getSolutionTry(parent);
@@ -311,6 +319,21 @@ class SudokuBuilder {
 
         let task = parent.solution;
         let solution = parent.solution;
+
+        if (this._prompterNumMax === 0) {
+            for (let y = 0; y < parent.size; y++) {
+                for (let x = 0; x < parent.size; x++) {
+                    task[y][x] = (1 << parent.size) - 1
+                }
+            }
+            parent.task = task;
+        }
+
+        let numberOfSolutions = Solver.countSolutions(Solver.solve(task, parent), parent);
+        if (numberOfSolutions > 1) {
+            this.STATS.addTaskTries();
+            return null;
+        }
 
         let unknownOrder = Utils.getUnknownOrder(parent);
 

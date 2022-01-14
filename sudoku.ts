@@ -4,7 +4,7 @@ class Sudoku implements ISudoku {
     public readonly rectangleWidth: number | null;
     public readonly rectangleHeight: number | null;
     public readonly isIrregular: boolean;
-    public readonly irregularGroups: number[][][] | null;
+    public irregularGroups: number[][][] | null;
     public readonly isDiagonal: boolean;
     public readonly isVX: boolean;
     public readonly vxSum: [number, string][] | null;
@@ -93,6 +93,14 @@ class Sudoku implements ISudoku {
 
     public setKillerSums(): void {
         this.killerSums = this.getKillerSums();
+    }
+
+    public refreshIrregularGroups(): void {
+        let groupSizes = [];
+        for (let i = 0; i < this.size; i++) {
+            groupSizes.push(this.size);
+        }
+        this.irregularGroups = GroupGenerator.boardToGroups(GroupGenerator.build(this.size, groupSizes), this.size);
     }
 
     public refreshKillerGroups(groupSizes: number[]): void {
