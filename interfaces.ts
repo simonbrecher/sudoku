@@ -90,3 +90,12 @@ interface IConfigSlitherlink {
     renderCount: () => void;
     render: (isEmpty: boolean) => void;
 }
+
+interface IStars {
+    size: number;
+    startCount: number;
+    task: number[][];
+    board: number[][];
+
+    render: (showStars: boolean) => void;
+}

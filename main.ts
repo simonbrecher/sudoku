@@ -524,4 +524,40 @@ function main(): void {
 
     // // Group generator
     // GroupGenerator.main();
+
+    // ---
+
+    // // Stars
+    // Renderer.breakPageForce();
+    // for (let i = 0; i < 24; i++) {
+    //     if (i % 4 === 0) {
+    //         Renderer.breakLineForce();
+    //     }
+    //     let stars = StarsBuilder.build(5, 1);
+    //     stars?.render(false);
+    // }
+    // Renderer.breakPageForce();
+    // for (let i = 0; i < 15; i++) {
+    //     if (i % 3 === 0) {
+    //         Renderer.breakLineForce();
+    //     }
+    //     let stars = StarsBuilder.build(6, 1);
+    //     stars?.render(false);
+    // }
+    // Renderer.breakPageForce();
+    // for (let i = 0; i < 6; i++) {
+    //     if (i % 2 === 0) {
+    //         Renderer.breakLineForce();
+    //     }
+    //     let stars = StarsBuilder.build(9, 2);
+    //     stars?.render(false);
+    // }
+    // Renderer.breakPageForce();
+    // for (let i = 0; i < 6; i++) {
+    //     if (i % 2 === 0) {
+    //         Renderer.breakLineForce();
+    //     }
+    //     let stars = StarsBuilder.build(10, 2);
+    //     stars?.render(false);
+    // }
 }

@@ -6,7 +6,7 @@
 
     <style id="style">
         hr { clear: both; border: none; height: 0; font-size: 0; margin: 0; }
-        table.board-table { border-collapse: collapse; float: left; }
+        table.board-table { border-collapse: collapse; float: left; margin-top: 5px; }
         table.board-table td { border: 1px #000 solid; padding: 0; }
         table.board-table td.border-none { border-width: 0; }
         table.board-table td.diagonal { background-color: #DDD; }
@@ -47,11 +47,19 @@
         table.group-table { border-collapse: collapse; float: left; margin: 10px; }
         table.group-table div.square { text-align: center; width: 25px; height: 25px; line-height: 25px; font-size: 18px; }
         table.group-table td { border: 3px #DDD solid; padding: 0; }
-        table.group-table td.border-top { border-top-width: 3px; border-top-color: black; }
-        table.group-table td.border-bottom { border-bottom-width: 3px; border-bottom-color: black; }
-        table.group-table td.border-left { border-left-width: 3px; border-left-color: black; }
-        table.group-table td.border-right { border-right-width: 3px; border-right-color: black; }
+        table.group-table td.border-top { border-top-color: #000; }
+        table.group-table td.border-bottom { border-bottom-color: #000; }
+        table.group-table td.border-left { border-left-color: #000; }
+        table.group-table td.border-right { border-right-color: #000; }
         table.group-table td.empty { background-color: #CCC; }
+
+        table.stars-table { border-collapse: collapse; float: left; margin: 10px; }
+        table.stars-table div.square { text-align: center; width: 28px; height: 28px; line-height: 28px; font-size: 20px; }
+        table.stars-table td { border: 1px #000 solid; padding: 0; }
+        table.stars-table td.border-top { border-top-width: 3px; }
+        table.stars-table td.border-bottom { border-bottom-width: 3px; }
+        table.stars-table td.border-left { border-left-width: 3px; }
+        table.stars-table td.border-right { border-right-width: 3px; }
 
         table.group-table td.border-top:before {
             position: absolute; content: ' '; width: 3px; height: 3px; background-color: #000; margin-top: -3px; margin-left: -3px;
@@ -170,6 +178,9 @@
     <script src="configSlitherlinkSolver.js"></script>
     <script src="utils.js"></script>
     <script src="groupGenerator.js"></script>
+    <script src="stars.js"></script>
+    <script src="starsBuilder.js"></script>
+    <script src="starsSolver.js"></script>
 </head>
 <body onload="main()">
 

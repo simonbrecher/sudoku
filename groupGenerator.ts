@@ -271,6 +271,48 @@ class GroupGenerator {
         return total === size * size;
     }
 
+    private static update(groups: number[][][], groupSizes: number[], size: number, canBeRemoved: boolean[][], board: number[][]): void {
+        let updatedGroups = [];
+        for (let i = 0; i < groups.length; i++) {
+            updatedGroups.push(false);
+        }
+
+        for (let smallId = 0; smallId < groups.length; smallId++) {
+            if (groups[smallId].length < groupSizes[smallId]) {
+                let border = this.getGroupBorder(groups[smallId], size);
+                border = Utils.shuffle(border);
+
+                for (let i = 0; i < border.length; i++) {
+                    let removeX = border[i][0];
+                    let removeY = border[i][1];
+                    if (canBeRemoved[removeY][removeX] && groups[board[removeY][removeX]].length !== 1) {
+                        let removeGroup = board[removeY][removeX];
+                        groups[smallId].push([removeX, removeY]);
+                        updatedGroups[smallId] = true;
+                        board[removeY][removeX] = smallId;
+                        for (let j = 0; j < groups[removeGroup].length; j++) {
+                            if (groups[removeGroup][j][0] === removeX && groups[removeGroup][j][1] === removeY) {
+                                groups[removeGroup].splice(j, 1);
+                                updatedGroups[removeGroup] = true;
+                                break;
+                            }
+                        }
+                        for (let j = 0; j < groups[removeGroup].length; j++) {
+                            canBeRemoved[groups[removeGroup][j][1]][groups[removeGroup][j][0]] = false;
+                        }
+                        for (let j = 0; j < groups[smallId].length; j++) {
+                            canBeRemoved[groups[smallId][j][1]][groups[smallId][j][0]] = false;
+                        }
+
+                        break;
+                    }
+                }
+            }
+        }
+
+        canBeRemoved = this.updateCanBeRemoved(canBeRemoved, groups, updatedGroups);
+    }
+
     public static build(size: number, groupSizesInput: number[]): number[][] {
         let then = (new Date).getTime();
 
@@ -279,54 +321,13 @@ class GroupGenerator {
         }
 
         let groupSizes = Utils.shuffle(Utils.deepcopy(groupSizesInput));
-
         let board = this.createEmptyBoard(size, groupSizes.length);
-
         let groups = this.boardToGroups(board, size);
 
         let isFinished = false;
         let canBeRemoved = this.getCanBeRemoved(groups, size);
         for (let tries = 0; tries < 500; tries++) {
-
-            let updatedGroups = [];
-            for (let i = 0; i < groups.length; i++) {
-                updatedGroups.push(false);
-            }
-
-            for (let smallId = 0; smallId < groups.length; smallId++) {
-                if (groups[smallId].length < groupSizes[smallId]) {
-                    let border = this.getGroupBorder(groups[smallId], size);
-                    border = Utils.shuffle(border);
-
-                    for (let i = 0; i < border.length; i++) {
-                        let removeX = border[i][0];
-                        let removeY = border[i][1];
-                        if (canBeRemoved[removeY][removeX] && groups[board[removeY][removeX]].length !== 1) {
-                            let removeGroup = board[removeY][removeX];
-                            groups[smallId].push([removeX, removeY]);
-                            updatedGroups[smallId] = true;
-                            board[removeY][removeX] = smallId;
-                            for (let j = 0; j < groups[removeGroup].length; j++) {
-                                if (groups[removeGroup][j][0] === removeX && groups[removeGroup][j][1] === removeY) {
-                                    groups[removeGroup].splice(j, 1);
-                                    updatedGroups[removeGroup] = true;
-                                    break;
-                                }
-                            }
-                            for (let j = 0; j < groups[removeGroup].length; j++) {
-                                canBeRemoved[groups[removeGroup][j][1]][groups[removeGroup][j][0]] = false;
-                            }
-                            for (let j = 0; j < groups[smallId].length; j++) {
-                                canBeRemoved[groups[smallId][j][1]][groups[smallId][j][0]] = false;
-                            }
-
-                            break;
-                        }
-                    }
-                }
-            }
-
-            canBeRemoved = this.updateCanBeRemoved(canBeRemoved, groups, updatedGroups);
+            this.update(groups, groupSizes, size, canBeRemoved, board);
 
             let isOk = true;
             for (let i = 0; i < groups.length; i++) {
@@ -350,8 +351,50 @@ class GroupGenerator {
         return board;
     }
 
+    public static buildMinMax(size: number, groupCount: number, minSize: number, maxSize: number): number[][] {
+        let then = (new Date).getTime();
+
+        if (minSize * groupCount > size * size || maxSize * groupCount < size * size) {
+            throw "GroupGenerator->build - WRONG MIN_SIZE OR MAX_SIZE OR GROUP_COUNT";
+        }
+
+        let board = this.createEmptyBoard(size, groupCount);
+        let groups = this.boardToGroups(board, size);
+
+        let isFinished = false;
+        let canBeRemoved = this.getCanBeRemoved(groups, size);
+        for (let tries = 0; tries < 500; tries++) {
+            let groupSizes = [];
+            for (let i = 0; i < groupCount; i++) {
+                groupSizes.push(Math.floor(Math.random() * (maxSize - minSize) + minSize));
+            }
+
+            this.update(groups, groupSizes, size, canBeRemoved, board);
+
+            let isOk = true;
+            for (let i = 0; i < groups.length; i++) {
+                if (groups[i].length < minSize || groups[i].length > maxSize) {
+                    isOk = false;
+                }
+            }
+            if (isOk) {
+                isFinished = true;
+                break;
+            }
+        }
+
+        if (! isFinished) {
+            return this.buildMinMax(size, groupCount, minSize, maxSize);
+        }
+
+        let now = (new Date).getTime();
+        // console.log(`${now - then}ms`);
+
+        return board;
+    }
+
     public static main(): void {
-        let size = 9;
+        let size = 10;
         let groupSizes = [];
         for (let i = 0; i < size; i++) {
             groupSizes.push(size);
@@ -366,7 +409,30 @@ class GroupGenerator {
         //     groupSizes.push(2);
         // }
 
-        let board = this.build(size, groupSizes);
-        this.render(board, size);
+        // let board = this.build(size, groupSizes);
+        // this.render(board, size);
+
+        let maxScore = -1;
+        let maxBoard = null;
+        for (let i = 0; i < 10; i++) {
+            let board = this.buildMinMax(size, size, Math.floor(size / 2), Math.floor(size * 3 / 2));
+            let score = 0;
+            for (let y = 0; y < size - 1; y++) {
+                for (let x = 0; x < size - 1; x++) {
+                    if (board[y][x] === board[y][x + 1] && board[y][x] === board[y + 1][x] && board[y][x] === board[y + 1][x + 1]) {
+                        score ++;
+                    }
+                }
+            }
+            if (score > maxScore) {
+                maxScore = score;
+                maxBoard = board;
+            }
+        }
+        // @ts-ignore
+        this.render(maxBoard, size);
+
+        // let board = this.buildMinMax(size, size, Math.floor(size / 2), Math.floor(size * 3 / 2));
+        // this.render(board, size);
     }
 }
