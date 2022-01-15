@@ -93,7 +93,7 @@ class Solver {
         let middleValue = Utils.getAbcMiddleValue(dir, position, task, parent);
         let lastValue = Utils.getAbcLastValue(dir, position, task);
         let startX, startY, moveX, moveY;
-        [[startX, startY], [moveX, moveY]] = Utils.getAbcDirection(dir, position, parent);
+        [[startX, startY], [moveX, moveY]] = Utils.getSideDirection(dir, position, parent);
         let firstFound = false;
         let middleNotFound = middleValue;
         let middleFoundCount = 0;
@@ -130,7 +130,7 @@ class Solver {
         let firstValue = Utils.getAbcFirstValue(dir, position, task);
         let middleValue = Utils.getAbcMiddleValue(dir, position, task, parent);
         let startX, startY, moveX, moveY;
-        [[startX, startY], [moveX, moveY]] = Utils.getAbcDirection(dir, position, parent);
+        [[startX, startY], [moveX, moveY]] = Utils.getSideDirection(dir, position, parent);
         let firstFound = false;
         let middleFound = false;
         for (let i = 0; i < parent.size; i++) {
@@ -200,6 +200,158 @@ class Solver {
 
         if (this.print) {
             Renderer.render(board, parent, null, "red");
+        }
+
+        return board;
+    }
+
+    private static checkSkyscraperCount(inputBoard: number[], task: number, task2: number | null, depth: number): boolean {
+        let board = [];
+        for (let i = 0; i < inputBoard.length; i++) {
+            if (Utils.countBits32(inputBoard[i]) === 1) {
+                board.push(Utils.binaryToValue(inputBoard[i]));
+            } else {
+                board.push(null);
+            }
+        }
+
+        let visibleCount = 0;
+        let highest = 0;
+        for (let i = 0; i < depth; i++) {
+            // @ts-ignore
+            if (board[i] > highest) {
+                visibleCount ++;
+                // @ts-ignore
+                highest = board[i];
+            }
+        }
+        let higherNumbersCount = board.length - highest;
+
+        // console.log(inputBoard, visibleCount, task, higherNumbersCount);
+        if (visibleCount > task || visibleCount === task && higherNumbersCount > 0 || visibleCount + higherNumbersCount < task) {
+            return false;
+        }
+
+        if (depth === board.length && task2 !== null) {
+            let backwardVisibleCount = 0;
+            let backwardHighest = 0;
+            for (let i = depth - 1; i >= 0; i--) {
+                // @ts-ignore
+                if (board[i] > backwardHighest) {
+                    backwardVisibleCount ++;
+                    // @ts-ignore
+                    backwardHighest = board[i];
+                }
+            }
+
+            if (backwardVisibleCount !== task2) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static solveSkyscraperPrompterFast(board: number[][], parent: ISudoku): number[][] {
+        let task = parent.task;
+        for (let dir = 0; dir < 4; dir++) {
+            for (let position = 0; position < parent.size; position++) {
+                let firstValue = task[dir][position];
+                if (firstValue !== 0) {
+                    let startX, startY, moveX, moveY;
+                    [[startX, startY], [moveX, moveY]] = Utils.getSideDirection(dir, position, parent);
+                    for (let i = 0; i < parent.size; i++) {
+                        board[startY + i * moveY][startX + i * moveX] &= (1 << parent.size - firstValue + 1 + i) - 1;
+                    }
+                }
+            }
+        }
+
+        return board;
+    }
+
+    private static isBruteforceSkyscraperRedundant(board: number[], possibleAdd: number[], possible: number[], depth: number): boolean {
+        let canBePossible = [];
+        for (let i = 0; i < board.length; i++) {
+            canBePossible.push(board[i]);
+            if (i < depth) {
+                canBePossible[i] &= possibleAdd[i];
+            }
+        }
+
+        for (let i = 0; i < board.length; i++) {
+            if ((canBePossible[i] & ~ possible[i]) !== 0) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bruteforceSkyscraperPrompter(board: number[], isUsed: boolean[], task: number, task2: number | null, depth: number, possibleAdd: number[], possible: number[]): number[] {
+        if (depth === board.length) {
+            if (this.checkSkyscraperCount(possibleAdd, task, task2, depth)) {
+                for (let i = 0; i < possible.length; i++) {
+                    possible[i] |= possibleAdd[i];
+                }
+            }
+
+            return possible;
+        }
+
+        if (! this.checkSkyscraperCount(possibleAdd, task, task2, depth)) {
+            return possible;
+        }
+
+        if (this.isBruteforceSkyscraperRedundant(board, possibleAdd, possible, depth)) {
+            return possible;
+        }
+
+        for (let shift = 0; shift < board.length; shift++) {
+            if (! isUsed[shift] && (1 << shift & board[depth]) !== 0) {
+                possibleAdd[depth] = 1 << shift;
+                isUsed[shift] = true;
+
+                possible = this.bruteforceSkyscraperPrompter(board, isUsed, task, task2, depth + 1, possibleAdd, possible);
+
+                possibleAdd[depth] = 0;
+                isUsed[shift] = false;
+            }
+        }
+
+        return possible;
+    }
+
+    private static solveSkyscraperPrompter(board: number[][], parent: ISudoku): number[][] {
+        let task = parent.task;
+        for (let dir = 0; dir < 4; dir++) {
+            for (let position = 0; position < parent.size; position++) {
+                let firstValue = task[dir][position];
+                let secondValue = task[dir ^ 1][position];
+                if (firstValue !== 0) {
+                    if (secondValue === 0) {
+                        // @ts-ignore
+                        secondValue = null;
+                    }
+                    let startX, startY, moveX, moveY;
+                    [[startX, startY], [moveX, moveY]] = Utils.getSideDirection(dir, position, parent);
+                    let board2 = [];
+                    let possibleAdd = [];
+                    let possible = [];
+                    let isUsed = [];
+                    for (let i = 0; i < parent.size; i++) {
+                        board2.push(board[startY + i * moveY][startX + i * moveX]);
+                        possibleAdd.push(0);
+                        possible.push(0);
+                        isUsed.push(false);
+                    }
+                    let previous = Utils.deepcopy(board2);
+                    board2 = this.bruteforceSkyscraperPrompter(board2, isUsed, firstValue, secondValue, 0, possibleAdd, possible);
+                    for (let i = 0; i < parent.size; i++) {
+                        board[startY + i * moveY][startX + i * moveX] &= board2[i];
+                    }
+                }
+            }
         }
 
         return board;
@@ -735,6 +887,12 @@ class Solver {
             return this.solveCycleAbc(board, parent);
         }
 
+        let extraOnStart = Utils.getExtraNum(board);
+
+        if (parent.isSkyscraper && parent.hasSolution) {
+            board = this.solveSkyscraperPrompterFast(board, parent);
+        }
+
         board = this.solveLineOneInSquare(board, parent);
         board = this.solveLineOnlyInSquare(board, parent);
         if (parent.isRectangular) {
@@ -766,6 +924,12 @@ class Solver {
 
         if (parent.isKiller && parent.hasSolution) {
             board = this.solveKiller(board, parent);
+        }
+
+        if (parent.isSkyscraper && parent.hasSolution) {
+            if (extraOnStart === Utils.getExtraNum(board)) {
+                board = this.solveSkyscraperPrompter(board, parent);
+            }
         }
 
         return board;

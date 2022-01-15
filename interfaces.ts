@@ -11,6 +11,7 @@ interface ISudoku {
     killerGroups: number[][][] | null;
     killerSums: number[] | null;
     isABC: boolean; abcNumber: number | null; abcSpaceNumber: number | null;
+    isSkyscraper: boolean;
     isKingMove: boolean;
     isKnightMove: boolean;
 

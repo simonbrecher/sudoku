@@ -5,6 +5,7 @@ class Renderer {
     private static _pageUsedHeight = 0;
     private static _pageUsedWidth = 0;
     private static _pageLineHeight = 0;
+    public static doFormatPage = true;
 
     private static _width: number;
     private static _height: number;
@@ -126,6 +127,7 @@ class Renderer {
             }
         }
         if (bitCount === 1) {
+            // return binary.toString();
             return Utils.valueToChar(Utils.binaryToValue(binary), parent);
         }
         if (binary === 0) {
@@ -143,36 +145,43 @@ class Renderer {
         return values;
     }
 
-    private static convertAbcBoard(board: number[][], parent: ISudoku, squareInnerCount: number): (string | string[])[][] {
+    private static getSideCharacter(value: number, parent: ISudoku, squareInnerCount: number): string {
+        if (parent.isABC) {
+            let add = this.convertBinary(value, parent, squareInnerCount);
+            return add === "?" ? " " : add.toString();
+        } else if (parent.isSkyscraper) {
+            return value !== 0 ? value.toString() : " ";
+        } else {
+            return "!";
+        }
+    }
+
+    private static convertSideBoard(board: number[][], parent: ISudoku, squareInnerCount: number): (string | string[])[][] {
         let task = parent.task;
         let arr: (string | string[])[][] = [];
 
         let row = [];
         row.push(" ");
         for (let x = 0; x < parent.size; x++) {
-            let add = this.convertBinary(task[2][x], parent, squareInnerCount)
-            row.push(add === "?" ? " " : add);
+            row.push(this.getSideCharacter(task[2][x], parent, squareInnerCount));
         }
         row.push(" ");
         arr.push(row);
 
         for (let y = 0; y < board.length; y++) {
             row = [];
-            let add = this.convertBinary(task[0][y], parent, squareInnerCount)
-            row.push(add === "?" ? " " : add);
+            row.push(this.getSideCharacter(task[0][y], parent, squareInnerCount));
             for (let x = 0; x < board[y].length; x++) {
                 row.push(this.convertBinary(board[y][x], parent, squareInnerCount));
             }
-            add = this.convertBinary(task[1][y], parent, squareInnerCount)
-            row.push(add === "?" ? " " : add);
+            row.push(this.getSideCharacter(task[1][y], parent, squareInnerCount));
             arr.push(row);
         }
 
         row = [];
         row.push(" ");
         for (let x = 0; x < parent.size; x++) {
-            let add = this.convertBinary(task[3][x], parent, squareInnerCount)
-            row.push(add === "?" ? " " : add);
+            row.push(this.getSideCharacter(task[3][x], parent, squareInnerCount));
         }
         row.push(" ");
         arr.push(row);
@@ -181,8 +190,8 @@ class Renderer {
     }
 
     public static convertBoard(board: number[][], parent: ISudoku, squareInnerCount: number): (string | string[])[][] {
-        if (parent.isABC) {
-            return this.convertAbcBoard(board, parent, squareInnerCount);
+        if (parent.isABC || parent.isSkyscraper) {
+            return this.convertSideBoard(board, parent, squareInnerCount);
         }
 
         let arr: (string | string[])[][] = [];
@@ -302,7 +311,7 @@ class Renderer {
 
         let renderBoard = this.convertBoard(board, parent, Math.min(this._maxSquareInnerCount, parent.size));
         let size;
-        if (parent.isABC) {
+        if (parent.isABC || parent.isSkyscraper) {
             size = parent.size + 2;
         } else {
             size = parent.size;
@@ -347,7 +356,7 @@ class Renderer {
                     div.textContent = parent.abcNumber.toString();
                     div.classList.add("square-full");
                     div.classList.add("small-font");
-                } else if (parent?.isABC && (parent.isKingMove || parent?.isKnightMove) && x === parent.size + 1 && y === 0) {
+                } else if ((parent.isABC || parent.isSkyscraper) && (parent.isKingMove || parent.isKnightMove) && x === parent.size + 1 && y === 0) {
                     if (parent.isKingMove) {
                         div.textContent += "K";
                     }
@@ -469,7 +478,7 @@ class Renderer {
                         column.appendChild(div);
                     }
                 }
-                if ((parent.isKingMove || parent.isKnightMove) && ! parent.isABC) {
+                if ((parent.isKingMove || parent.isKnightMove) && ! (parent.isABC || parent.isSkyscraper)) {
                     if (x === parent.size - 1 && y === 0) {
                         let chessDiagonal = document.createElement("div");
                         chessDiagonal.classList.add("chess-diagonal");
@@ -514,6 +523,10 @@ class Renderer {
     }
 
     public static formatPage(): void {
+        if (! this.doFormatPage) {
+            return;
+        }
+
         let pageWrapper = document.getElementById("page-wrapper");
 
         if (this._boardCount === 0) {
@@ -553,7 +566,7 @@ class Renderer {
 
     private static getSquareFullSize(parent: ISudoku): number {
         let size;
-        if (parent.isABC) {
+        if (parent.isABC || parent.isSkyscraper) {
             size = parent.size + 2;
         } else {
             size = parent.size;
@@ -661,13 +674,13 @@ class Renderer {
             style.textContent += styleHtml + "\n";
         }
 
-        if (parent.isABC) {
+        if (parent.isABC || parent.isSkyscraper) {
             style.textContent += `table.board-table-${boardNum} div.small-font { font-size: ${squareFullFontSize / 2}px; }\n`;
         }
     }
 
     public static addBorderStyle(x: number, y: number, column: HTMLElement, irregularBoard: number[][] | undefined, parent: ISudoku): void {
-        if (parent.isABC) {
+        if (parent.isABC || parent.isSkyscraper) {
             if (x === 0 || x === parent.size + 1 || y === 0 || y === parent.size + 1) {
                 column.classList.add("border-none");
             } else {

@@ -17,11 +17,12 @@ class Sudoku implements ISudoku {
     public readonly isABC: boolean;
     public readonly abcNumber: number | null;
     public readonly abcSpaceNumber: number | null;
+    public readonly isSkyscraper: boolean;
     public readonly isKingMove: boolean;
     public readonly isKnightMove: boolean;
 
     private _solution: number[][];
-    private _task: number[][]; // sudoku - [y][x]; abc - line first, line last, column first, column last
+    private _task: number[][]; // sudoku - [y][x]; abc - row first, row last, column first, column last
     private _board: number[][];
 
     public isFinished: boolean = false;
@@ -123,6 +124,7 @@ class Sudoku implements ISudoku {
         killerGroupSizes: number[] | null,
         isABC: boolean,
         abcNumber: number | null,
+        isSkyscraper: boolean,
         isKingMove: boolean,
         isKnightMove: boolean,
     ) {
@@ -171,6 +173,8 @@ class Sudoku implements ISudoku {
             this.abcNumber = null;
             this.abcSpaceNumber = null;
         }
+
+        this.isSkyscraper = isSkyscraper;
 
         this.isKingMove = isKingMove;
         this.isKnightMove = isKnightMove;

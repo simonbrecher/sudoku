@@ -14,7 +14,7 @@ class Utils {
         return (1 << parent.abcNumber + 1) - 2 & ~ this.getAbcFirstValue(dir, position, task) & ~ this.getAbcLastValue(dir, position, task);
     }
 
-    public static getAbcDirection(dir: number, position: number, parent: ISudoku): number[][] {
+    public static getSideDirection(dir: number, position: number, parent: ISudoku): number[][] {
         switch (dir) {
             case 0:
                 return [[0, position], [1, 0]];
@@ -156,11 +156,11 @@ class Utils {
     }
 
     public static getUnknownOrder(parent: ISudoku): number[][] {
-        let solution = parent.solution;
+        // let solution = parent.solution;
         let task = parent.task;
 
         let width, height;
-        if (parent.isABC) {
+        if (parent.isABC || parent.isSkyscraper) {
             width = 4;
             height = parent.size;
         } else {
@@ -173,7 +173,7 @@ class Utils {
         let arr: number[][] = [];
         for (let y = 0; y < height; y++) {
             for (let x = 0; x < width; x++) {
-                if (parent.isABC) {
+                if (parent.isABC || parent.isSkyscraper) {
                     arr.push([x, y]);
                 } else if (task[y][x] === (1 << parent.size) - 1) {
                     arr.push([x, y]);

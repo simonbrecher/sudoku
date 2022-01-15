@@ -16,6 +16,7 @@ class SudokuBuilder {
     private static _killerGroupSizes: number[] | null;
     private static _isABC: boolean;
     private static _abcNumber: number | null;
+    private static _isSkyscraper: boolean;
     private static _isKingMove: boolean;
     private static _isKnightMove: boolean;
 
@@ -94,6 +95,7 @@ class SudokuBuilder {
         this._isKropki = false;
         this._isABC = false;
         this._abcNumber = null;
+        this._isSkyscraper = false;
         this._isMinusOne = false;
         this._isInequality = false;
         this._isKiller = false;
@@ -117,6 +119,7 @@ class SudokuBuilder {
             this._killerGroupSizes,
             this._isABC,
             this._abcNumber,
+            this._isSkyscraper,
             this._isKingMove,
             this._isKnightMove,
         );
@@ -155,7 +158,7 @@ class SudokuBuilder {
             let directionTask = [];
             for (let position = 0; position < parent.size; position++) {
                 let startX, startY, moveX, moveY;
-                [[startX, startY], [moveX, moveY]] = Utils.getAbcDirection(dir, position, parent);
+                [[startX, startY], [moveX, moveY]] = Utils.getSideDirection(dir, position, parent);
 
                 let first = 1;
                 for (let i = 0; i < parent.size; i++) {
@@ -166,6 +169,66 @@ class SudokuBuilder {
                     }
                 }
                 directionTask.push(first);
+            }
+            task.push(directionTask);
+        }
+
+        parent.task = task;
+        if (Utils.getExtraNum(Solver.solve(parent.board, parent)) > 0) {
+            if (this.STATS.isSolutionTriesEnd()) {
+                this.STATS.restartSolutionTries();
+                this.STATS.addTaskTries();
+            } else {
+                this.STATS.addSolutionTries();
+            }
+            return null;
+        }
+
+        let taskSolution = parent.task;
+        let unknownOrder = Utils.getUnknownOrder(parent);
+
+        for (let i = 0; i < unknownOrder.length; i++) {
+            let dir, position;
+            [dir, position] = unknownOrder[i];
+
+            task[dir][position] = 0;
+
+            parent.task = task;
+
+            let numberOfSolutions = Solver.countSolutions(Solver.solve(parent.board, parent), parent);
+
+            if (numberOfSolutions > 1) {
+                task[dir][position] = taskSolution[dir][position];
+            } else if (numberOfSolutions === 0) {
+                console.log(parent.solution);
+                throw "TASK ERROR";
+            }
+        }
+
+        parent.task = task;
+        return task;
+    }
+
+    private static getSkyscraperTask(parent: ISudoku): number[][] | null {
+        let solution = parent.solution;
+
+        let task = [];
+        for (let dir = 0; dir < 4; dir++) {
+            let directionTask = [];
+            for (let position = 0; position < parent.size; position++) {
+                let startX, startY, moveX, moveY;
+                [[startX, startY], [moveX, moveY]] = Utils.getSideDirection(dir, position, parent);
+
+                let visibleCount = 0;
+                let lastVisible = 0;
+                for (let i = 0; i < parent.size; i++) {
+                    let square = solution[startY + i * moveY][startX + i * moveX];
+                    if (square > lastVisible) {
+                        visibleCount ++;
+                        lastVisible = square;
+                    }
+                }
+                directionTask.push(visibleCount);
             }
             task.push(directionTask);
         }
@@ -312,9 +375,12 @@ class SudokuBuilder {
         return solution;
     }
 
-    private static getTaskTry(parent: ISudoku): number[][] | null {
+    private static getTaskTry(parent: ISudoku): number[][] | null  {
         if (parent.isABC) {
             return this.getAbcTask(parent);
+        }
+        if (parent.isSkyscraper) {
+            return this.getSkyscraperTask(parent);
         }
 
         let task = parent.solution;
@@ -477,6 +543,12 @@ class SudokuBuilder {
             this._isABC = false;
             this._abcNumber = null;
         }
+    }
+
+    public static skyscraper(isSkyscraper: boolean): void {
+        this.removeVariation();
+
+        this._isSkyscraper = isSkyscraper;
     }
 
     public static pieceMoves(isKingMove: boolean, isKnightMove: boolean): void {
