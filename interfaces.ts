@@ -100,3 +100,19 @@ interface IStars {
 
     render: (showStars: boolean) => void;
 }
+
+interface IRange {
+    width: number;
+    height: number;
+
+    isKuromasu: boolean;
+    isCave: boolean;
+
+    solution: number[][];
+    task: (number | null)[][];
+    board: number[][];
+
+    checkSolutionOrthogonal: (solution: number[][]) => boolean;
+    countLengthInDirection: (board: number[][], isMax: boolean) => number[][][];
+    render: (board: number[][], debug: boolean) => void;
+}

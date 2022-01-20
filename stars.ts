@@ -18,7 +18,7 @@ class Stars implements IStars {
         let maxScore = -1;
         let maxBoard = null;
         for (let i = 0; i < 10; i++) {
-            let board = GroupGenerator.buildMinMax(this.size, this.size, Math.floor(this.size / 2), Math.floor(this.size * 3 / 2));
+            let board = GroupGenerator.buildMinMax(this.size, this.size, this.size, Math.floor(this.size / 2), Math.floor(this.size * 3 / 2));
             let score = 0;
             for (let y = 0; y < this.size - 1; y++) {
                 for (let x = 0; x < this.size - 1; x++) {

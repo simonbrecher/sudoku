@@ -80,7 +80,7 @@ class StarsSolver {
     }
 
     private static getGroupsTask(parent: IStars): number[][][] {
-        let task = GroupGenerator.boardToGroups(parent.task, parent.size);
+        let task = GroupGenerator.boardToGroups(parent.task, parent.size, parent.size);
         for (let y = 0; y < parent.size; y++) {
             let row = [];
             for (let x = 0; x < parent.size; x++) {

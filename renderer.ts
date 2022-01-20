@@ -319,13 +319,13 @@ class Renderer {
         let irregularBoard;
         if (parent.isIrregular) {
             // @ts-ignore
-            irregularBoard = GroupGenerator.groupsToBoard(parent.irregularGroups, parent.size);
+            irregularBoard = GroupGenerator.groupsToBoard(parent.irregularGroups, parent.size, parent.size);
         }
         let killerBoard;
         let killerAlreadyAdded;
         if (parent.isKiller) {
             // @ts-ignore
-            killerBoard = GroupGenerator.groupsToBoard(parent.killerGroups, parent.size);
+            killerBoard = GroupGenerator.groupsToBoard(parent.killerGroups, parent.size, parent.size);
             killerAlreadyAdded = [];
             // @ts-ignore
             for (let i = 0; i < parent.killerGroups; i++) {

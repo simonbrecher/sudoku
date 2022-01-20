@@ -151,6 +151,18 @@
         table.slitherlink-table td.border-bottom-red { border-bottom-color: #F00; }
         div.page-break-configslitherlink { clear: both; page-break-after: always; background-color: #F00; height: 3px; margin: 2px; } /* 40 */
 
+        table.range-table { border-collapse: collapse; float: left; margin: 10px; }
+        table.range-table td { border: 1px #000 solid; padding: 0; }
+        table.range-table div.square { text-align: center; width: 30px; height: 30px; line-height: 30px; font-size: 21px; }
+        table.range-table div.black { background-color: #000; }
+        @media print {
+            table.range-table div.black { background-color: #FFF; color: #000; }
+        }
+        table.range-table div.type-diagonal { border: 1px solid #000; position: absolute; background: #FFF; margin-top: -39px; margin-left: -8px; }
+        table.range-table div.type-diagonal { width: 15px; height: 15px; line-height: 15px; font-size: 15px; text-align: center; }
+        table.range-table div.orange { background-color: #FDB; }
+        table.range-table div.red { background-color: #FBB; }
+
         table.red { background-color: #FDD; }
         table.green { background-color: #DFD; }
     </style>
@@ -181,6 +193,9 @@
     <script src="stars.js"></script>
     <script src="starsBuilder.js"></script>
     <script src="starsSolver.js"></script>
+    <script src="rangePuzzle.js"></script>
+    <script src="rangeBuilder.js"></script>
+    <script src="rangeSolver.js"></script>
 </head>
 <body onload="main()">
 

@@ -101,11 +101,11 @@ class Sudoku implements ISudoku {
         for (let i = 0; i < this.size; i++) {
             groupSizes.push(this.size);
         }
-        this.irregularGroups = GroupGenerator.boardToGroups(GroupGenerator.build(this.size, groupSizes), this.size);
+        this.irregularGroups = GroupGenerator.boardToGroups(GroupGenerator.build(this.size, this.size, groupSizes), this.size, this.size);
     }
 
     public refreshKillerGroups(groupSizes: number[]): void {
-        this.killerGroups = GroupGenerator.boardToGroups(GroupGenerator.build(this.size, groupSizes), this.size);
+        this.killerGroups = GroupGenerator.boardToGroups(GroupGenerator.build(this.size, this.size, groupSizes), this.size, this.size);
     }
 
     constructor(
@@ -184,7 +184,7 @@ class Sudoku implements ISudoku {
             for (let i = 0; i < this.size; i++) {
                 groupSizes.push(this.size);
             }
-            this.irregularGroups = GroupGenerator.boardToGroups(GroupGenerator.build(this.size, groupSizes), this.size);
+            this.irregularGroups = GroupGenerator.boardToGroups(GroupGenerator.build(this.size, this.size, groupSizes), this.size, this.size);
         } else {
             this.irregularGroups = null;
         }
@@ -193,7 +193,7 @@ class Sudoku implements ISudoku {
 
         if (isKiller && killerGroupSizes !== null) {
             this.isKiller = true;
-            this.killerGroups = GroupGenerator.boardToGroups(GroupGenerator.build(this.size, killerGroupSizes), this.size);
+            this.killerGroups = GroupGenerator.boardToGroups(GroupGenerator.build(this.size, this.size, killerGroupSizes), this.size, this.size);
             this.killerSums = null;
         } else {
             this.isKiller = false;

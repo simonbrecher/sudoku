@@ -1,15 +1,15 @@
 class GroupGenerator {
-    public static render(board: number[][], size: number): void {
+    public static render(board: number[][], width: number, height: number): void {
         let pageWrapper = document.getElementById("page-wrapper");
 
         let boardTable = document.createElement("table");
         pageWrapper?.appendChild(boardTable);
         boardTable.classList.add("group-table");
 
-        for (let y = 0; y < size; y++) {
+        for (let y = 0; y < height; y++) {
             let row = boardTable.insertRow();
 
-            for (let x = 0; x < size; x++) {
+            for (let x = 0; x < width; x++) {
                 let column = row.insertCell();
 
                 let squareDiv = document.createElement("div");
@@ -27,7 +27,7 @@ class GroupGenerator {
                 } else {
                     column.classList.add("border-left");
                 }
-                if (x !== size - 1) {
+                if (x !== width - 1) {
                     if (board[y][x] !== board[y][x + 1]) {
                         column.classList.add("border-right");
                     }
@@ -41,7 +41,7 @@ class GroupGenerator {
                 } else {
                     column.classList.add("border-top");
                 }
-                if (y !== size - 1) {
+                if (y !== height - 1) {
                     if (board[y][x] !== board[y + 1][x]) {
                         column.classList.add("border-bottom");
                     }
@@ -52,14 +52,14 @@ class GroupGenerator {
         }
     }
 
-    private static renderGroups(groups: number[][][], size: number): void {
-        let board = this.groupsToBoard(groups, size);
+    private static renderGroups(groups: number[][][], width: number, height: number): void {
+        let board = this.groupsToBoard(groups, width, height);
 
-        this.render(board, size);
+        this.render(board, width, height);
     }
 
-    public static groupsToBoard(groups: number[][][], size: number): number[][] {
-        let board = Utils.createArray2d(size, size, -1);
+    public static groupsToBoard(groups: number[][][], width: number, height: number): number[][] {
+        let board = Utils.createArray2d(width, height, -1);
         for (let i = 0; i < groups.length; i++) {
             for (let j = 0; j < groups[i].length; j++) {
                 board[groups[i][j][1]][groups[i][j][0]] = i;
@@ -69,10 +69,10 @@ class GroupGenerator {
         return board;
     }
 
-    public static boardToGroups(board: number[][], size: number): number[][][] {
+    public static boardToGroups(board: number[][], width: number, height: number): number[][][] {
         let groups: number[][][] = [];
-        for (let y = 0; y < size; y++) {
-            for (let x = 0; x < size; x++) {
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
                 while (board[y][x] >= groups.length) {
                     groups.push([]);
                 }
@@ -125,31 +125,31 @@ class GroupGenerator {
         return true;
     }
 
-    private static createEmptyBoard(size: number, groupNumber: number): number[][] {
+    private static createEmptyBoard(width: number, height: number, groupNumber: number): number[][] {
         let groupIndexes = new Set();
         let squares = [];
         let neighbours: number[][] = [];
-        for (let y = 0; y < size; y++) {
-            for (let x = 0; x < size; x++) {
-                groupIndexes.add(y * size + x);
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                groupIndexes.add(y * width + x);
                 squares.push([[x, y]]);
                 neighbours.push([]);
                 if (x !== 0) {
-                    neighbours[y * size + x].push(y * size + x - 1);
+                    neighbours[y * width + x].push(y * width + x - 1);
                 }
-                if (x !== size - 1) {
-                    neighbours[y * size + x].push(y * size + x + 1);
+                if (x !== width - 1) {
+                    neighbours[y * width + x].push(y * width + x + 1);
                 }
                 if (y !== 0) {
-                    neighbours[y * size + x].push((y - 1) * size + x);
+                    neighbours[y * width + x].push((y - 1) * width + x);
                 }
-                if (y !== size - 1) {
-                    neighbours[y * size + x].push((y + 1) * size + x);
+                if (y !== height - 1) {
+                    neighbours[y * width + x].push((y + 1) * width + x);
                 }
             }
         }
 
-        for (let i = 0; i < size * size - groupNumber; i++) {
+        for (let i = 0; i < width * height - groupNumber; i++) {
             // @ts-ignore
             let arr = Array.from(groupIndexes);
             let from = arr[Math.floor(Math.random() * groupIndexes.size)];
@@ -159,7 +159,7 @@ class GroupGenerator {
                 from = arr[Math.floor(Math.random() * groupIndexes.size)];
                 to = arr[Math.floor(Math.random() * groupIndexes.size)];
 
-                let guessMaxSize = Math.ceil(size * size / groupNumber);
+                let guessMaxSize = Math.ceil(width * height / groupNumber);
                 if (squares[from].length >= guessMaxSize) {
                     from = arr[Math.floor(Math.random() * groupIndexes.size)];
                 }
@@ -179,7 +179,7 @@ class GroupGenerator {
             }
         }
 
-        let board = Utils.createArray2d(size, size, -1);
+        let board = Utils.createArray2d(width, height, -1);
 
         // @ts-ignore
         let arr = Array.from(groupIndexes);
@@ -195,17 +195,18 @@ class GroupGenerator {
         return board;
     }
 
-    private static getCanBeRemoved(groups: number[][][], size: number): boolean[][] {
-        let canBeRemoved = Utils.createArray2d(size, size, false);
+    private static getCanBeRemoved(groups: number[][][], width: number, height: number): boolean[][] {
+        let canBeRemoved = Utils.createArray2d(width, height, false);
         let updatedGroups = [];
         for (let i = 0; i < groups.length; i++) {
             updatedGroups.push(true);
         }
 
-        return this.updateCanBeRemoved(canBeRemoved, groups, updatedGroups);
+        this.updateCanBeRemoved(canBeRemoved, groups, updatedGroups);
+        return canBeRemoved;
     }
 
-    private static updateCanBeRemoved(canBeRemoved: boolean[][], groups: number[][][], updatedGroups: boolean[]): boolean[][] {
+    private static updateCanBeRemoved(canBeRemoved: boolean[][], groups: number[][][], updatedGroups: boolean[]): void {
         for (let i = 0; i < groups.length; i++) {
             if (groups[i].length > 1 && updatedGroups[i]) {
                 for (let j = 0; j < groups[i].length; j++) {
@@ -223,11 +224,9 @@ class GroupGenerator {
                 }
             }
         }
-
-        return canBeRemoved;
     }
 
-    private static getGroupBorder(group: number[][], size: number): number[][] {
+    private static getGroupBorder(group: number[][], width: number, height: number): number[][] {
         let borderRaw = [];
         let already = new Set();
         for (let i = 0; i < group.length; i++) {
@@ -236,9 +235,9 @@ class GroupGenerator {
                     if ((dirX === 0) !== (dirY === 0)) {
                         let newX = group[i][0] + dirX;
                         let newY = group[i][1] + dirY;
-                        if (newX >= 0 && newX < size && newY >= 0 && newY < size) {
-                            if (! already.has(newY * size + newX)) {
-                                already.add(newY * size + newX);
+                        if (newX >= 0 && newX < width && newY >= 0 && newY < height) {
+                            if (! already.has(newY * width + newX)) {
+                                already.add(newY * width + newX);
                                 borderRaw.push([newX, newY]);
                             }
                         }
@@ -249,12 +248,12 @@ class GroupGenerator {
 
         let inside = new Set();
         for (let i = 0; i < group.length; i++) {
-            inside.add(group[i][1] * size + group[i][0]);
+            inside.add(group[i][1] * width + group[i][0]);
         }
 
         let border = [];
         for (let i = 0; i < borderRaw.length; i++) {
-            if (! inside.has(borderRaw[i][1] * size + borderRaw[i][0])) {
+            if (! inside.has(borderRaw[i][1] * width + borderRaw[i][0])) {
                 border.push(borderRaw[i]);
             }
         }
@@ -262,16 +261,16 @@ class GroupGenerator {
         return border;
     }
 
-    private static checkGroupSizesInput(size: number, groupSizesInput: number[]): boolean {
+    private static checkGroupSizesInput(width: number, height: number, groupSizesInput: number[]): boolean {
         let total = 0;
         for (let i = 0; i < groupSizesInput.length; i++) {
             total += groupSizesInput[i];
         }
 
-        return total === size * size;
+        return total === width * height;
     }
 
-    private static update(groups: number[][][], groupSizes: number[], size: number, canBeRemoved: boolean[][], board: number[][]): void {
+    private static update(groups: number[][][], groupSizes: number[], width: number, height: number, canBeRemoved: boolean[][], board: number[][]): void {
         let updatedGroups = [];
         for (let i = 0; i < groups.length; i++) {
             updatedGroups.push(false);
@@ -279,7 +278,7 @@ class GroupGenerator {
 
         for (let smallId = 0; smallId < groups.length; smallId++) {
             if (groups[smallId].length < groupSizes[smallId]) {
-                let border = this.getGroupBorder(groups[smallId], size);
+                let border = this.getGroupBorder(groups[smallId], width, height);
                 border = Utils.shuffle(border);
 
                 for (let i = 0; i < border.length; i++) {
@@ -310,24 +309,24 @@ class GroupGenerator {
             }
         }
 
-        canBeRemoved = this.updateCanBeRemoved(canBeRemoved, groups, updatedGroups);
+        this.updateCanBeRemoved(canBeRemoved, groups, updatedGroups);
     }
 
-    public static build(size: number, groupSizesInput: number[]): number[][] {
+    public static build(width: number, height: number, groupSizesInput: number[]): number[][] {
         let then = (new Date).getTime();
 
-        if (! this.checkGroupSizesInput(size, groupSizesInput)) {
+        if (! this.checkGroupSizesInput(width, height, groupSizesInput)) {
             throw "GroupGenerator->build - SUM OF GROUP SIZES INPUT IS NOT SIZE * SIZE";
         }
 
         let groupSizes = Utils.shuffle(Utils.deepcopy(groupSizesInput));
-        let board = this.createEmptyBoard(size, groupSizes.length);
-        let groups = this.boardToGroups(board, size);
+        let board = this.createEmptyBoard(width, height, groupSizes.length);
+        let groups = this.boardToGroups(board, width, height);
 
         let isFinished = false;
-        let canBeRemoved = this.getCanBeRemoved(groups, size);
+        let canBeRemoved = this.getCanBeRemoved(groups, width, height);
         for (let tries = 0; tries < 500; tries++) {
-            this.update(groups, groupSizes, size, canBeRemoved, board);
+            this.update(groups, groupSizes, width, height, canBeRemoved, board);
 
             let isOk = true;
             for (let i = 0; i < groups.length; i++) {
@@ -342,7 +341,7 @@ class GroupGenerator {
         }
 
         if (! isFinished) {
-            return this.build(size, groupSizesInput);
+            return this.build(width, height, groupSizesInput);
         }
 
         let now = (new Date).getTime();
@@ -351,25 +350,25 @@ class GroupGenerator {
         return board;
     }
 
-    public static buildMinMax(size: number, groupCount: number, minSize: number, maxSize: number): number[][] {
+    public static buildMinMax(width: number, height: number, groupCount: number, minSize: number, maxSize: number): number[][] {
         let then = (new Date).getTime();
 
-        if (minSize * groupCount > size * size || maxSize * groupCount < size * size) {
+        if (minSize * groupCount > width * height || maxSize * groupCount < width * height) {
             throw "GroupGenerator->build - WRONG MIN_SIZE OR MAX_SIZE OR GROUP_COUNT";
         }
 
-        let board = this.createEmptyBoard(size, groupCount);
-        let groups = this.boardToGroups(board, size);
+        let board = this.createEmptyBoard(width, height, groupCount);
+        let groups = this.boardToGroups(board, width, height);
 
         let isFinished = false;
-        let canBeRemoved = this.getCanBeRemoved(groups, size);
+        let canBeRemoved = this.getCanBeRemoved(groups, width, height);
         for (let tries = 0; tries < 500; tries++) {
             let groupSizes = [];
             for (let i = 0; i < groupCount; i++) {
                 groupSizes.push(Math.floor(Math.random() * (maxSize - minSize) + minSize));
             }
 
-            this.update(groups, groupSizes, size, canBeRemoved, board);
+            this.update(groups, groupSizes, width, height, canBeRemoved, board);
 
             let isOk = true;
             for (let i = 0; i < groups.length; i++) {
@@ -384,7 +383,7 @@ class GroupGenerator {
         }
 
         if (! isFinished) {
-            return this.buildMinMax(size, groupCount, minSize, maxSize);
+            return this.buildMinMax(width, height, groupCount, minSize, maxSize);
         }
 
         let now = (new Date).getTime();
@@ -409,13 +408,13 @@ class GroupGenerator {
         //     groupSizes.push(2);
         // }
 
-        // let board = this.build(size, groupSizes);
-        // this.render(board, size);
+        // let board = this.build(size, size, groupSizes);
+        // this.render(board, size, size);
 
         let maxScore = -1;
         let maxBoard = null;
         for (let i = 0; i < 10; i++) {
-            let board = this.buildMinMax(size, size, Math.floor(size / 2), Math.floor(size * 3 / 2));
+            let board = this.buildMinMax(size, size, size, Math.floor(size / 2), Math.floor(size * 3 / 2));
             let score = 0;
             for (let y = 0; y < size - 1; y++) {
                 for (let x = 0; x < size - 1; x++) {
@@ -430,9 +429,9 @@ class GroupGenerator {
             }
         }
         // @ts-ignore
-        this.render(maxBoard, size);
+        this.render(maxBoard, width, height);
 
-        // let board = this.buildMinMax(size, size, Math.floor(size / 2), Math.floor(size * 3 / 2));
-        // this.render(board, size);
+        // let board = this.buildMinMax(size, size, size, Math.floor(size / 2), Math.floor(size * 3 / 2));
+        // this.render(board, size, size);
     }
 }

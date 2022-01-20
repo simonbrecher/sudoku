@@ -436,22 +436,22 @@ function main(): void {
 
     // ---
 
-    // Easy as abc + skyscraper
-    SudokuBuilder.size(6);
-    // SudokuBuilder.abc(true, 3);
-    SudokuBuilder.skyscraper(true);
-    // SudokuBuilder.pieceMoves(true, false); // king move
-    // SudokuBuilder.pieceMoves(false, true); // knight move
-
-    Renderer.perPage(2, 3);
-    for (let i = 0; i < 12; i++) {
-        let sudoku = SudokuBuilder.build();
-        if (sudoku !== null) {
-            Renderer.render(sudoku.board, sudoku);
-            // Renderer.render(Solver.solve(sudoku.board, sudoku), sudoku);
-            // Renderer.render(sudoku.solution, sudoku);
-        }
-    }
+    // // Easy as abc + skyscraper
+    // SudokuBuilder.size(6);
+    // // SudokuBuilder.abc(true, 3);
+    // SudokuBuilder.skyscraper(true);
+    // // SudokuBuilder.pieceMoves(true, false); // king move
+    // // SudokuBuilder.pieceMoves(false, true); // knight move
+    //
+    // Renderer.perPage(2, 3);
+    // for (let i = 0; i < 12; i++) {
+    //     let sudoku = SudokuBuilder.build();
+    //     if (sudoku !== null) {
+    //         Renderer.render(sudoku.board, sudoku);
+    //         // Renderer.render(Solver.solve(sudoku.board, sudoku), sudoku);
+    //         // Renderer.render(sudoku.solution, sudoku);
+    //     }
+    // }
 
     // ---
 
@@ -539,14 +539,6 @@ function main(): void {
     //     stars?.render(false);
     // }
     // Renderer.breakPageForce();
-    // for (let i = 0; i < 15; i++) {
-    //     if (i % 3 === 0) {
-    //         Renderer.breakLineForce();
-    //     }
-    //     let stars = StarsBuilder.build(6, 1);
-    //     stars?.render(false);
-    // }
-    // Renderer.breakPageForce();
     // for (let i = 0; i < 6; i++) {
     //     if (i % 2 === 0) {
     //         Renderer.breakLineForce();
@@ -554,12 +546,35 @@ function main(): void {
     //     let stars = StarsBuilder.build(9, 2);
     //     stars?.render(false);
     // }
-    // Renderer.breakPageForce();
-    // for (let i = 0; i < 6; i++) {
-    //     if (i % 2 === 0) {
-    //         Renderer.breakLineForce();
-    //     }
-    //     let stars = StarsBuilder.build(10, 2);
-    //     stars?.render(false);
-    // }
+
+    // ---
+
+    // Range
+    for (let i = 0; i < 35; i++) {
+        let range = RangeBuilder.build(4, 4, "kuromasu");
+        if (range !== null) {
+            range.render(range.board, false);
+        }
+    }
+    Renderer.breakPageForce();
+    for (let i = 0; i < 24; i++) {
+        let range = RangeBuilder.build(5, 5, "kuromasu");
+        if (range !== null) {
+            range.render(range.board, false);
+        }
+    }
+    Renderer.breakPageForce();
+    for (let i = 0; i < 35; i++) {
+        let range = RangeBuilder.build(4, 4, "cave");
+        if (range !== null) {
+            range.render(range.board, false);
+        }
+    }
+    Renderer.breakPageForce();
+    for (let i = 0; i < 24; i++) {
+        let range = RangeBuilder.build(5, 5, "cave");
+        if (range !== null) {
+            range.render(range.board, false);
+        }
+    }
 }
