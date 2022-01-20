@@ -549,32 +549,59 @@ function main(): void {
 
     // ---
 
-    // Range
-    for (let i = 0; i < 35; i++) {
-        let range = RangeBuilder.build(4, 4, "kuromasu");
-        if (range !== null) {
-            range.render(range.board, false);
-        }
-    }
+    // // Range
+    // for (let i = 0; i < 35; i++) {
+    //     let range = RangeBuilder.build(4, 4, "cave");
+    //     if (range !== null) {
+    //         range.render(range.board, false);
+    //     }
+    // }
+    // Renderer.breakPageForce();
+    // for (let i = 0; i < 24; i++) {
+    //     let range = RangeBuilder.build(5, 5, "cave");
+    //     if (range !== null) {
+    //         range.render(range.board, false);
+    //     }
+    // }
+    // Renderer.breakPageForce();
+    // for (let i = 0; i < 18; i++) {
+    //     let range = RangeBuilder.build(6, 5, "cave");
+    //     if (range !== null) {
+    //         range.render(range.board, false);
+    //     }
+    // }
+    // Renderer.breakPageForce();
+    // for (let i = 0; i < 15; i++) {
+    //     let range = RangeBuilder.build(6, 6, "cave");
+    //     if (range !== null) {
+    //         range.render(range.board, false);
+    //     }
+    // }
+
+    // ---
+
+    // Galaxy
     Renderer.breakPageForce();
     for (let i = 0; i < 24; i++) {
-        let range = RangeBuilder.build(5, 5, "kuromasu");
-        if (range !== null) {
-            range.render(range.board, false);
+        if (i % 12 === 0 && i !== 0) {
+            Renderer.breakPageForce();
+        } else if (i % 3 === 0 && i !== 0) {
+            Renderer.breakLineForce();
+        }
+        let galaxy = GalaxyBuilder.build(7, 7);
+        if (galaxy !== null) {
+            galaxy.render(galaxy.board, true);
         }
     }
-    Renderer.breakPageForce();
-    for (let i = 0; i < 35; i++) {
-        let range = RangeBuilder.build(4, 4, "cave");
-        if (range !== null) {
-            range.render(range.board, false);
+    for (let i = 0; i < 12; i++) {
+        if (i % 6 === 0) {
+            Renderer.breakPageForce();
+        } else if (i % 2 === 0 && i !== 0) {
+            Renderer.breakLineForce();
         }
-    }
-    Renderer.breakPageForce();
-    for (let i = 0; i < 24; i++) {
-        let range = RangeBuilder.build(5, 5, "cave");
-        if (range !== null) {
-            range.render(range.board, false);
+        let galaxy = GalaxyBuilder.build(10, 10);
+        if (galaxy !== null) {
+            galaxy.render(galaxy.board, true);
         }
     }
 }

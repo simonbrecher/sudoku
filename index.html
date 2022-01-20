@@ -163,6 +163,22 @@
         table.range-table div.orange { background-color: #FDB; }
         table.range-table div.red { background-color: #FBB; }
 
+        table.galaxy-table { border-collapse: collapse; float: left; margin: 10px; }
+        table.galaxy-table td { border: 1px #000 solid; padding: 0; }
+        table.galaxy-table div.square { text-align: center; width: 30px; height: 30px; line-height: 30px; font-size: 21px; }
+        table.galaxy-table td.border-top { border-top-width: 3px; }
+        table.galaxy-table td.border-bottom { border-bottom-width: 3px; }
+        table.galaxy-table td.border-left { border-left-width: 3px; }
+        table.galaxy-table td.border-right { border-right-width: 3px; }
+        table.galaxy-table div.center { border: 1px solid #000; position: absolute; background: #FFF; width: 10px; height: 10px; margin-top: -21px; margin-left: 9px; }
+        table.galaxy-table div.offset-x { margin-left: 24px; }
+        table.galaxy-table div.offset-y { margin-top: -6px; }
+        table.galaxy-table div.red { background-color: #FDD; }
+        table.galaxy-table div.green { background-color: #DFD; }
+        @media print {
+            table.galaxy-table div.red, table.galaxy-table div.green { background-color: #FFF; }
+        }
+
         table.red { background-color: #FDD; }
         table.green { background-color: #DFD; }
     </style>
@@ -196,6 +212,9 @@
     <script src="rangePuzzle.js"></script>
     <script src="rangeBuilder.js"></script>
     <script src="rangeSolver.js"></script>
+    <script src="galaxy.js"></script>
+    <script src="galaxyBuilder.js"></script>
+    <script src="galaxySolver.js"></script>
 </head>
 <body onload="main()">
 

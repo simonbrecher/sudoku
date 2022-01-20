@@ -116,3 +116,14 @@ interface IRange {
     countLengthInDirection: (board: number[][], isMax: boolean) => number[][][];
     render: (board: number[][], debug: boolean) => void;
 }
+
+interface IGalaxy {
+    width: number;
+    height: number;
+
+    centers: number[][];
+    board: number[][];
+    solution: number[][] | null;
+
+    render: (board: number[][] | null, showSolution: boolean) => void;
+}
