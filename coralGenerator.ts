@@ -57,6 +57,20 @@ class CoralGenerator {
         this.areRulesSet = true;
     }
 
+    // for range type cave (fast up to 100x100)
+    public static typeCave(): void {
+        this.START_CHANCE_FULL = 0.5;
+        this.CHANCE_FILL_ORTHOGONAL = 0.7;
+        this.CHANCE_REMOVE_SQUARE = 1;
+
+        this.RULE_ORTHOGONAL = 3;
+        this.RULE_ORTHOGONAL_DIAGONAL = 0;
+        this.RULE_ORTHOGONAL_EDGE = 2;
+        this.RULE_SQUARE = 0;
+
+        this.areRulesSet = true;
+    }
+
     private static MAX_CHANGE_TRIES = 300;
     private static MAX_NEW_TRIES = 20;
 
