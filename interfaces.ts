@@ -127,3 +127,15 @@ interface IGalaxy {
 
     render: (board: number[][] | null, showSolution: boolean) => void;
 }
+
+interface IDomino {
+    size: number;
+    width: number;
+    height: number;
+
+    task: number[][];
+    board: number[][][];
+    solution: number[][][];
+
+    render: (board: number[][][]) => void;
+}

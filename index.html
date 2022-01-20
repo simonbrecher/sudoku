@@ -179,6 +179,25 @@
             table.galaxy-table div.red, table.galaxy-table div.green { background-color: #FFF; }
         }
 
+        table.domino-table { border-collapse: collapse; float: left; margin: 10px; }
+        table.domino-table td { border: 1px #000 solid; padding: 0; }
+        table.domino-table div.square { text-align: center; width: 30px; height: 30px; line-height: 30px; font-size: 21px; }
+        table.domino-table td.border-top { border-top-width: 3px; }
+        table.domino-table td.border-bottom { border-bottom-width: 3px; }
+        table.domino-table td.border-left { border-left-width: 3px; }
+        table.domino-table td.border-right { border-right-width: 3px; }
+        table.domino-table td.border-top-none { border-top-color: #FFF; }
+        table.domino-table td.border-bottom-none { border-bottom-color: #FFF; }
+        table.domino-table td.border-left-none { border-left-color: #FFF; }
+        table.domino-table td.border-right-none { border-right-color: #FFF; }
+        table.domino-table td.border-top-red { border-top-color: #F00; }
+        table.domino-table td.border-bottom-red { border-bottom-color: #F00; }
+        table.domino-table td.border-left-red { border-left-color: #F00; }
+        table.domino-table td.border-right-red { border-right-color: #F00; }
+        @media print {
+            table.galaxy-table div.red, table.galaxy-table div.green { background-color: #FFF; }
+        }
+
         table.red { background-color: #FDD; }
         table.green { background-color: #DFD; }
     </style>
@@ -215,6 +234,9 @@
     <script src="galaxy.js"></script>
     <script src="galaxyBuilder.js"></script>
     <script src="galaxySolver.js"></script>
+    <script src="domino.js"></script>
+    <script src="dominoBuilder.js"></script>
+    <script src="dominoSolver.js"></script>
 </head>
 <body onload="main()">
 

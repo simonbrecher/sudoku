@@ -580,28 +580,64 @@ function main(): void {
 
     // ---
 
-    // Galaxy
-    Renderer.breakPageForce();
-    for (let i = 0; i < 24; i++) {
-        if (i % 12 === 0 && i !== 0) {
-            Renderer.breakPageForce();
-        } else if (i % 3 === 0 && i !== 0) {
-            Renderer.breakLineForce();
-        }
-        let galaxy = GalaxyBuilder.build(7, 7);
-        if (galaxy !== null) {
-            galaxy.render(galaxy.board, true);
-        }
-    }
-    for (let i = 0; i < 12; i++) {
-        if (i % 6 === 0) {
-            Renderer.breakPageForce();
-        } else if (i % 2 === 0 && i !== 0) {
-            Renderer.breakLineForce();
-        }
-        let galaxy = GalaxyBuilder.build(10, 10);
-        if (galaxy !== null) {
-            galaxy.render(galaxy.board, true);
-        }
-    }
+    // // Galaxy
+    // Renderer.breakPageForce();
+    // for (let i = 0; i < 24; i++) {
+    //     if (i % 12 === 0 && i !== 0) {
+    //         Renderer.breakPageForce();
+    //     } else if (i % 3 === 0 && i !== 0) {
+    //         Renderer.breakLineForce();
+    //     }
+    //     let galaxy = GalaxyBuilder.build(7, 7);
+    //     if (galaxy !== null) {
+    //         galaxy.render(galaxy.board, true);
+    //     }
+    // }
+    // for (let i = 0; i < 12; i++) {
+    //     if (i % 6 === 0) {
+    //         Renderer.breakPageForce();
+    //     } else if (i % 2 === 0 && i !== 0) {
+    //         Renderer.breakLineForce();
+    //     }
+    //     let galaxy = GalaxyBuilder.build(10, 10);
+    //     if (galaxy !== null) {
+    //         galaxy.render(galaxy.board, true);
+    //     }
+    // }
+
+    // ---
+
+    // // Domino
+    // for (let i = 0; i < 28; i++) {
+    //     if (i % 4 === 0) {
+    //         Renderer.breakLineForce();
+    //     }
+    //     let domino = DominoBuilder.build(4);
+    //     if (domino !== null) {
+    //         domino.render(domino.board);
+    //         // domino.render(domino.solution, true);
+    //     }
+    // }
+    // Renderer.breakPageForce();
+    // for (let i = 0; i < 15; i++) {
+    //     if (i % 3 === 0) {
+    //         Renderer.breakLineForce();
+    //     }
+    //     let domino = DominoBuilder.build(5);
+    //     if (domino !== null) {
+    //         domino.render(domino.board);
+    //         // domino.render(domino.solution, true);
+    //     }
+    // }
+    // Renderer.breakPageForce();
+    // for (let i = 0; i < 15; i++) {
+    //     if (i % 3 === 0) {
+    //         Renderer.breakLineForce();
+    //     }
+    //     let domino = DominoBuilder.build(6);
+    //     if (domino !== null) {
+    //         domino.render(domino.board);
+    //         // domino.render(domino.solution, true);
+    //     }
+    // }
 }
