@@ -37,16 +37,19 @@ function tournamentSudokuSmall(taskNum: number, solutionNum: number): void {
     }
     if (notUseKropki !== 1) {
         SudokuBuilder.minusOne(true);
+        SudokuBuilder.size(6);
         minusOne = SudokuBuilder.build();
     }
     if (notUseKropki !== 2) {
         SudokuBuilder.inequality(true);
+        SudokuBuilder.size(6);
         inequality = SudokuBuilder.build();
     }
 
     SudokuBuilder.kropki(false);
     SudokuBuilder.minusOne(false);
     SudokuBuilder.inequality(false);
+    SudokuBuilder.rectangular(true, 3, 2);
     SudokuBuilder.prompterNum(null, 0);
     SudokuBuilder.killer(true, [[1, 1], [2, 9], [3, 3], [4, 2]]);
     let killerSudoku = SudokuBuilder.build();
@@ -61,6 +64,7 @@ function tournamentSudokuSmall(taskNum: number, solutionNum: number): void {
 
     SudokuBuilder.pieceMoves(false, false);
 
+    Renderer.doFormatPage = true;
     for (let i = 0; i < taskNum; i++) {
         Renderer.render(sudoku1?.task, sudoku1);
         Renderer.render(sudoku2?.task, sudoku2);
@@ -124,7 +128,7 @@ function tournamentSudokuBig(taskNum: number, solutionNum: number): void {
     let sudokuDiagonal1 = SudokuBuilder.build();
 
     SudokuBuilder.diagonal(false);
-    SudokuBuilder.prompterNum(23, null);
+    SudokuBuilder.prompterNum(24, null);
     SudokuBuilder.irregular(true);
     let irregularSudoku = SudokuBuilder.build();
 
@@ -135,11 +139,11 @@ function tournamentSudokuBig(taskNum: number, solutionNum: number): void {
 
     SudokuBuilder.vxSum(false, null);
     SudokuBuilder.size(8);
-    SudokuBuilder.prompterNum(26, null);
+    SudokuBuilder.prompterNum(27, null);
     let noRectangle = SudokuBuilder.build();
 
     SudokuBuilder.diagonal(true);
-    SudokuBuilder.prompterNum(21, null);
+    SudokuBuilder.prompterNum(22, null);
     let noRectangleDiagonal = SudokuBuilder.build();
 
     SudokuBuilder.prompterNum(null, null);
@@ -168,8 +172,8 @@ function tournamentSudokuBig(taskNum: number, solutionNum: number): void {
     SudokuBuilder.kropki(false);
     SudokuBuilder.minusOne(false);
     SudokuBuilder.inequality(false);
-    SudokuBuilder.prompterNum(null, 1);
-    SudokuBuilder.killer(true, [[1, 6], [2, 11], [3, 11], [4, 5]]);
+    SudokuBuilder.prompterNum(null, 0);
+    SudokuBuilder.killer(true, [[1, 8], [2, 15], [3, 9], [4, 4]]);
     let killerSudoku = SudokuBuilder.build();
 
     let randomPieceMoves = Math.floor(Math.random() * 2);
@@ -181,6 +185,7 @@ function tournamentSudokuBig(taskNum: number, solutionNum: number): void {
 
     SudokuBuilder.pieceMoves(false, false);
 
+    Renderer.doFormatPage = true;
     for (let i = 0; i < taskNum; i++) {
         Renderer.render(sudoku1?.task, sudoku1);
         Renderer.render(sudoku2?.task, sudoku2);
@@ -229,89 +234,105 @@ function tournamentSudokuBig(taskNum: number, solutionNum: number): void {
 }
 
 function tournamentLogicSmall(taskNum: number, solutionNum: number): void {
-    let mastermind1 = MastermindBuilder.build(10, 4, 5);
-    let mastermind2 = MastermindBuilder.build(12, 4, 5);
+    let mastermind = MastermindBuilder.build(10, 4, 5);
 
-    let coral = CoralBuilder.build(10, 10, false, false);
-    let coralRemoved = CoralBuilder.build(9, 9, false, true);
-    let coralSorted = CoralBuilder.build(7, 7, true, false);
-    let coralSortedRemoved = CoralBuilder.build(6, 6, true, true);
+    let coral;
+    if (Math.random() < 0.5) {
+        coral = CoralBuilder.build(10, 10, false, false);
+    } else {
+        coral = CoralBuilder.build(9, 9, false, true);
+    }
+    let coralSorted;
+    if (Math.random() < 0.5) {
+        coralSorted = CoralBuilder.build(7, 7, true, false);
+    } else {
+        coralSorted = CoralBuilder.build(6, 6, true, true);
+    }
+    let stars = null;
+    if (Math.random() < 0.5) {
+        stars = StarsBuilder.build(5, 1);
+    } else {
+        while (stars === null) {
+            stars = StarsBuilder.build(6, 1);
+        }
+    }
 
-    let tapa1 = TapaBuilder.build(6, 6);
-    let tapa2 = TapaBuilder.build(7, 7);
+    let tapa = TapaBuilder.build(7, 7);
 
-    let slitherlink1 = SlitherlinkBuilder.build(6, 6);
-    let slitherlink2 = SlitherlinkBuilder.build(7, 7);
+    let slitherlink = SlitherlinkBuilder.build(7, 7);
+
+    let range = RangeBuilder.build(5, 4, Math.random() < 0.5 ? "kuromasu" : "cave");
+
+    let domino = DominoBuilder.build(4);
 
     Renderer.perPage(2, 3);
     SudokuBuilder.size(5);
-    SudokuBuilder.abc(true, Math.random() < 0.5 ? 2 : 3);
+    let abcSize = Math.floor(Math.random() * 2);
+    SudokuBuilder.abc(true, abcSize === 0 ? 2 : 3);
     let abc1 = SudokuBuilder.build();
     let isKing = Math.floor(Math.random() * 2) === 0;
     SudokuBuilder.pieceMoves(isKing, ! isKing);
-    SudokuBuilder.abc(true, Math.random() < 0.4 ? 2 : 3);
+    SudokuBuilder.abc(true, abcSize === 1 ? 2 : 3);
     let abc2 = SudokuBuilder.build();
 
     SudokuBuilder.pieceMoves(false, false);
+    SudokuBuilder.size(4);
+    SudokuBuilder.skyscraper(true);
+    let skyscraper = SudokuBuilder.build();
 
+    let galaxy = GalaxyBuilder.build(8, 8);
+
+    Renderer.doFormatPage = false;
     for (let i = 0; i < taskNum; i++) {
         // @ts-ignore
-        MastermindBuilder.render(mastermind1[0], mastermind1[1], null);
-        // @ts-ignore
-        MastermindBuilder.render(mastermind2[0], mastermind2[1], null);
+        MastermindBuilder.render(mastermind[0], mastermind[1], null);
+        stars?.render(false);
         Renderer.breakLineForce();
         // @ts-ignore
         CoralBuilder.render(coral.task, coral.board, coral);
         // @ts-ignore
-        CoralBuilder.render(coralRemoved.task, coralRemoved.board, coralRemoved);
-        Renderer.breakLineForce();
-        // @ts-ignore
         CoralBuilder.render(coralSorted.task, coralSorted.board, coralSorted);
-        // @ts-ignore
-        CoralBuilder.render(coralSortedRemoved.task, coralSortedRemoved.board, coralSortedRemoved);
-        Renderer.breakPageForce();
-        // @ts-ignore
-        TapaBuilder.render(tapa1.board, tapa1.task, tapa1);
-        // @ts-ignore
-        TapaBuilder.render(tapa2.board, tapa2.task, tapa2);
         Renderer.breakLineForce();
-        slitherlink1.render(false, true);
-        slitherlink2.render(false, true);
+        // @ts-ignore
+        TapaBuilder.render(tapa.board, tapa.task, tapa);
+        slitherlink.render(false, true);
+        Renderer.breakLineForce();
+        range?.render(range?.board, false);
+        domino?.render(domino?.board);
+        Renderer.breakPageForce();
         Renderer.breakLineForce();
         Renderer.render(abc1?.board, abc1);
-        Renderer.refreshFormatting();
         Renderer.render(abc2?.board, abc2);
+        Renderer.breakLineForce();
+        Renderer.render(skyscraper?.board, skyscraper);
+        galaxy?.render(galaxy?.board, false);
 
         Renderer.breakPageForce();
     }
 
     for (let i = 0; i < solutionNum; i++) {
         // @ts-ignore
-        MastermindBuilder.render(mastermind1[0], mastermind1[1], mastermind1[2]);
-        // @ts-ignore
-        MastermindBuilder.render(mastermind2[0], mastermind2[1], mastermind2[2]);
+        MastermindBuilder.render(mastermind[0], mastermind[1], mastermind[2]);
+        stars?.render(true);
         Renderer.breakLineForce();
         // @ts-ignore
         CoralBuilder.render(coral.task, coral.solution, coral);
         // @ts-ignore
-        CoralBuilder.render(coralRemoved.task, coralRemoved.solution, coralRemoved);
-        Renderer.breakLineForce();
-        // @ts-ignore
         CoralBuilder.render(coralSorted.task, coralSorted.solution, coralSorted);
-        // @ts-ignore
-        CoralBuilder.render(coralSortedRemoved.task, coralSortedRemoved.solution, coralSortedRemoved);
-        Renderer.breakPageForce();
-        // @ts-ignore
-        TapaBuilder.render(tapa1.solution, tapa1.task, tapa1);
-        // @ts-ignore
-        TapaBuilder.render(tapa2.solution, tapa2.task, tapa2);
         Renderer.breakLineForce();
-        slitherlink1.render(true, false);
-        slitherlink2.render(true, false);
+        // @ts-ignore
+        TapaBuilder.render(tapa.solution, tapa.task, tapa);
+        slitherlink.render(true, false);
+        Renderer.breakLineForce();
+        range?.render(range?.solution, false);
+        domino?.render(domino?.solution);
+        Renderer.breakPageForce();
         Renderer.breakLineForce();
         Renderer.render(abc1?.solution, abc1);
-        Renderer.refreshFormatting();
         Renderer.render(abc2?.solution, abc2);
+        Renderer.breakLineForce();
+        Renderer.render(skyscraper?.solution, skyscraper);
+        galaxy?.render(galaxy?.solution, true);
 
         Renderer.breakPageForce();
     }
@@ -320,8 +341,32 @@ function tournamentLogicSmall(taskNum: number, solutionNum: number): void {
 function tournamentLogicBig(taskNum: number, solutionNum: number): void {
     let mastermind = MastermindBuilder.build(12, 6, 6);
 
-    let coralRemoved = CoralBuilder.build(12, 12, false, true);
-    let coralSorted = CoralBuilder.build(9, 9, true, false);
+    let coral;
+    if (Math.random() < 0.5) {
+        coral = CoralBuilder.build(14, 10, false, true);
+    } else {
+        coral = CoralBuilder.build(9, 9, true, false);
+    }
+
+    let galaxy = null;
+    while (galaxy === null) {
+        galaxy = GalaxyBuilder.build(12, 12);
+    }
+
+    let isKuromasu = Math.random() < 0.5;
+    let range = RangeBuilder.build(isKuromasu ? 7 : 6, 5, isKuromasu ? "kuromasu" : "cave");
+
+    let domino = DominoBuilder.build(5);
+
+    Renderer.perPage(3, 4);
+    SudokuBuilder.size(6);
+    SudokuBuilder.skyscraper(true);
+    let skyscraper = SudokuBuilder.build();
+
+    let stars = null;
+    while (stars === null) {
+        stars = StarsBuilder.build(9, 2);
+    }
 
     let tapa1 = TapaBuilder.build(10, 10);
 
@@ -342,22 +387,25 @@ function tournamentLogicBig(taskNum: number, solutionNum: number): void {
     SudokuBuilder.abc(false, null);
     SudokuBuilder.pieceMoves(false, false);
 
+    Renderer.doFormatPage = false;
     for (let i = 0; i < taskNum; i++) {
         // @ts-ignore
         MastermindBuilder.render(mastermind[0], mastermind[1], null);
         Renderer.breakLineForce();
         // @ts-ignore
-        CoralBuilder.render(coralRemoved.task, coralRemoved.board, coralRemoved);
+        CoralBuilder.render(coral.task, coral.board, coral);
         Renderer.breakLineForce();
-        // @ts-ignore
-        CoralBuilder.render(coralSorted.task, coralSorted.board, coralSorted);
+        galaxy.render(galaxy.board, false);
+        range?.render(range?.board, false);
+        domino?.render(domino?.board);
         Renderer.breakPageForce();
+        stars.render(false);
         // @ts-ignore
         TapaBuilder.render(tapa1.board, tapa1.task, tapa1);
         slitherlink1.render(false, true);
+        Renderer.render(skyscraper?.board, skyscraper);
         Renderer.breakLineForce();
         Renderer.render(abc1?.board, abc1);
-        Renderer.refreshFormatting();
         Renderer.render(abc2?.board, abc2);
 
         Renderer.breakPageForce();
@@ -368,17 +416,18 @@ function tournamentLogicBig(taskNum: number, solutionNum: number): void {
         MastermindBuilder.render(mastermind[0], mastermind[1], mastermind[2]);
         Renderer.breakLineForce();
         // @ts-ignore
-        CoralBuilder.render(coralRemoved.task, coralRemoved.solution, coralRemoved);
-        Renderer.breakLineForce();
-        // @ts-ignore
-        CoralBuilder.render(coralSorted.task, coralSorted.solution, coralSorted);
+        CoralBuilder.render(coral.task, coral.solution, coral);
+        galaxy.render(galaxy.solution, true);
+        range?.render(range?.solution, false);
+        domino?.render(domino?.solution);
         Renderer.breakPageForce();
+        stars.render(true);
         // @ts-ignore
         TapaBuilder.render(tapa1.solution, tapa1.task, tapa1);
         slitherlink1.render(true, false);
+        Renderer.render(skyscraper?.solution, skyscraper);
         Renderer.breakLineForce();
         Renderer.render(abc1?.solution, abc1);
-        Renderer.refreshFormatting();
         Renderer.render(abc2?.solution, abc2);
 
         Renderer.breakPageForce();
