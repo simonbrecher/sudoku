@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SB sudoku</title>
+
+    <link rel="stylesheet" type="text/css" href="styles.css"/>
+</head>
+<body>
+
+<div>
+    <nav class="menu"><a href="index.html">Homepage</a></nav>
+    <nav class="menu"><a href="rules.html">Rules</a></nav>
+    <nav class="menu active"><a href="code.html">Code</a></nav>
+    <nav class="menu"><a href="generator.html">Generator</a></nav>
+</div>
+<hr>
+
+<p>
+    <c>// Basic formatting</c><br>
+    <c>// the Renderer class remembers, how many space was used by the Renderer.render() method and will automatically break lines and pages. However it does not know about objects created without the Renderer.render() method</c><br>
+    Renderer.breakPageForce(); <c>// always breaks page, does not affect number of space the Renderer class remembers</c><br>
+    Renderer.breakLineForce(); <c>// always breaks line, does not affect number of space the Renderer class remembers</c><br>
+    Renderer.breakPage(); <c>// breaks page only when there is some space used on last page, removes all space that Render class remembers</c><br>
+    Renderer.refreshFormatting(); <c>// removes all space that Render class remembers</c><br>
+    <br>
+    <c>// ---</c><br>
+    <br>
+    <c>// Sudoku variants (usually) with rectangles</c><br>
+    SudokuBuilder.rectangular(true, 3, 3); <c>// basic sudoku</c><br>
+    SudokuBuilder.diagonal(true); <c>// add diagonals</c><br>
+    SudokuBuilder.kropki(true); <c>// kropki</c><br>
+    SudokuBuilder.prompterNum(30, null); <c>// minimal number of prompter ; maximal number of prompters (null means no limit)</c><br>
+    SudokuBuilder.vxSum(true, [[5, "V"], [10, "X"]]); <c>// vx</c><br>
+    <br>
+    <c>// Sudoku variants (usually) without rectangles</c><br>
+    SudokuBuilder.size(6); <c>// without rectangles</c><br>
+    SudokuBuilder.irregular(true); <c>// irregular blocks</c><br>
+    SudokuBuilder.minusOne(true); <c>// show all squares with difference of 1</c><br>
+    SudokuBuilder.inequality(true); <c>// show all inequalities</c><br>
+    <br>
+    <c>//Killer 3x2</c><br>
+    SudokuBuilder.rectangular(true, 3, 2);<br>
+    SudokuBuilder.prompterNum(null, 0); <c>// does not allow any prompters (if it is slow, increase second parameter)</c><br>
+    SudokuBuilder.killer(true, [[1, 1], [2, 9], [3, 3], [4, 2]]); <c>// number of sum groups by size</c><br>
+    <c>// Killer 3x3</c><br>
+    SudokuBuilder.rectangular(true, 3, 3);<br>
+    SudokuBuilder.prompterNum(null, 0); <c>// does not allow any prompters (if it is slow, increase second parameter)</c><br>
+    SudokuBuilder.killer(true, [[1, 7], [2, 14], [3, 10], [4, 4]]); <c>// number of sum groups by size</c><br>
+    <br>
+    <c>// Add chess piece moves</c><br>
+    SudokuBuilder.pieceMoves(true, false); <c>// king move</c><br>
+    SudokuBuilder.pieceMoves(false, true); <c>// knight move</c><br>
+    <br>
+    <c>// Create and draw the sudoku</c><br>
+    Renderer.perPage(2, 3); <c>// number of puzzles in line ; number of lines per page</c><br>
+    for (let i = 0; i < 6; i++) {<br>
+    <a> </a>let sudoku = SudokuBuilder.build();<br>
+    <a> </a>if (sudoku !== null) {<br>
+    <a> </a><a> </a>Renderer.render(sudoku.task, sudoku); <c>// show task</c><br>
+    <a> </a><a> </a><c>// Renderer.render(sudoku.solution, sudoku); // show solution</c><br>
+    <a> </a>}<br>
+    }<br>
+    <br>
+    <c>// ---</c><br>
+    <br>
+    <c>// Easy as abc + skyscraper</c><br>
+    SudokuBuilder.size(6); <c>// set size</c><br>
+    SudokuBuilder.abc(true, 3); <c>// abc</c><br>
+    <br>
+    SudokuBuilder.size(6); <c>// set size</c><br>
+    SudokuBuilder.skyscraper(true); <c>// skyscrapers</c><br>
+    <br>
+    SudokuBuilder.pieceMoves(true, false); <c>// king move</c><br>
+    SudokuBuilder.pieceMoves(false, true); <c>// knight move</c><br>
+    <br>
+    Renderer.perPage(2, 3);<br>
+    for (let i = 0; i < 6; i++) {<br>
+    <a> </a>let sudoku = SudokuBuilder.build();<br>
+    <a> </a>if (sudoku !== null) {<br>
+    <a> </a><a> </a>Renderer.render(sudoku.task, sudoku);<br>
+    <a> </a><a> </a><c>// Renderer.render(sudoku.solution, sudoku);</c><br>
+    <a> </a>}<br>
+    }<br>
+    <br>
+    <c>// Creates sudoku with difficulty (2 is easy, 7 is hard for ~ 22 prompter) Will probably not work for sudoku variations</c><br>
+    SudokuBuilder.setDoPrint(false); <c>// needs to disable printing a row in console every time sudoku is created</c><br>
+    SudokuBuilder.rectangular(true, 3, 3);<br>
+    let sudoku = SudokuEvaluator.build(7, 10, 128)[0]; <c>// minimum difficulty ; maximum difficulty ; number of evaluations per sudoku (counts average)</c><br>
+    if (sudoku !== null) {<br>
+    <a> </a>Renderer.render(sudoku.task, sudoku);<br>
+    }<br>
+    <br>
+    <c>// ---</c><br>
+    <br>
+    <c>// Mastermind</c><br>
+    let mastermind = MastermindBuilder.build(12, 6, 6); <c>// number of letters ; word length ; number of words</c><br>
+    MastermindBuilder.render(mastermind[0], mastermind[1], null); <c>// view task</c><br>
+    MastermindBuilder.render(mastermind[0], mastermind[1], mastermind[2]); <c>// view solution</c><br>
+    <br>
+    <c>// ---</c><br>
+    <br>
+    <c>// Coral (structure, not puzzle)</c><br>
+    CoralGenerator.typeCoral(); <c>// set coral generator to generate coral structure used creating for coral solution</c><br>
+    CoralGenerator.typeTapa(); <c>// set coral generator to generate coral structure used creating for tapa solution</c><br>
+    CoralGenerator.typeSlitherlink(); <c>// set coral generator to generate coral structure used creating for slitherlink solution</c><br>
+    CoralGenerator.typeCave(); <c>// set coral generator to generate coral structure used creating for cave solution</c><br>
+    let size = [50, 50];<br>
+    let coralStructure = CoralGenerator.build(size[0], size[1]);<br>
+    CoralGenerator.render(coralStructure);<br>
+    <br>
+    <c>// ---</c><br>
+    <br>
+    <c>// Coral</c><br>
+    for (let k = 0; k < 6; k++) {<br>
+    <a> </a>let coral = CoralBuilder.build(size[0], size[1], true, true);<br>
+    <a> </a>if (coral !== null) {<br>
+    <a> </a><a> </a>CoralBuilder.render(coral.task, coral.board, coral);<br>
+    <a> </a><a> </a><c>// CoralBuilder.render(coral.task, coral.solution, coral);</c><br>
+    <a> </a>}<br>
+    }<br>
+    <br>
+    <c>// ---</c><br>
+    <br>
+    <c>// Tapa</c><br>
+    for (let i = 0; i < 6; i++) {<br>
+    <a> </a>let tapa = TapaBuilder.build(9, 9);<br>
+    <a> </a>if (tapa !== null) {<br>
+    <a> </a><a> </a>TapaBuilder.renderBig(tapa.board, tapa.task, tapa);<br>
+    <a> </a><a> </a><c>// TapaBuilder.renderBig(tapa.solution, tapa.task, tapa);</c><br>
+    <a> </a>}<br>
+    }<br>
+    <br>
+    <c>// ---</c><br>
+    <br>
+    <c>// Slitherlink</c><br>
+    for (let i = 0; i < 6; i++) {<br>
+    <a> </a>let slitherlink = SlitherlinkBuilder.build(10, 10);<br>
+    <a> </a>slitherlink.render(false, true); <c>// do not show solution</c><br>
+    <a> </a><c>// slitherlink.render(false, true); // show solution</c><br>
+    }<br>
+    <br>
+    <c>// ---</c><br>
+    <br>
+    <c>// Stars</c><br>
+    Renderer.breakPageForce();<br>
+    for (let i = 0; i < 6; i++) {<br>
+    <a> </a>let stars = StarsBuilder.build(5, 1); <c>// 5/1 or 6/1</c><br>
+    <a> </a>stars?.render(false);<br>
+    }<br>
+    Renderer.breakPageForce();<br>
+    for (let i = 0; i < 6; i++) {<br>
+    <a> </a>let stars = StarsBuilder.build(9, 2); <c>// 9/2 or 10/2</c><br>
+    <a> </a>stars?.render(false);<br>
+    }<br>
+    <br>
+    <c>// ---</c><br>
+    <br>
+    <c>// Kuromasu</c><br>
+    for (let i = 0; i < 6; i++) {<br>
+    <a> </a>let kuromasu = RangeBuilder.build(5, 5, "cave");<br>
+    <a> </a>if (kuromasu !== null) {<br>
+    <a> </a><a> </a>kuromasu.render(kuromasu.board, false);<br>
+    <a> </a><a> </a><c>// kuromasu.render(kuromasu.solution, false);</c><br>
+    <a> </a>}<br>
+    }<br>
+    <br>
+    <c>// Cave</c><br>
+    for (let i = 0; i < 6; i++) {<br>
+    <a> </a>let cave = RangeBuilder.build(5, 5, "cave");<br>
+    <a> </a>if (cave !== null) {<br>
+    <a> </a><a> </a>cave.render(cave.board, false);<br>
+    <a> </a><a> </a><c>// cave.render(cave.solution, false);</c><br>
+    <a> </a>}<br>
+    }<br>
+    <br>
+    <c>// ---</c><br>
+    <br>
+    <c>// Galaxy</c><br>
+    Renderer.breakPageForce();<br>
+    for (let i = 0; i < 6; i++) {<br>
+    <a> </a>let galaxy = GalaxyBuilder.build(7, 7);<br>
+    <a> </a>if (galaxy !== null) {<br>
+    <a> </a><a> </a>galaxy.render(galaxy.board, false);<br>
+    <a> </a><a> </a><c>// galaxy.render(galaxy.solution, true);</c><br>
+    <a> </a>}<br>
+    }<br>
+    <br>
+    <c>// ---</c><br>
+    <br>
+    <c>// Domino</c><br>
+    Renderer.breakPageForce();<br>
+    for (let i = 0; i < 6; i++) {<br>
+    <a> </a>let domino = DominoBuilder.build(5); <c>// size of puzzle</c><br>
+    <a> </a><c>// let domino = DominoBuilder.build(5, 6, 5); // size of puzzle ; width of puzzle ; height of puzzle</c><br>
+    <a> </a>if (domino !== null) {<br>
+    <a> </a><a> </a>domino.render(domino.board);<br>
+    <a> </a><a> </a><c>// domino.render(domino.solution, true);</c><br>
+    <a> </a>}<br>
+    }
+</p>
+
+</body>
+</html>

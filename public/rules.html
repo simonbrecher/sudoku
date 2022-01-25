@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SB sudoku</title>
+
+    <link rel="stylesheet" type="text/css" href="styles.css"/>
+</head>
+<body>
+
+<div>
+    <nav class="menu"><a href="index.html">Homepage</a></nav>
+    <nav class="menu active"><a href="rules.html">Rules</a></nav>
+    <nav class="menu"><a href="code.html">Code</a></nav>
+    <nav class="menu"><a href="generator.html">Generator</a></nav>
+</div>
+<hr>
+
+<h2>Sudoku</h2>
+<ol>
+    <li>Put one number from 1 to N to each square. N is size of puzzle.</li>
+    <li>All numbers in each row and column must be different.</li>
+    <li>All numbers in each rectangle must be different.</li>
+</ol>
+
+<h2>Sudoku without rectangles</h2>
+<ol>
+    <li>All <strong>Sudoku</strong> rules except <strong>Sudoku 3</strong> apply.</li>
+</ol>
+
+<h2>Diagonal sudoku</h2>
+<ol>
+    <li>All <strong>Sudoku</strong> rules apply.</li>
+    <li>All numbers in each of two diagonals must be different.</li>
+</ol>
+
+<h2>Sudoku with irregular groups</h2>
+<ol>
+    <li>All <strong>Sudoku without rectangles</strong> rules apply.</li>
+    <li>All numbers in each irregular groups must be different.</li>
+</ol>
+
+<h2>VX sudoku</h2>
+<ol>
+    <li>All <strong>Sudoku</strong> rules apply.</li>
+    <li>All pairs of orthogonally adjacent squares with sum equal to one of specific values are labeled with character specific to that value.</li>
+    <li>Default specific sum values are 5 and 10, their specific characters are "V" and "X".</li>
+</ol>
+
+<h2>Kropki sudoku</h2>
+<ol>
+    <li>All <strong>Sudoku</strong> rules apply.</li>
+    <li>All orthogonally adjacent squares, where the difference of numbers is 1, have white square between them.</li>
+    <li>All orthogonally adjacent squares, where the number in one is two times greater than the other, have black square between them.</li>
+    <li>1/2 can have white or black square between them.</li>
+</ol>
+<ul>
+    <li>This variation has "K" on top-left.</li>
+    <li>Does not include determining unambiguity of solution, therefore any task can have multiple solutions.</li>
+    <li>Color of 1/2 is determined in method Renderer.render(). Multiple calls of this function will always create same task.</li>
+</ul>
+
+<h2>Minus one sudoku</h2>
+<ol>
+    <li>All <strong>Sudoku</strong> rules apply.</li>
+    <li>All orthogonally adjacent squares, where the difference of numbers is 1, have white square between them.</li>
+</ol>
+<ul>
+    <li>This variation has "-" on top-left.</li>
+</ul>
+
+<h2>Inequality sudoku</h2>
+<ol>
+    <li>All <strong>Sudoku</strong> rules apply.</li>
+    <li>All inequalities of orthogonally adjacent squares are shown.</li>
+</ol>
+
+<h2>Killer sudoku</h2>
+<ol>
+    <li>All <strong>Sudoku</strong> rules apply.</li>
+    <li>Numbers in dashed groups of squares must have sum same, as the number written on top left of that group.</li>
+</ol>
+
+<h2>Easy as ABC</h2>
+<ol>
+    <li>Write one or none of first N letters of alphabet in each square. N is number written in top-left square of puzzle.</li>
+    <li>All letters in each row or column must be different. There can be multiple squares without any number.</li>
+    <li>Numbers on the 4 sides of the puzzle are first letters from that direction.</li>
+</ol>
+
+<h2>Skyscrapers</h2>
+<ol>
+    <li>All <strong>Sudoku without rectangles</strong> rules apply.</li>
+    <li>Letters represent heights of skyscrapers. A skyscraper is visible, if no higher skyscraper is before him.</li>
+    <li>Letters on the 4 sides of the puzzle are number of skyscrapers visible from that direction.</li>
+</ol>
+
+<h2>King move</h2>
+<ol>
+    <li>All pairs of squares, which are king move from each other, must not contain same numbers, or letters in them.</li>
+</ol>
+<ul>
+    <li>This variation has "K" in top-right square.</li>
+</ul>
+
+<h2>Knight move</h2>
+<ol>
+    <li>All pairs of squares, which are knight move from each other, must not contain same numbers, or letters in them.</li>
+</ol>
+<ul>
+    <li>This variation has "N" in top-right square.</li>
+</ul>
+
+<h2>Coral</h2>
+<ol>
+    <li>Color some squares black.</li>
+    <li>There can not be 2x2 block of black squares.</li>
+    <li>All black squares must be orthogonally connected.</li>
+    <li>All white squares must be orthogonally connected to the side.</li>
+    <li>Numbers on the 2 sides of the puzzle are lengths of all connected blocks of black squares in correct order.</li>
+</ol>
+
+<h2>Sorted coral</h2>
+<ol>
+    <li>All <strong>Coral</strong> rules except <strong>Coral 5</strong> apply.</li>
+    <li>Numbers on the 2 sides of the puzzle are lengths of all connected blocks of black squares, not necessarily in correct order.</li>
+</ol>
+<ul>
+    <li>This variation has "S" in the top-left square.</li>
+</ul>
+
+<h2>Dominos</h2>
+<ol>
+    <li>Divide board into 1x2 domino pieces.</li>
+    <li>Each piece must be used exactly once.</li>
+</ol>
+
+<h2>Galaxies</h2>
+<ol>
+    <li>Divide board into groups.</li>
+    <li>Each square must be in exactly one group.</li>
+    <li>All squares in each group must be orthogonally connected.</li>
+    <li>Each group must be centrally symmetric, where the center of symmetry is one of the small white squares.</li>
+    <li>Each small white square must belong to exactly one group.</li>
+    <li>Each group must contain all squares, that its center of symmetry overlaps with.</li>
+</ol>
+
+<h2>Mastermind</h2>
+<ol>
+    <li>Write one letter in each empty square in last line. Same letters can repeat.</li>
+    <li>Only letters that are at least once in task can be in solution.</li>
+    <li>Black and white dots next to words in task are created by comparing each word to task.</li>
+    <li>Black dot is given or each position in word, that has same letter as solution.</li>
+    <li>For all types of letters is counted its frequency in word and solution. (only on positions that were not given black dot already)
+        For each type of letter will be given as many white dots as is smaller number from its frequency in word and its frequency in solution.</li>
+</ol>
+
+<h2>Kuromasu</h2>
+<ol>
+    <li>Color some squares black.</li>
+    <li>Two black squares can not be orthogonally adjacent.</li>
+    <li>All white squares must be orthogonally connected.</li>
+    <li>From each square with number must be visible that many white squares in all 4 directions. (including the square with the number)</li>
+</ol>
+<ul>
+    <li>This variation has "K" in the top-left square.</li>
+</ul>
+
+<h2>Cave</h2>
+<ol>
+    <li>Color some squares black.</li>
+    <li>All black squares must be orthogonally connected to the side.</li>
+    <li>All white squares must be orthogonally connected.</li>
+    <li>From each square with number must be visible that many white squares in all 4 directions. (including the square with the number)</li>
+</ol>
+<ul>
+    <li>This variation has "C" in the top-left square.</li>
+</ul>
+
+<h2>Slitherlink</h2>
+<ol>
+    <li>Draw lines between some vertically or horizontally neighbouring small squares.</li>
+    <li>All lines must create a single loop.</li>
+    <li>The loop must not intersect or touch itself.</li>
+    <li>Numbers say, how many lines there are on 4 closes sides around that number.</li>
+</ol>
+
+<h2>Stars</h2>
+<ol>
+    <li>Draw one star in some squares.</li>
+    <li>Stars must not be on orthogonally or diagonally adjacent.</li>
+    <li>There must be exactly N stars in each row, line and region. N is ⌊(M + 1) / 5⌋, where M is size of the puzzle.</li>
+</ol>
+
+<h2>Tapa</h2>
+<ol>
+    <li>Color some squares black.</li>
+    <li>Squares with numbers must not be black.</li>
+    <li>There must not be 2x2 block of black squares.</li>
+    <li>All black squares must be orthogonally connected.</li>
+    <li>All white squares must be orthogonally or diagonally connected to side.</li>
+    <li>Digits of numbers in squares represent lengths of connected blocks of black squares in 8 squares next to the square with the number.</li>
+</ol>
+
+</body>
+</html>
