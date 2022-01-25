@@ -150,31 +150,8 @@ class SudokuBuilder {
         }
     }
 
-    private static getAbcTask(parent: ISudoku): number[][] | null {
-        let solution = parent.solution;
-
-        let task = [];
-        for (let dir = 0; dir < 4; dir++) {
-            let directionTask = [];
-            for (let position = 0; position < parent.size; position++) {
-                let startX, startY, moveX, moveY;
-                [[startX, startY], [moveX, moveY]] = Utils.getSideDirection(dir, position, parent);
-
-                let first = 1;
-                for (let i = 0; i < parent.size; i++) {
-                    let square = solution[startY + i * moveY][startX + i * moveX];
-                    if (square !== 1) {
-                        first = square;
-                        break;
-                    }
-                }
-                directionTask.push(first);
-            }
-            task.push(directionTask);
-        }
-
-        parent.task = task;
-        if (Utils.getExtraNum(Solver.solve(parent.board, parent)) > 0) {
+    private static reduceSideTask(parent: ISudoku): number[][] | null {
+        if (Utils.getExtraNum(Solver.solve(parent.task, parent)) > 0) {
             if (this.STATS.isSolutionTriesEnd()) {
                 this.STATS.restartSolutionTries();
                 this.STATS.addTaskTries();
@@ -184,160 +161,56 @@ class SudokuBuilder {
             return null;
         }
 
-        let taskSolution = parent.task;
+        // @ts-ignore
+        let taskSolution = Utils.deepcopyArray2d(parent.sideTask);
         let unknownOrder = Utils.getUnknownOrder(parent);
 
         for (let i = 0; i < unknownOrder.length; i++) {
             let dir, position;
             [dir, position] = unknownOrder[i];
 
-            task[dir][position] = 0;
+            // @ts-ignore
+            parent.sideTask[dir][position] = 0;
 
-            parent.task = task;
-
-            let numberOfSolutions = Solver.countSolutions(Solver.solve(parent.board, parent), parent);
+            let numberOfSolutions = Solver.countSolutions(Solver.solve(parent.task, parent), parent);
 
             if (numberOfSolutions > 1) {
-                task[dir][position] = taskSolution[dir][position];
+                // @ts-ignore
+                parent.sideTask[dir][position] = taskSolution[dir][position];
             } else if (numberOfSolutions === 0) {
                 console.log(parent.solution);
+                Renderer.render(parent.solution, parent);
                 throw "TASK ERROR";
             }
         }
 
-        parent.task = task;
-        return task;
+        return parent.sideTask;
     }
 
-    private static getSkyscraperTask(parent: ISudoku): number[][] | null {
-        let solution = parent.solution;
-
-        let task = [];
-        for (let dir = 0; dir < 4; dir++) {
-            let directionTask = [];
-            for (let position = 0; position < parent.size; position++) {
-                let startX, startY, moveX, moveY;
-                [[startX, startY], [moveX, moveY]] = Utils.getSideDirection(dir, position, parent);
-
-                let visibleCount = 0;
-                let lastVisible = 0;
-                for (let i = 0; i < parent.size; i++) {
-                    let square = solution[startY + i * moveY][startX + i * moveX];
-                    if (square > lastVisible) {
-                        visibleCount ++;
-                        lastVisible = square;
+    public static checkAbcSolutionUnambiguity(solution: number[][], parent: ISudoku): boolean {
+        for (let i = 0; i < 3; i++) {
+            let sizeX, sizeY;
+            [sizeX, sizeY] = [[2, 2], [2, 3], [3, 2]][i];
+            for (let y = 0; y <= parent.size - sizeY; y++) {
+                for (let x = 0; x <= parent.size - sizeX; x++) {
+                    let possible = 0;
+                    let numberCount = 0;
+                    for (let relativeY = 0; relativeY < sizeY; relativeY++) {
+                        for (let relativeX = 0; relativeX < sizeX; relativeX++) {
+                            possible |= solution[y + relativeY][x + relativeX];
+                            if (solution[y + relativeY][x + relativeX] !== 1) {
+                                numberCount ++;
+                            }
+                        }
+                    }
+                    if (Utils.countBits32(possible) === 1 && numberCount >= 2) {
+                        return false;
                     }
                 }
-                directionTask.push(visibleCount);
-            }
-            task.push(directionTask);
-        }
-
-        parent.task = task;
-        if (Utils.getExtraNum(Solver.solve(parent.board, parent)) > 0) {
-            if (this.STATS.isSolutionTriesEnd()) {
-                this.STATS.restartSolutionTries();
-                this.STATS.addTaskTries();
-            } else {
-                this.STATS.addSolutionTries();
-            }
-            return null;
-        }
-
-        let taskSolution = parent.task;
-        let unknownOrder = Utils.getUnknownOrder(parent);
-
-        for (let i = 0; i < unknownOrder.length; i++) {
-            let dir, position;
-            [dir, position] = unknownOrder[i];
-
-            task[dir][position] = 0;
-
-            parent.task = task;
-
-            let numberOfSolutions = Solver.countSolutions(Solver.solve(parent.board, parent), parent);
-
-            if (numberOfSolutions > 1) {
-                task[dir][position] = taskSolution[dir][position];
-            } else if (numberOfSolutions === 0) {
-                console.log(parent.solution);
-                throw "TASK ERROR";
             }
         }
 
-        parent.task = task;
-        return task;
-    }
-
-    private static getTask(parent: ISudoku): boolean {
-        let isTaskSuccess = false;
-
-        while (! this.STATS.isTaskTriesEnd() && ! isTaskSuccess) {
-            let isSolutionSuccess = this.getSolution(parent);
-
-            if (isSolutionSuccess) {
-                let task = this.getTaskTry(parent);
-
-                if (task !== null) {
-                    parent.task = task;
-                    isTaskSuccess = true;
-                }
-            }
-        }
-
-        if (! isTaskSuccess) {
-            console.log("!! Unable to create task in " + this.MAX_TRIES_TASK.toString() + " tries.");
-        }
-
-        return isTaskSuccess;
-    }
-
-    private static getSolution(parent: ISudoku): boolean {
-        parent.hasSolution = false;
-
-        let isSolutionSuccess = false;
-        while (! this.STATS.isSolutionTriesEnd() && ! isSolutionSuccess) {
-            if (parent.isKiller) {
-                if (this.STATS.taskTries % 50 === 0 && this.STATS.taskTries > 0) {
-                    // @ts-ignore
-                    parent.refreshKillerGroups(this._killerGroupSizes);
-                }
-            }
-            if (parent.isIrregular) {
-                if (this.STATS.taskTries % 5 === 0 && this.STATS.taskTries > 0) {
-                    // @ts-ignore
-                    parent.refreshIrregularGroups();
-                }
-            }
-
-            let solution = this.getSolutionTry(parent);
-
-            if (solution !== null) {
-                parent.solution = solution;
-
-                if (parent.isKiller) {
-                    parent.setKillerSums();
-                }
-
-                isSolutionSuccess = true;
-            }
-        }
-
-        parent.hasSolution = true;
-
-        if (parent.isABC) {
-            if (! Utils.checkAbcSolutionUnambiguity(parent.solution, parent)) {
-                this.STATS.addSolutionTries();
-                isSolutionSuccess = false;
-            }
-        }
-
-        if (this.STATS.isSolutionTriesEnd()) {
-            this.STATS.restartSolutionTries();
-            this.STATS.addTaskTries();
-        }
-
-        return isSolutionSuccess;
+        return true;
     }
 
     private static getSolutionTry(parent: ISudoku): number[][] | null {
@@ -375,16 +248,61 @@ class SudokuBuilder {
         return solution;
     }
 
-    private static getTaskTry(parent: ISudoku): number[][] | null  {
-        if (parent.isABC) {
-            return this.getAbcTask(parent);
-        }
-        if (parent.isSkyscraper) {
-            return this.getSkyscraperTask(parent);
+    private static getSolution(parent: ISudoku): boolean {
+        parent.hasSolution = false;
+
+        let isSolutionSuccess = false;
+        while (! this.STATS.isSolutionTriesEnd() && ! isSolutionSuccess) {
+            if (parent.isKiller) {
+                if (this.STATS.taskTries % 50 === 0 && this.STATS.taskTries > 0) {
+                    // @ts-ignore
+                    parent.refreshKillerGroups(this._killerGroupSizes);
+                }
+            }
+            if (parent.isIrregular) {
+                if (this.STATS.taskTries % 5 === 0 && this.STATS.taskTries > 0) {
+                    // @ts-ignore
+                    parent.refreshIrregularGroups();
+                }
+            }
+
+            let solution = this.getSolutionTry(parent);
+
+            if (solution !== null) {
+                parent.solution = solution;
+
+                if (parent.isKiller) {
+                    parent.setKillerSums();
+                }
+
+                isSolutionSuccess = true;
+            }
         }
 
-        let task = parent.solution;
-        let solution = parent.solution;
+        parent.solutionAdded();
+
+        if (parent.isABC) {
+            if (! this.checkAbcSolutionUnambiguity(parent.solution, parent)) {
+                this.STATS.addSolutionTries();
+                isSolutionSuccess = false;
+            }
+        }
+
+        if (this.STATS.isSolutionTriesEnd()) {
+            this.STATS.restartSolutionTries();
+            this.STATS.addTaskTries();
+        }
+
+        return isSolutionSuccess;
+    }
+
+    private static getTaskTry(parent: ISudoku): number[][] | null  {
+        if (parent.isABC || parent.isSkyscraper) {
+            return this.reduceSideTask(parent);
+        }
+
+        let task = Utils.deepcopyArray2d(parent.solution);
+        let solution = Utils.deepcopyArray2d(parent.solution);
 
         if (this._prompterNumMax === 0) {
             for (let y = 0; y < parent.size; y++) {
@@ -432,13 +350,41 @@ class SudokuBuilder {
         }
 
         if (parent.isVX) {
-            if (Utils.hasPrompterInSum(task, parent)) {
+            if (parent.hasPrompterInVxSum()) {
                 this.STATS.addTaskTries();
                 return null;
             }
         }
 
         return task;
+    }
+
+    private static getTask(parent: ISudoku): boolean {
+        let isTaskSuccess = false;
+
+        while (! this.STATS.isTaskTriesEnd() && ! isTaskSuccess) {
+            let isSolutionSuccess = this.getSolution(parent);
+
+            if (isSolutionSuccess) {
+                let task = this.getTaskTry(parent);
+
+                if (task !== null) {
+                    if (parent.isABC || parent.isSkyscraper) {
+                        parent.sideTask = task;
+                        parent.task = Utils.deepcopyArray2d(parent.board);
+                    } else {
+                        parent.task = task;
+                    }
+                    isTaskSuccess = true;
+                }
+            }
+        }
+
+        if (! isTaskSuccess) {
+            console.log("!! Unable to create task in " + this.MAX_TRIES_TASK.toString() + " tries.");
+        }
+
+        return isTaskSuccess;
     }
 
     public static size(size: number): void {
@@ -524,7 +470,7 @@ class SudokuBuilder {
     public static minusOne(isMinusOne: boolean): void {
         this.removeVariation();
 
-        this._isMinusOne = true;
+        this._isMinusOne = isMinusOne;
     }
 
     public static inequality(isInequality: boolean): void {

@@ -21,36 +21,15 @@ class Sudoku implements ISudoku {
     public readonly isKingMove: boolean;
     public readonly isKnightMove: boolean;
 
-    private _solution: number[][];
-    private _task: number[][]; // sudoku - [y][x]; abc - row first, row last, column first, column last
-    private _board: number[][];
+    public solution: number[][];
+    public task: number[][]; // [y][x]
+    public board: number[][];
+
+    // abc / skyscraper - [row first, row last, column first, column last][position]
+    public sideTask: number[][] | null;
 
     public isFinished: boolean = false;
     public hasSolution: boolean = false;
-
-    public get solution(): number[][] {
-        return Utils.deepcopyArray2d(this._solution);
-    }
-
-    public set solution(solution: number[][]) {
-        this._solution = solution;
-    }
-
-    public get task(): number[][] {
-        return Utils.deepcopyArray2d(this._task);
-    }
-
-    public set task(task: number[][]) {
-        this._task = task;
-    }
-
-    public get board(): number[][] {
-        return Utils.deepcopyArray2d(this._board);
-    }
-
-    public set board(board: number[][]) {
-        this._board = board;
-    }
 
     public getVxSumName(sum: number): string | null {
         if (! this.isVX || this.vxSum === null) {
@@ -84,7 +63,7 @@ class Sudoku implements ISudoku {
             for (let j = 0; j < this.killerGroups[i].length; j++) {
                 // @ts-ignore
                 let position = this.killerGroups[i][j];
-                sum += Utils.binaryToValue(this._solution[position[1]][position[0]]);
+                sum += Utils.binaryToShift(this.solution[position[1]][position[0]]) + 1;
             }
             sums.push(sum);
         }
@@ -106,6 +85,111 @@ class Sudoku implements ISudoku {
 
     public refreshKillerGroups(groupSizes: number[]): void {
         this.killerGroups = GroupGenerator.boardToGroups(GroupGenerator.build(this.size, this.size, groupSizes), this.size, this.size);
+    }
+
+    private getAbcSideTask(): number[][] {
+        let sideTask = [];
+        for (let dir = 0; dir < 4; dir++) {
+            let directionTask = [];
+            for (let position = 0; position < this.size; position++) {
+                let startX, startY, moveX, moveY;
+                [[startX, startY], [moveX, moveY]] = Solver.getSideDirection(dir, position, this);
+
+                let first = 1;
+                for (let i = 0; i < this.size; i++) {
+                    let square = this.solution[startY + i * moveY][startX + i * moveX];
+                    if (square !== 1) {
+                        first = square;
+                        break;
+                    }
+                }
+                directionTask.push(first);
+            }
+            sideTask.push(directionTask);
+        }
+
+        return sideTask;
+    }
+
+    private getSkyscraperSideTask(): number[][] {
+        let sideTask = [];
+        for (let dir = 0; dir < 4; dir++) {
+            let directionTask = [];
+            for (let position = 0; position < this.size; position++) {
+                let startX, startY, moveX, moveY;
+                [[startX, startY], [moveX, moveY]] = Solver.getSideDirection(dir, position, this);
+
+                let visibleCount = 0;
+                let lastVisible = 0;
+                for (let i = 0; i < this.size; i++) {
+                    let square = this.solution[startY + i * moveY][startX + i * moveX];
+                    if (square > lastVisible) {
+                        visibleCount ++;
+                        lastVisible = square;
+                    }
+                }
+                directionTask.push(visibleCount);
+            }
+            sideTask.push(directionTask);
+        }
+
+        return sideTask;
+    }
+
+    public getSolutionValues() {
+        let solutionValues = [];
+        for (let y = 0; y < this.size; y++) {
+            let row = [];
+            for (let x = 0; x < this.size; x++) {
+                row.push(Utils.binaryToShift(this.solution[y][x]) + 1);
+            }
+            solutionValues.push(row);
+        }
+        return solutionValues;
+    }
+
+    public hasPrompterInVxSum(): boolean {
+        let solutionValues = this.getSolutionValues();
+        for (let y = 0; y < this.size; y++) {
+            for (let x = 0; x < this.size; x++) {
+                if (Utils.countBits32(this.task[y][x]) === 1) {
+                    if (x !== 0) {
+                        if (this.getVxSumName(solutionValues[y][x] + solutionValues[y][x - 1]) !== null) {
+                            return true;
+                        }
+                    }
+                    if (x !== this.size - 1) {
+                        if (this.getVxSumName(solutionValues[y][x] + solutionValues[y][x + 1]) !== null) {
+                            return true;
+                        }
+                    }
+                    if (y !== 0) {
+                        if (this.getVxSumName(solutionValues[y][x] + solutionValues[y - 1][x]) !== null) {
+                            return true;
+                        }
+                    }
+                    if (y !== this.size - 1) {
+                        if (this.getVxSumName(solutionValues[y][x] + solutionValues[y + 1][x]) !== null) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public solutionAdded(): void {
+        this.hasSolution = true;
+
+        if (this.isABC && this.abcNumber !== null) {
+            this.sideTask = this.getAbcSideTask();
+            this.board = Utils.createArray2d(this.size, this.size, (1 << this.abcNumber + 1) - 1)
+            this.task = Utils.createArray2d(this.size, this.size, (1 << this.abcNumber + 1) - 1)
+        } else if (this.isSkyscraper) {
+            this.sideTask = this.getSkyscraperSideTask();
+        }
     }
 
     constructor(
@@ -189,7 +273,7 @@ class Sudoku implements ISudoku {
             this.irregularGroups = null;
         }
 
-        this._solution = Utils.createEmptyBoard(this);
+        this.solution = Utils.createEmptyBoard(this);
 
         if (isKiller && killerGroupSizes !== null) {
             this.isKiller = true;
@@ -201,7 +285,9 @@ class Sudoku implements ISudoku {
             this.killerSums = null;
         }
 
-        this._task = Utils.createEmptyBoard(this);
-        this._board = Utils.createEmptyBoard(this, true);
+        this.task = Utils.createEmptyBoard(this);
+        this.board = Utils.createEmptyBoard(this, true);
+
+        this.sideTask = null;
     }
 }

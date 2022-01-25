@@ -4,7 +4,7 @@ class SudokuEvaluator {
             return board;
         }
 
-        let blockOneNumbers = Utils.getEmptyArray2d(3, parent.size); // row, column, rectangle
+        let blockOneNumbers = Utils.createArray2d(3, parent.size, 0); // row, column, rectangle
         for (let y = 0; y < parent.size; y++) {
             for (let x = 0; x < parent.size; x++) {
                 blockOneNumbers[0][y] |= board[y][x];

@@ -62,12 +62,12 @@ class Renderer {
         let isBlack = value1 === value2 * 2 || value1 * 2 === value2;
 
         if (isWhite && isBlack) {
-            let vx1 = Utils.binaryToValue(parent.solution[0][x]) - 1;
-            let vy1 = Utils.binaryToValue(parent.solution[y][0]) - 1;
-            let vx2 = Utils.binaryToValue(parent.solution[parent.size - 1][x]) - 1;
-            let vy2 = Utils.binaryToValue(parent.solution[y][parent.size - 1]) - 1;
-            let vx = Utils.binaryToValue(parent.solution[vx1][vy2]) - 1;
-            let vy = Utils.binaryToValue(parent.solution[vy1][vx2]) - 1;
+            let vx1 = Utils.binaryToShift(parent.solution[0][x]);
+            let vy1 = Utils.binaryToShift(parent.solution[y][0]);
+            let vx2 = Utils.binaryToShift(parent.solution[parent.size - 1][x]);
+            let vy2 = Utils.binaryToShift(parent.solution[y][parent.size - 1]);
+            let vx = Utils.binaryToShift(parent.solution[vx1][vy2]);
+            let vy = Utils.binaryToShift(parent.solution[vy1][vx2]);
             return (Utils.countBits32(vx ^ vy ^ value1)) % 2 === 0 ? "white" : "black";
         } else if (isWhite) {
             return "white";
@@ -112,6 +112,14 @@ class Renderer {
         pageWrapper?.appendChild(hr);
     }
 
+    private static valueToChar(value: number, parent: ISudoku): string {
+        if (parent.isABC) {
+            return ["-", "A", "B", "C", "D", "E", "F", "G", "H", "I"][value - 1];
+        }
+
+        return value.toString();
+    }
+
     private static convertBinary(binary: number, parent: ISudoku, squareInnerCount: number): string | string[] {
         let bitCount = Utils.countBits32(binary);
         if (bitCount > squareInnerCount) {
@@ -128,7 +136,7 @@ class Renderer {
         }
         if (bitCount === 1) {
             // return binary.toString();
-            return Utils.valueToChar(Utils.binaryToValue(binary), parent);
+            return this.valueToChar(Utils.binaryToShift(binary) + 1, parent);
         }
         if (binary === 0) {
             return this.zeroSymbol;
@@ -137,7 +145,7 @@ class Renderer {
         let number = 1;
         while (binary !== 0) {
             if ((binary & 1) === 1) {
-                values.push(Utils.valueToChar(number, parent));
+                values.push(this.valueToChar(number, parent));
             }
             binary >>>= 1;
             number += 1;
@@ -157,7 +165,11 @@ class Renderer {
     }
 
     private static convertSideBoard(board: number[][], parent: ISudoku, squareInnerCount: number): (string | string[])[][] {
-        let task = parent.task;
+        let task = parent.sideTask;
+        if (task === null) {
+            throw "Renderer->convertSideBoard - SIDE_TASK === NULL"
+        }
+
         let arr: (string | string[])[][] = [];
 
         let row = [];
@@ -389,83 +401,83 @@ class Renderer {
                     }
                 }
                 if (parent.isVX) {
-                    let solution = parent.solution;
                     if (x !== size - 1) {
-                        let sum = Utils.binaryToValue(solution[y][x]) + Utils.binaryToValue(solution[y][x + 1]);
+                        let sum = Utils.binaryToShift(parent.solution[y][x]) + Utils.binaryToShift(parent.solution[y][x + 1]) + 2;
                         if (parent.getVxSumName(sum) !== null) {
                             let div = document.createElement("div");
                             div.textContent = parent.getVxSumName(sum);
                             div.classList.add("orthogonal");
-                            div.classList.add("orthogonal-horizontal")
+                            div.classList.add("orthogonal-horizontal");
                             column.appendChild(div);
                         }
                     }
                     if (y !== size - 1) {
-                        let sum = Utils.binaryToValue(solution[y][x]) + Utils.binaryToValue(solution[y + 1][x]);
+                        let sum = Utils.binaryToShift(parent.solution[y][x]) + Utils.binaryToShift(parent.solution[y + 1][x]) + 2;
                         if (parent.getVxSumName(sum)) {
                             let div = document.createElement("div");
                             div.textContent = parent.getVxSumName(sum);
                             div.classList.add("orthogonal");
-                            div.classList.add("orthogonal-vertical")
+                            div.classList.add("orthogonal-vertical");
                             column.appendChild(div);
                         }
                     }
                 }
                 if (parent.isKropki) {
-                    let solution = parent.solution;
                     if (x !== size - 1) {
-                        let color = this.getKropkiColor(Utils.binaryToValue(solution[y][x]), Utils.binaryToValue(solution[y][x + 1]), x, y, parent);
+                        let value1 = Utils.binaryToShift(parent.solution[y][x]) + 1;
+                        let value2 = Utils.binaryToShift(parent.solution[y][x + 1]) + 1;
+                        let color = this.getKropkiColor(value1, value2, x, y, parent);
                         if (color !== null) {
                             let div = document.createElement("div");
                             div.textContent = " ";
                             div.classList.add("orthogonal");
                             div.classList.add(`orthogonal-${color}`);
-                            div.classList.add("orthogonal-horizontal")
+                            div.classList.add("orthogonal-horizontal");
                             column.appendChild(div);
                         }
                     }
                     if (y !== size - 1) {
-                        let color = this.getKropkiColor(Utils.binaryToValue(solution[y][x]), Utils.binaryToValue(solution[y + 1][x]), x, y, parent);
+                        let value1 = Utils.binaryToShift(parent.solution[y][x]) + 1;
+                        let value2 = Utils.binaryToShift(parent.solution[y + 1][x]) + 1;
+                        let color = this.getKropkiColor(value1, value2, x, y, parent);
                         if (color !== null) {
                             let div = document.createElement("div");
                             div.textContent = " ";
                             div.classList.add("orthogonal");
                             div.classList.add(`orthogonal-${color}`);
-                            div.classList.add("orthogonal-vertical")
+                            div.classList.add("orthogonal-vertical");
                             column.appendChild(div);
                         }
                     }
                 }
                 if (parent.isMinusOne && parent.hasSolution) {
-                    let solution = parent.solution;
                     if (x !== size - 1) {
-                        if (Math.abs(Utils.binaryToValue(solution[y][x]) - Utils.binaryToValue(solution[y][x + 1])) === 1) {
+                        if (Math.abs(Utils.binaryToShift(parent.solution[y][x]) - Utils.binaryToShift(parent.solution[y][x + 1])) === 1) {
                             let div = document.createElement("div");
                             div.textContent = " ";
                             div.classList.add("orthogonal");
                             div.classList.add(`orthogonal-white`);
-                            div.classList.add("orthogonal-horizontal")
+                            div.classList.add("orthogonal-horizontal");
                             column.appendChild(div);
                         }
                     }
                     if (y !== size - 1) {
-                        if (Math.abs(Utils.binaryToValue(solution[y][x]) - Utils.binaryToValue(solution[y + 1][x])) === 1) {
+                        if (Math.abs(Utils.binaryToShift(parent.solution[y][x]) - Utils.binaryToShift(parent.solution[y + 1][x])) === 1) {
                             let div = document.createElement("div");
                             div.textContent = " ";
                             div.classList.add("orthogonal");
                             div.classList.add(`orthogonal-white`);
-                            div.classList.add("orthogonal-vertical")
+                            div.classList.add("orthogonal-vertical");
                             column.appendChild(div);
                         }
                     }
                 }
                 if (parent.isInequality && parent.hasSolution) {
-                    let solution = parent.solution;
                     if (x !== size - 1) {let div = document.createElement("div");
                         div.textContent = " ";
                         div.classList.add("orthogonal");
                         div.classList.add("orthogonal-horizontal");
-                        div.textContent += solution[y][x] < solution[y][x + 1] ? "<" : ">";
+                        div.textContent += parent.solution[y][x] < parent.solution[y][x + 1] ? "<" : ">";
                         column.appendChild(div);
                     }
                     if (y !== size - 1) {
@@ -474,7 +486,7 @@ class Renderer {
                         div.classList.add("orthogonal");
                         div.classList.add("orthogonal-vertical");
                         div.classList.add("orthogonal-rotate");
-                        div.textContent += solution[y][x] < solution[y + 1][x] ? "<" : ">";
+                        div.textContent += parent.solution[y][x] < parent.solution[y + 1][x] ? "<" : ">";
                         column.appendChild(div);
                     }
                 }

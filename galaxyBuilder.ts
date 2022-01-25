@@ -34,7 +34,7 @@ class GalaxyBuilder {
 
         for (let y = 0; y < galaxy.height; y++) {
             for (let x = 0; x < galaxy.width; x++) {
-                let centerId = Utils.binaryToValue(solution[y][x]) - 1;
+                let centerId = Utils.binaryToShift(solution[y][x]);
                 if (x < data[centerId][0]) {
                     data[centerId][0] = x;
                 }

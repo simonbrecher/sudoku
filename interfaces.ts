@@ -23,8 +23,13 @@ interface ISudoku {
     setKillerSums: () => (void);
     refreshKillerGroups: (groupSizes: number[]) => (void);
     refreshIrregularGroups: () => (void);
+    getSolutionValues: () => number[][];
+    hasPrompterInVxSum: () => boolean;
+    solutionAdded: () => void;
 
     solution: number[][]; task: number[][]; board: number[][];
+
+    sideTask: number[][] | null;
 }
 
 interface ICoral {

@@ -301,10 +301,10 @@ function tournamentLogicSmall(taskNum: number, solutionNum: number): void {
         domino?.render(domino?.board);
         Renderer.breakPageForce();
         Renderer.breakLineForce();
-        Renderer.render(abc1?.board, abc1);
-        Renderer.render(abc2?.board, abc2);
+        Renderer.render(abc1?.task, abc1);
+        Renderer.render(abc2?.task, abc2);
         Renderer.breakLineForce();
-        Renderer.render(skyscraper?.board, skyscraper);
+        Renderer.render(skyscraper?.task, skyscraper);
         galaxy?.render(galaxy?.board, false);
 
         Renderer.breakPageForce();
@@ -403,10 +403,10 @@ function tournamentLogicBig(taskNum: number, solutionNum: number): void {
         // @ts-ignore
         TapaBuilder.render(tapa1.board, tapa1.task, tapa1);
         slitherlink1.render(false, true);
-        Renderer.render(skyscraper?.board, skyscraper);
+        Renderer.render(skyscraper?.task, skyscraper);
         Renderer.breakLineForce();
-        Renderer.render(abc1?.board, abc1);
-        Renderer.render(abc2?.board, abc2);
+        Renderer.render(abc1?.task, abc1);
+        Renderer.render(abc2?.task, abc2);
 
         Renderer.breakPageForce();
     }
@@ -449,8 +449,8 @@ function main(): void {
     // ---
 
     // // Basic sudoku and variants
-    // SudokuBuilder.rectangular(true, 3, 3); // basic sudoku
-    // // SudokuBuilder.size(9); // without rectangles
+    // SudokuBuilder.rectangular(true, 3, 2); // basic sudoku
+    // // SudokuBuilder.size(6); // without rectangles
     // // SudokuBuilder.irregular(true); // irregular blocks
     // // SudokuBuilder.diagonal(true); // add diagonal
     // // SudokuBuilder.kropki(true); // kropki
@@ -459,45 +459,39 @@ function main(): void {
     // // SudokuBuilder.prompterNum(null, 0);
     // // SudokuBuilder.killer(true, [[1, 1], [2, 9], [3, 3], [4, 2]]); // killer 3x2 (0 prompter)
     // // SudokuBuilder.killer(true, [[1, 7], [2, 14], [3, 10], [4, 4]]); // killer 3x3 (0 prompter)
-    // // SudokuBuilder.vxSum(true, [[5, "V"], [10, "X"]]); SudokuBuilder.prompterNum(null, 3); // vx
+    // SudokuBuilder.vxSum(true, [[5, "V"], [10, "X"]]); SudokuBuilder.prompterNum(null, 3); // vx
     // // SudokuBuilder.pieceMoves(true, false); // king move
     // // SudokuBuilder.pieceMoves(false, true); // knight move
-    // //
     //
-    // for (let j = 0; j < 1; j++) {
+    // let then = (new Date()).getTime();
     //
-    //     let then = (new Date()).getTime();
-    //
-    //     // SudokuBuilder.size(9);
-    //     Renderer.perPage(2, 3);
-    //     for (let i = 0; i < 10; i++) {
-    //         let sudoku = SudokuBuilder.build();
-    //         if (sudoku !== null) {
-    //             Renderer.render(sudoku.task, sudoku);
-    //             // Renderer.render(sudoku.solution, sudoku);
-    //         }
+    // // SudokuBuilder.size(9);
+    // Renderer.perPage(2, 3);
+    // for (let i = 0; i < 6; i++) {
+    //     let sudoku = SudokuBuilder.build();
+    //     if (sudoku !== null) {
+    //         Renderer.render(sudoku.task, sudoku);
+    //         // Renderer.render(sudoku.solution, sudoku);
     //     }
-    //
-    //     let now = (new Date()).getTime();
-    //     console.log(`${now - then}ms`);
-    //
     // }
+    //
+    // let now = (new Date()).getTime();
+    // console.log(`${now - then}ms`);
 
     // ---
 
     // // Easy as abc + skyscraper
     // SudokuBuilder.size(6);
-    // // SudokuBuilder.abc(true, 3);
-    // SudokuBuilder.skyscraper(true);
+    // SudokuBuilder.abc(true, 3);
+    // // SudokuBuilder.skyscraper(true);
     // // SudokuBuilder.pieceMoves(true, false); // king move
     // // SudokuBuilder.pieceMoves(false, true); // knight move
     //
     // Renderer.perPage(2, 3);
-    // for (let i = 0; i < 12; i++) {
+    // for (let i = 0; i < 1; i++) {
     //     let sudoku = SudokuBuilder.build();
     //     if (sudoku !== null) {
-    //         Renderer.render(sudoku.board, sudoku);
-    //         // Renderer.render(Solver.solve(sudoku.board, sudoku), sudoku);
+    //         Renderer.render(sudoku.task, sudoku);
     //         // Renderer.render(sudoku.solution, sudoku);
     //     }
     // }
@@ -566,10 +560,19 @@ function main(): void {
     // ---
 
     // // Slitherlink
-    // Slitherlink.main();
-    // SlitherlinkSolver.main();
-    // SlitherlinkBuilder.main();
-    // ConfigSlitherlinkBuilder.main();
+    // // Slitherlink.main();
+    // // SlitherlinkSolver.main();
+    // // SlitherlinkBuilder.main();
+    // // ConfigSlitherlinkBuilder.main();
+    // for (let i = 0; i < 12; i++) {
+    //     let slitherlink = SlitherlinkBuilder.build(10, 10);
+    //     slitherlink.render(false, true);
+    // }
+    // Renderer.breakPageForce();
+    // for (let i = 0; i < 12; i++) {
+    //     let slitherlink = SlitherlinkBuilder.build(10, 10);
+    //     slitherlink.render(false, true);
+    // }
 
     // ---
 
