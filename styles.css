@@ -19,6 +19,7 @@ table.board-table div.type-diagonal { position: absolute; background-color: #FFF
 table.board-table div.orthogonal-rotate { transform: rotate(90deg); }
 table.board-table svg { position: absolute; }
 table.board-table div.killer-sum { position: absolute; background-color: #FFF; }
+table.board-table td.slovak-sum-prompter { background-color: #DDD; }
 
 table.mastermind-table { border-collapse: collapse; float: left; margin-right: 50px; margin-bottom: 20px; }
 table.mastermind-table tr:last-child td { border-top-width: 3px; }

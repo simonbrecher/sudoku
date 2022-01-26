@@ -13,7 +13,9 @@ interface ISudoku {
     killerGroups: number[][][] | null;
     killerSums: number[] | null;
     isRoman: boolean;
-    isABC: boolean; abcNumber: number | null; abcSpaceNumber: number | null;
+    isSlovak: boolean;
+    isABC: boolean;
+    valueNumber: number | null; spaceNumber: number | null;
     isSkyscraper: boolean;
     isKingMove: boolean;
     isKnightMove: boolean;
@@ -37,6 +39,7 @@ interface ISudoku {
 
     sideTask: number[][] | null;
     orthogonalTask: (number | null)[][][] | null;
+    extraTask: (number[] | null)[][] | null;
 }
 
 interface ICoral {

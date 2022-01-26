@@ -23,6 +23,8 @@ class Renderer {
     private static _innerFontRelativeSize: number;
     private static _romanBoxSizeRelative: number;
     private static _romanBoxFontSizeRelative: number;
+    private static _slovakSumBoxHeightRelative: number;
+    private static _slovakAmountBoxHeightRelative: number;
     private static _marginLeft: number;
     private static _marginBottom: number;
     private static _smallBorderWidth: number;
@@ -54,11 +56,13 @@ class Renderer {
         this._innerFontRelativeSize = 0.8;
         this._romanBoxSizeRelative = 0.5;
         this._romanBoxFontSizeRelative = 0.7;
+        this._slovakSumBoxHeightRelative = 0.7;
+        this._slovakAmountBoxHeightRelative = 0.15;
         this._marginLeft = 20; // 10
         this._marginBottom = 20; // 10
         this._smallBorderWidth = 1;
         this._bigBorderWidth = 3;
-        this._maxSquareInnerCount = 4;
+        this._maxSquareInnerCount = 9;
     }
 
     private static getKropkiColor(value1: number, value2: number, x: number, y: number, parent: ISudoku): "white" | "black" | null {
@@ -118,7 +122,7 @@ class Renderer {
 
     private static shiftToChar(shift: number, parent: ISudoku): string {
         if (parent.isABC) {
-            return ["A", "B", "C", "D", "E", "F", "G", "H", "I"][shift];
+            return ["-", "A", "B", "C", "D", "E", "F", "G", "H", "I"][shift];
         }
 
         if (parent.isRoman) {
@@ -130,6 +134,14 @@ class Renderer {
             return parent.letters[shift];
         }
 
+        if (parent.isSlovak) {
+            if (shift === 0) {
+                return "-";
+            } else {
+                return shift.toString();
+            }
+        }
+
         return (shift + 1).toString();
     }
 
@@ -138,8 +150,8 @@ class Renderer {
         if (bitCount > squareInnerCount) {
             return " ";
         }
-        if (parent.isABC && parent.abcNumber !== null) {
-            if (binary === (1 << parent.abcNumber + 1) - 1) {
+        if ((parent.isABC || parent.isSlovak) && parent.valueNumber !== null) {
+            if (binary === (1 << parent.valueNumber + 1) - 1) {
                 return " ";
             }
         } else {
@@ -155,7 +167,7 @@ class Renderer {
             return this.zeroSymbol;
         }
         let values = [];
-        let number = 1;
+        let number = 0;
         while (binary !== 0) {
             if ((binary & 1) === 1) {
                 values.push(this.shiftToChar(number, parent));
@@ -378,7 +390,7 @@ class Renderer {
                 column.appendChild(div);
                 if (parent.isABC && y === 0 && x === 0) {
                     // @ts-ignore
-                    div.textContent = parent.abcNumber.toString();
+                    div.textContent = parent.valueNumber.toString();
                     div.classList.add("square-full");
                     div.classList.add("small-font");
                 } else if ((parent.isABC || parent.isSkyscraper) && (parent.isKingMove || parent.isKnightMove) && x === parent.size + 1 && y === 0) {
@@ -390,6 +402,23 @@ class Renderer {
                     }
                     div.classList.add("square-full");
                     div.classList.add("small-font");
+                // @ts-ignore
+                } else if (parent.isSlovak && parent.extraTask[y][x] !== null && color === null) {
+                    column.classList.add("slovak-sum-prompter");
+                    let sumDiv = document.createElement("div");
+                    sumDiv.classList.add("slovak-sum");
+                    // @ts-ignore
+                    sumDiv.textContent += parent.extraTask[y][x][0].toString();
+                    div.appendChild(sumDiv);
+                    let amountDiv = document.createElement("div");
+                    amountDiv.classList.add("slovak-amount");
+                    // @ts-ignore
+                    for (let i = 0; i < parent.extraTask[y][x][1]; i++) {
+                        amountDiv.textContent += "⚫";
+                    }
+                    div.appendChild(amountDiv);
+                    let hr = document.createElement("hr");
+                    div.appendChild(hr);
                 } else if (typeof renderBoard[y][x] === "string") {
                     div.textContent = renderBoard[y][x].toString();
                     div.classList.add("square-full");
@@ -410,6 +439,17 @@ class Renderer {
                         if (innerY !== squareInnerLinearCount - 1) {
                             let hr = document.createElement("hr");
                             div.appendChild(hr);
+                        }
+                    }
+                }
+                if (parent.isSlovak) {
+                    if (x === 0 && y === 0) {
+                        let typeDiagonal = document.createElement("div");
+                        typeDiagonal.classList.add("type-diagonal");
+                        column.appendChild(typeDiagonal);
+                        if (parent.isSlovak) {
+                            // @ts-ignore
+                            typeDiagonal.textContent += parent.valueNumber.toString();
                         }
                     }
                 }
@@ -669,32 +709,44 @@ class Renderer {
             styleHtml = `table.board-table-${boardNum} div.orthogonal { ${styles} }`;
             style.textContent += styleHtml + "\n";
 
-            let vxBoxMarginTop = - (squareFullSize / 2 + orthogonalBoxSize / 2);
-            let vxBoxMarginLeft = squareFullSize - orthogonalBoxSize / 2;
-            styles = `margin-top: ${vxBoxMarginTop}px; margin-left: ${vxBoxMarginLeft}px;`;
+            let orthogonalBoxMarginTop = - (squareFullSize / 2 + orthogonalBoxSize / 2);
+            let orthogonalBoxMarginLeft = squareFullSize - orthogonalBoxSize / 2;
+            styles = `margin-top: ${orthogonalBoxMarginTop}px; margin-left: ${orthogonalBoxMarginLeft}px;`;
             styleHtml = `table.board-table-${boardNum} div.orthogonal-horizontal { ${styles} }`;
             style.textContent += styleHtml + "\n";
 
-            vxBoxMarginTop = - orthogonalBoxSize / 2;
-            vxBoxMarginLeft = squareFullSize / 2 - orthogonalBoxSize / 2;
-            styles = `margin-top: ${vxBoxMarginTop}px; margin-left: ${vxBoxMarginLeft}px;`;
+            orthogonalBoxMarginTop = - orthogonalBoxSize / 2;
+            orthogonalBoxMarginLeft = squareFullSize / 2 - orthogonalBoxSize / 2;
+            styles = `margin-top: ${orthogonalBoxMarginTop}px; margin-left: ${orthogonalBoxMarginLeft}px;`;
             styleHtml = `table.board-table-${boardNum} div.orthogonal-vertical { ${styles} }`;
             style.textContent += styleHtml + "\n";
 
             if (parent.isRoman) {
-                styleHtml = `table.board-table-${boardNum} div.orthogonal-white { border-radius: ${orthogonalBoxSize}px }`;
+                styleHtml = `table.board-table-${boardNum} div.orthogonal-white { border-radius: ${orthogonalBoxSize}px; }`;
                 style.textContent += styleHtml + "\n";
             }
             if (parent.isKropki) {
-                styleHtml = `table.board-table-${boardNum} div.orthogonal-white { border-radius: ${orthogonalBoxSize}px }`;
+                styleHtml = `table.board-table-${boardNum} div.orthogonal-white { border-radius: ${orthogonalBoxSize}px; }`;
                 style.textContent += styleHtml + "\n";
 
-                styleHtml = `table.board-table-${boardNum} div.orthogonal-black { border-radius: ${orthogonalBoxSize}px }`;
+                styleHtml = `table.board-table-${boardNum} div.orthogonal-black { border-radius: ${orthogonalBoxSize}px; }`;
                 style.textContent += styleHtml + "\n";
             }
         }
 
-        if (parent.isKropki || parent.isMinusOne) {
+        if (parent.isSlovak) {
+            let slovakSumHeight = Math.floor(squareFullSize * this._slovakSumBoxHeightRelative);
+            let styles = `height: ${slovakSumHeight}px; line-height: ${slovakSumHeight}px; font-size : ${slovakSumHeight}px;`;
+            styleHtml = `table.board-table-${boardNum} div.slovak-sum { ${styles} }`;
+            style.textContent += styleHtml + "\n";
+
+            let slovakAmountHeight = Math.floor(squareFullSize * this._slovakAmountBoxHeightRelative);
+            styles = `height: ${slovakAmountHeight}px; line-height: ${slovakAmountHeight}px; font-size : ${slovakAmountHeight}px;`;
+            styleHtml = `table.board-table-${boardNum} div.slovak-amount { ${styles} }`;
+            style.textContent += styleHtml + "\n";
+        }
+
+        if (parent.isSlovak) {
             let typeDiagonalBoxSize = Math.floor(squareFullSize * this._typeDiagonalBoxSizeRelative);
             let typeDiagonalFontBoxSize = Math.floor(typeDiagonalBoxSize * this._typeDiagonalBoxFontSizeRelative);
             let typeDiagonalBoxTop = - squareFullSize - typeDiagonalBoxSize / 2;

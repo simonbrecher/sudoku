@@ -41,12 +41,12 @@ class Utils {
     }
 
     public static createEmptyBoard(parent: ISudoku, forceHasSolution: boolean = false): number[][] {
-        if (parent.isABC && parent.abcNumber !== null && (parent.hasSolution || forceHasSolution)) {
+        if ((parent.isABC || parent.isSlovak) && parent.valueNumber !== null && (parent.hasSolution || forceHasSolution)) {
             let board = [];
             for (let y = 0; y < parent.size; y++) {
                 let row = [];
                 for (let x = 0; x < parent.size; x++) {
-                    row.push((1 << parent.abcNumber + 1) - 1);
+                    row.push((1 << parent.valueNumber + 1) - 1);
                 }
                 board.push(row);
             }
@@ -141,7 +141,7 @@ class Utils {
         return this.shuffle(arr);
     }
 
-    public static deepcopyArray1d(board: number[][]): number[][] {
+    public static deepcopyArray1d(board: number[]): number[] {
         let copied = [];
         for (let i = 0; i < board.length; i++) {
             copied.push(board[i]);

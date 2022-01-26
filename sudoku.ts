@@ -17,9 +17,10 @@ class Sudoku implements ISudoku {
     public killerGroups: number[][][] | null;
     public killerSums: number[] | null;
     public readonly isRoman: boolean;
+    public readonly isSlovak: boolean;
     public readonly isABC: boolean;
-    public readonly abcNumber: number | null;
-    public readonly abcSpaceNumber: number | null;
+    public readonly valueNumber: number | null;
+    public readonly spaceNumber: number | null;
     public readonly isSkyscraper: boolean;
     public readonly isKingMove: boolean;
     public readonly isKnightMove: boolean;
@@ -29,7 +30,8 @@ class Sudoku implements ISudoku {
     public board: number[][];
 
     public sideTask: number[][] | null; // abc / skyscraper - [row first, row last, column first, column last][position] ; empty -> 0
-    public orthogonalTask: (number | null)[][][] | null; // [y][x][right, bottom]
+    public orthogonalTask: (number | null)[][][] | null; // roman intersection - [y][x][right, bottom]
+    public extraTask: (number[] | null)[][] | null; // slovak sums - [y][x][sum, amount]
 
     public isFinished: boolean = false;
     public hasSolution: boolean = false;
@@ -194,12 +196,6 @@ class Sudoku implements ISudoku {
         return (value1 >> 2 & value2 >> 2) << 2 | Math.min(value1 & 3, value2 & 3);
     }
 
-    public static getRomanIntersection(binary1: number, binary2: number): number {
-        let value1 = Utils.binaryToShift(binary1) + 1;
-        let value2 = Utils.binaryToShift(binary2) + 1;
-        return (value1 >> 2 & value2 >> 2) << 2 | Math.min(value1 & 3, value2 & 3);
-    }
-
     private getRomanOrthogonalTask(): (number | null)[][][] {
         let orthogonalTask = Utils.createArray3d(this.size, this.size, 2, null);
         for (let y = 0; y < this.size; y++) {
@@ -216,17 +212,50 @@ class Sudoku implements ISudoku {
         return orthogonalTask;
     }
 
+    private getSlovakExtraTask(): (number[] | null)[][] {
+        let extraTask = Utils.createArray2d(this.size, this.size, null);
+        for (let y = 0; y < this.size; y++) {
+            for (let x = 0; x < this.size; x++) {
+                if (this.solution[y][x] === 1) {
+                    let sum = 0;
+                    let amount = 0;
+                    for (let dirY = -1; dirY <= 1; dirY++) {
+                        for (let dirX = -1; dirX <= 1; dirX++) {
+                            if ((dirX !== 0) !== (dirY !== 0)) {
+                                let newX = x + dirX;
+                                let newY = y + dirY;
+                                let binary = 1;
+                                if (newX >= 0 && newX < this.size && newY >= 0 && newY < this.size) {
+                                    binary = this.solution[newY][newX];
+                                }
+                                if (binary !== 1) {
+                                    sum += Utils.binaryToShift(binary);
+                                    amount ++;
+                                }
+                            }
+                        }
+                    }
+                    extraTask[y][x] = [sum, amount];
+                }
+            }
+        }
+
+        return extraTask;
+    }
+
     public solutionAdded(): void {
         this.hasSolution = true;
 
-        if (this.isABC && this.abcNumber !== null) {
+        if (this.isABC && this.valueNumber !== null) {
             this.sideTask = this.getAbcSideTask();
-            this.board = Utils.createArray2d(this.size, this.size, (1 << this.abcNumber + 1) - 1);
-            this.task = Utils.createArray2d(this.size, this.size, (1 << this.abcNumber + 1) - 1);
+            this.board = Utils.createArray2d(this.size, this.size, (1 << this.valueNumber + 1) - 1);
+            this.task = Utils.createArray2d(this.size, this.size, (1 << this.valueNumber + 1) - 1);
         } else if (this.isSkyscraper) {
             this.sideTask = this.getSkyscraperSideTask();
         } else if (this.isRoman) {
             this.orthogonalTask = this.getRomanOrthogonalTask();
+        } else if (this.isSlovak) {
+            this.extraTask = this.getSlovakExtraTask();
         }
     }
 
@@ -260,8 +289,9 @@ class Sudoku implements ISudoku {
         isKiller: boolean,
         killerGroupSizes: number[] | null,
         isRoman: boolean,
+        isSlovak: boolean,
         isABC: boolean,
-        abcNumber: number | null,
+        valueNumber: number | null,
         isSkyscraper: boolean,
         isKingMove: boolean,
         isKnightMove: boolean,
@@ -307,14 +337,23 @@ class Sudoku implements ISudoku {
 
         this.isRoman = isRoman;
 
-        if (isABC && abcNumber !== null) {
+        this.valueNumber = null;
+        this.spaceNumber = null;
+
+        if (isSlovak && valueNumber !== null) {
+            this.isSlovak = true;
+            this.valueNumber = valueNumber;
+            this.spaceNumber = size - valueNumber;
+        } else {
+            this.isSlovak = false;
+        }
+
+        if (isABC && valueNumber !== null) {
             this.isABC = true;
-            this.abcNumber = abcNumber;
-            this.abcSpaceNumber = size - abcNumber;
+            this.valueNumber = valueNumber;
+            this.spaceNumber = size - valueNumber;
         } else {
             this.isABC = false;
-            this.abcNumber = null;
-            this.abcSpaceNumber = null;
         }
 
         this.isSkyscraper = isSkyscraper;
@@ -349,5 +388,6 @@ class Sudoku implements ISudoku {
 
         this.sideTask = null;
         this.orthogonalTask = null;
+        this.extraTask = null;
     }
 }

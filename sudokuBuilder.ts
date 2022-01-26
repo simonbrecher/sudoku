@@ -18,7 +18,8 @@ class SudokuBuilder {
     private static _killerGroupSizes: number[] | null;
     private static _isRoman: boolean;
     private static _isABC: boolean;
-    private static _abcNumber: number | null;
+    private static _isSlovak: boolean;
+    private static _valueNumber: number | null;
     private static _isSkyscraper: boolean;
     private static _isKingMove: boolean;
     private static _isKnightMove: boolean;
@@ -88,8 +89,9 @@ class SudokuBuilder {
         this._isInequality = false;
         this._isKiller = false;
         this._killerGroupSizes = null;
+        this._isSlovak = false;
         this._isABC = false;
-        this._abcNumber = null;
+        this._valueNumber = null;
         this._isKingMove = false;
         this._isKnightMove = false;
     }
@@ -99,7 +101,8 @@ class SudokuBuilder {
         this._vxSum = null;
         this._isKropki = false;
         this._isABC = false;
-        this._abcNumber = null;
+        this._isSlovak = false;
+        this._valueNumber = null;
         this._isSkyscraper = false;
         this._isMinusOne = false;
         this._isInequality = false;
@@ -126,8 +129,9 @@ class SudokuBuilder {
             this._isKiller,
             this._killerGroupSizes,
             this._isRoman,
+            this._isSlovak,
             this._isABC,
-            this._abcNumber,
+            this._valueNumber,
             this._isSkyscraper,
             this._isKingMove,
             this._isKnightMove,
@@ -207,10 +211,10 @@ class SudokuBuilder {
             return null;
         }
 
-        if (parent.isABC && parent.abcNumber !== null) {
+        if ((parent.isABC || parent.isSlovak) && parent.valueNumber !== null) {
             for (let y = 0; y < parent.size; y++) {
                 for (let x = 0; x < parent.size; x++) {
-                    if (solution[y][x] > 1 << parent.abcNumber) {
+                    if (solution[y][x] > 1 << parent.valueNumber) {
                         solution[y][x] = 1;
                     }
                 }
@@ -340,13 +344,64 @@ class SudokuBuilder {
         return true;
     }
 
+    private static reduceExtraTask(parent: ISudoku): boolean {
+        if (Utils.getExtraNum(Solver.solve(parent.task, parent)) > 0) {
+            if (this.STATS.isSolutionTriesEnd()) {
+                this.STATS.restartSolutionTries();
+                this.STATS.addTaskTries();
+            } else {
+                this.STATS.addSolutionTries();
+            }
+            return false;
+        }
+
+        let taskSolution = Utils.createArray2d(parent.size, parent.size, null);
+        for (let y = 0; y < parent.size; y++) {
+            for (let x = 0; x < parent.size; x++) {
+                // @ts-ignore
+                let prompter = parent.extraTask[y][x];
+                if (prompter !== null) {
+                    taskSolution[y][x] = Utils.deepcopyArray1d(prompter);
+                }
+            }
+        }
+        let unknownOrder = Utils.getUnknownOrderTask(parent);
+
+        for (let i = 0; i < unknownOrder.length; i++) {
+            let dir, position;
+            [dir, position] = unknownOrder[i];
+
+            // @ts-ignore
+            parent.extraTask[dir][position] = null;
+
+            let numberOfSolutions = Solver.countSolutions(Solver.solve(parent.task, parent), parent);
+
+            if (numberOfSolutions > 1) {
+                // @ts-ignore
+                parent.extraTask[dir][position] = taskSolution[dir][position];
+            } else if (numberOfSolutions === 0) {
+                console.log(parent.solution);
+                Renderer.render(parent.solution, parent);
+                throw "TASK ERROR";
+            }
+        }
+
+        return true;
+    }
+
     private static reduceTask(parent: ISudoku): boolean {
         let task = Utils.deepcopyArray2d(parent.solution);
+
+        // @ts-ignore
+        let emptyValue = (1 << parent.size) - 1;
+        if (parent.isSlovak && parent.valueNumber !== null) {
+            emptyValue = (1 << parent.valueNumber + 1) - 1;
+        }
 
         if (this._prompterNumMax === 0) {
             for (let y = 0; y < parent.size; y++) {
                 for (let x = 0; x < parent.size; x++) {
-                    task[y][x] = (1 << parent.size) - 1
+                    task[y][x] = emptyValue;
                 }
             }
             parent.task = task;
@@ -364,13 +419,13 @@ class SudokuBuilder {
             let x, y;
             [x, y] = unknownOrder[i];
 
-            task[y][x] = (1 << parent.size) - 1;
+            task[y][x] = emptyValue;
 
             let numberOfSolutions = Solver.countSolutions(Solver.solve(task, parent), parent);
             if (numberOfSolutions > 1) {
                 task[y][x] = parent.solution[y][x];
             } else if (numberOfSolutions === 0) {
-                Renderer.render(parent.solution, parent, null, "red");
+                Renderer.render(parent.solution, parent, null);
                 throw "TASK ERROR";
             }
 
@@ -419,6 +474,14 @@ class SudokuBuilder {
                 return false;
             }
             return this.reduceOrthogonalTask(parent);
+        }
+
+        if (parent.isSlovak) {
+            let isTaskSuccess = this.reduceTask(parent);
+            if (! isTaskSuccess) {
+                return false;
+            }
+            return this.reduceExtraTask(parent);
         }
 
         return this.reduceTask(parent);
@@ -547,15 +610,27 @@ class SudokuBuilder {
         this._isRoman = isRoman;
     }
 
-    public static abc(isABC: boolean, abcNumber: number | null): void {
+    public static abc(isABC: boolean, valueNumber: number | null): void {
         this.removeVariation();
 
-        if (isABC && abcNumber !== null) {
+        if (isABC && valueNumber !== null) {
             this._isABC = true;
-            this._abcNumber = abcNumber;
+            this._valueNumber = valueNumber;
         } else {
             this._isABC = false;
-            this._abcNumber = null;
+            this._valueNumber = null;
+        }
+    }
+
+    public static slovak(isSlovak: boolean, valueNumber: number | null): void {
+        this.removeVariation();
+
+        if (isSlovak && valueNumber !== null) {
+            this._isSlovak = true;
+            this._valueNumber = valueNumber;
+        } else {
+            this._isABC = false;
+            this._valueNumber = null;
         }
     }
 

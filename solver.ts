@@ -13,10 +13,10 @@ class Solver {
     }
 
     public static getAbcMiddleValue(dir: number, position: number, task: number[][], parent: ISudoku): number {
-        if (parent.abcNumber === null) {
+        if (parent.valueNumber === null) {
             throw "Utils->getAbcMiddle - parent.abcNumber === null";
         }
-        return (1 << parent.abcNumber + 1) - 2 & ~ this.getAbcFirstValue(dir, position, task) & ~ this.getAbcLastValue(dir, position, task);
+        return (1 << parent.valueNumber + 1) - 2 & ~ this.getAbcFirstValue(dir, position, task) & ~ this.getAbcLastValue(dir, position, task);
     }
 
     public static getSideDirection(dir: number, position: number, parent: ISudoku): number[][] {
@@ -34,8 +34,8 @@ class Solver {
         }
     }
 
-    private static solveAbcOneInSquare(board: number[][], parent: ISudoku): number[][] {
-        if (parent.abcSpaceNumber === null) {
+    private static solveSpacesOneInSquare(board: number[][], parent: ISudoku): number[][] {
+        if (parent.spaceNumber === null) {
             return board;
         }
         for (let y = 0; y < parent.size; y++) {
@@ -49,7 +49,7 @@ class Solver {
                     rowOne |= board[y][x];
                 }
             }
-            let notRemove = (spaceCount < parent.abcSpaceNumber) ? (~ rowOne) : (~ (rowOne | 1));
+            let notRemove = (spaceCount < parent.spaceNumber) ? (~ rowOne) : (~ (rowOne | 1));
             for (let x = 0; x < parent.size; x++) {
                 if (Utils.countBits32(board[y][x]) !== 1) {
                     board[y][x] &= notRemove;
@@ -66,7 +66,7 @@ class Solver {
                     columnOne |= board[y][x];
                 }
             }
-            let notRemove = (spaceCount < parent.abcSpaceNumber) ? (~ columnOne) : (~ (columnOne | 1));
+            let notRemove = (spaceCount < parent.spaceNumber) ? (~ columnOne) : (~ (columnOne | 1));
             for (let y = 0; y < parent.size; y++) {
                 if (Utils.countBits32(board[y][x]) !== 1) {
                     board[y][x] &= notRemove;
@@ -77,7 +77,7 @@ class Solver {
         return board;
     }
 
-    private static solveAbcOnlyInSquare(board: number[][], parent: ISudoku): number[][] {
+    private static solveSpacesOnlyInSquare(board: number[][], parent: ISudoku): number[][] {
         for (let y = 0; y < parent.size; y++) {
             let rowOne = 0;
             let rowMultiple = 0;
@@ -112,8 +112,136 @@ class Solver {
         return board;
     }
 
+    private static solveSlovakEmptyOnPrompters(board: number[][], parent: ISudoku): number[][] {
+        let task = parent.extraTask;
+        if (task === null) {
+            return board;
+        }
+        for (let y = 0; y < parent.size; y++) {
+            for (let x = 0; x < parent.size; x++) {
+                if (task[y][x] !== null) {
+                    board[y][x] &= 1;
+                }
+            }
+        }
+
+        return board;
+    }
+
+    private static isSlovakOneOk(board: number[], sum: number, amount: number, depth: number, valueNum: number): boolean {
+        if (amount < 0) {
+            return false;
+        }
+        if (amount > 4 - depth) {
+            return false;
+        }
+        if (sum < amount) {
+            return false;
+        }
+        if (amount * valueNum < sum) {
+            return false;
+        }
+
+        if (depth === 3) {
+            if (board[1] === board[2] && board[2] !== 1) {
+                return false;
+            }
+        }
+        if (depth === 4) {
+            if (board[0] === board[3] && board[3] !== 1) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public static bruteforceSlovakRecursion(
+        board: number[], valueNum: number, sum: number, amount: number, depth: number, already: number[], alreadyAdd: number[]
+    ): number[] {
+        if (! this.isSlovakOneOk(alreadyAdd, sum, amount, depth, valueNum)) {
+            return already;
+        }
+
+        if (depth === 4) {
+            if (sum === 0 && amount === 0) {
+                for (let i = 0; i < 4; i++) {
+                    already[i] |= alreadyAdd[i];
+                }
+                return already;
+            }
+        }
+
+        for (let shift = 0; shift <= valueNum; shift++) {
+            if ((board[depth] & 1 << shift) !== 0) {
+                sum -= shift;
+                if (shift !== 0) {
+                    amount --;
+                }
+                alreadyAdd[depth] = 1 << shift;
+
+                already = this.bruteforceSlovakRecursion(board, valueNum, sum, amount, depth + 1, already, alreadyAdd);
+
+                sum += shift;
+                if (shift !== 0) {
+                    amount ++;
+                }
+                alreadyAdd[depth] = 0;
+            }
+        }
+
+        return already;
+    }
+
+    private static solveSlovakPrompters(board: number[][], parent: ISudoku): number[][] {
+        let task = parent.extraTask;
+        if (task === null) {
+            return board;
+        }
+        for (let y = 0; y < parent.size; y++) {
+            for (let x = 0; x < parent.size; x++) {
+                let taskOne = task[y][x];
+                if (taskOne !== null) {
+                    let board2 = Utils.createArray1d(4, 1);
+                    let index = 0;
+                    for (let dirY = -1; dirY <= 1; dirY++) {
+                        for (let dirX = -1; dirX <= 1; dirX++) {
+                            if ((dirX !== 0) !== (dirY !== 0)) {
+                                let newX = x + dirX;
+                                let newY = y + dirY;
+                                if (newX >= 0 && newX < parent.size && newY >= 0 && newY < parent.size) {
+                                    board2[index] = board[newY][newX];
+                                }
+                                index ++;
+                            }
+                        }
+                    }
+                    let possible = Utils.createArray1d(4, 0);
+                    let possibleAdd = Utils.createArray1d(4, 0);
+                    // @ts-ignore
+                    board2 = this.bruteforceSlovakRecursion(board2, parent.valueNumber, taskOne[0], taskOne[1], 0, possible, possibleAdd);
+                    index = 0;
+                    for (let dirY = -1; dirY <= 1; dirY++) {
+                        for (let dirX = -1; dirX <= 1; dirX++) {
+                            if ((dirX !== 0) !== (dirY !== 0)) {
+                                let newX = x + dirX;
+                                let newY = y + dirY;
+                                if (newX >= 0 && newX < parent.size && newY >= 0 && newY < parent.size) {
+                                    board[newY][newX] &= board2[index];
+                                }
+                                index ++;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return board;
+    }
+
     private static solveAbcPrompterBoth(board: number[][], parent: ISudoku, task: number[][], dir: number, position: number): number[][] {
-        if (parent.abcNumber === null) {
+        if (parent.valueNumber === null) {
             return board;
         }
 
@@ -142,7 +270,7 @@ class Solver {
                 }
                 board[y][x] &= ~ lastValue;
             }
-            if (firstFound && middleNotFound === 0 && middleFoundCount >= parent.abcNumber - 2) {
+            if (firstFound && middleNotFound === 0 && middleFoundCount >= parent.valueNumber - 2) {
                 break;
             }
         }
@@ -151,7 +279,7 @@ class Solver {
     }
 
     private static solveAbcPrompterFirst(board: number[][], parent: ISudoku, task: number[][], dir: number, position: number): number[][] {
-        if (parent.abcNumber === null || parent.abcSpaceNumber === null) {
+        if (parent.valueNumber === null || parent.spaceNumber === null) {
             return board;
         }
 
@@ -171,7 +299,7 @@ class Solver {
                 } else {
                     board[y][x] &= 1;
                 }
-            } else if (middleFound || i > parent.abcSpaceNumber) {
+            } else if (middleFound || i > parent.spaceNumber) {
                 board[y][x] &= middleValue | 1;
             } else if ((board[y][x] & middleValue) !== 0 && Utils.countBits32(board[y][x]) === 1) {
                 middleFound = true;
@@ -200,36 +328,22 @@ class Solver {
         return board;
     }
 
-    private static solveCycleAbc(board: number[][], parent: ISudoku): number[][] {
+    private static solveSpacesCycle(board: number[][], parent: ISudoku): number[][] {
 
-        if (this.print) {
-            Renderer.render(board, parent, null, "red");
+        board = this.solveSpacesOneInSquare(board, parent);
+        board = this.solveSpacesOnlyInSquare(board, parent);
+
+        if (parent.isABC) {
+            board = this.solveAbcPrompter(board, parent);
         }
 
-        board = this.solveAbcOneInSquare(board, parent);
-
-        if (this.print) {
-            Renderer.render(board, parent, null, "red");
-        }
-
-        board = this.solveAbcOnlyInSquare(board, parent);
-
-        if (this.print) {
-            Renderer.render(board, parent, null, "red");
-        }
-
-        board = this.solveAbcPrompter(board, parent);
-
-        if (this.print) {
-            Renderer.render(board, parent, null, "red");
+        if (parent.isSlovak) {
+            board = this.solveSlovakEmptyOnPrompters(board, parent);
+            board = this.solveSlovakPrompters(board, parent);
         }
 
         if (parent.isKingMove || parent.isKnightMove) {
             board = this.solveChessMoves(board, parent);
-        }
-
-        if (this.print) {
-            Renderer.render(board, parent, null, "red");
         }
 
         return board;
@@ -257,7 +371,6 @@ class Solver {
         }
         let higherNumbersCount = board.length - highest;
 
-        // console.log(inputBoard, visibleCount, task, higherNumbersCount);
         if (visibleCount > task || visibleCount === task && higherNumbersCount > 0 || visibleCount + higherNumbersCount < task) {
             return false;
         }
@@ -378,7 +491,6 @@ class Solver {
                             possible.push(0);
                             isUsed.push(false);
                         }
-                        let previous = Utils.deepcopy(board2);
                         board2 = this.bruteforceSkyscraperPrompter(board2, isUsed, firstValue, secondValue, 0, possibleAdd, possible);
                         for (let i = 0; i < parent.size; i++) {
                             board[startY + i * moveY][startX + i * moveX] &= board2[i];
@@ -954,8 +1066,8 @@ class Solver {
     }
 
     private static solveCycle(board: number[][], parent: ISudoku): number[][] {
-        if (parent.isABC && parent.hasSolution) {
-            return this.solveCycleAbc(board, parent);
+        if ((parent.isABC || parent.isSlovak) && parent.hasSolution) {
+            return this.solveSpacesCycle(board, parent);
         }
 
         let extraOnStart = Utils.getExtraNum(board);
