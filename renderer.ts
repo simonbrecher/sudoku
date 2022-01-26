@@ -126,6 +126,10 @@ class Renderer {
             return ["1", "2", "3", "5", "6", "7", "8", "0", "9"][shift];
         }
 
+        if (parent.isLetters) {
+            return parent.letters[shift];
+        }
+
         return (shift + 1).toString();
     }
 

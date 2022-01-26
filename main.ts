@@ -453,6 +453,11 @@ function main(): void {
     // SudokuBuilder.size(6); // without rectangles
     // SudokuBuilder.irregular(true); // irregular blocks
     // SudokuBuilder.diagonal(true); // add diagonal
+    // SudokuBuilder.letters(true, null);
+    // SudokuBuilder.letters(true, ["!", "@", "#", "$", "%", "^", "&", "*", "(", ")"]);
+    // SudokuBuilder.letters(true, ["♔", "♕", "♖", "♗", "♘", "♙", "♚", "♛", "♜"]);
+    // SudokuBuilder.letters(true, ["□", "◯", "◇", "⬠", "⬡", "☆", "⛧", "▱", "△"]);
+    // SudokuBuilder.letters(true, ["♠", "♥", "♦", "♣", "♤", "♡", "♢", "♧", ":)"]);
     // SudokuBuilder.kropki(true); // kropki
     // SudokuBuilder.minusOne(true); // show all squares with difference of 1
     // SudokuBuilder.inequality(true); // show all inequalities
@@ -460,26 +465,24 @@ function main(): void {
     // SudokuBuilder.killer(true, [[1, 1], [2, 9], [3, 3], [4, 2]]); // killer 3x2 (0 prompter)
     // SudokuBuilder.killer(true, [[1, 7], [2, 14], [3, 10], [4, 4]]); // killer 3x3 (0 prompter)
     // SudokuBuilder.vxSum(true, [[5, "V"], [10, "X"]]); SudokuBuilder.prompterNum(null, 3); // vx
-    SudokuBuilder.roman(true);
+    // SudokuBuilder.roman(true);
     // SudokuBuilder.pieceMoves(true, false); // king move
     // SudokuBuilder.pieceMoves(false, true); // knight move
 
     let then = (new Date()).getTime();
 
+    // SudokuBuilder.rectangular(true, 3, 2);
+    // Renderer.perPage(2, 3);
+    // for (let i = 0; i < 12; i++) {
+    //     let sudoku = SudokuBuilder.build();
+    //     if (sudoku !== null) {
+    //         Renderer.render(sudoku.task, sudoku);
+    //         // Renderer.render(sudoku.solution, sudoku);
+    //     }
+    // }
     SudokuBuilder.rectangular(true, 3, 2);
-    SudokuBuilder.prompterNum(null, 1);
-    Renderer.perPage(2, 3);
-    for (let i = 0; i < 12; i++) {
-        let sudoku = SudokuBuilder.build();
-        if (sudoku !== null) {
-            Renderer.render(sudoku.task, sudoku);
-            // Renderer.render(sudoku.solution, sudoku);
-        }
-    }
-    SudokuBuilder.rectangular(true, 3, 3);
-    SudokuBuilder.prompterNum(null, 0);
-    Renderer.perPage(2, 3);
-    for (let i = 0; i < 12; i++) {
+    SudokuBuilder.letters(true, null);
+    for (let i = 0; i < 6; i++) {
         let sudoku = SudokuBuilder.build();
         if (sudoku !== null) {
             Renderer.render(sudoku.task, sudoku);

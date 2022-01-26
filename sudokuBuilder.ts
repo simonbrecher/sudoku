@@ -5,6 +5,8 @@ class SudokuBuilder {
     private static _rectangleWidth: number | null;
     private static _rectangleHeight: number | null;
     private static _isDiagonal: boolean;
+    private static _isLetters: boolean;
+    private static _letters: string[];
     private static _isVX: boolean;
     private static _vxSum: [number, string][] | null;
     private static _prompterNumMin: number | null;
@@ -75,6 +77,8 @@ class SudokuBuilder {
         this._rectangleWidth = 3;
         this._rectangleHeight = 3;
         this._isDiagonal = false;
+        this._isLetters = false;
+        this._letters = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"];
         this._isVX = false;
         this._vxSum = null;
         this._prompterNumMin = null;
@@ -112,6 +116,8 @@ class SudokuBuilder {
             this._rectangleWidth,
             this._rectangleHeight,
             this._isDiagonal,
+            this._isLetters,
+            this._letters,
             this._isVX,
             this._vxSum,
             this._isKropki,
@@ -390,6 +396,13 @@ class SudokuBuilder {
             }
         }
 
+        if (parent.isLetters) {
+            if (! parent.hasTaskAllValues(task)) {
+                this.STATS.addTaskTries();
+                return false;
+            }
+        }
+
         parent.task = task;
         return true;
     }
@@ -479,6 +492,13 @@ class SudokuBuilder {
 
     public static diagonal(isDiagonal: boolean): void {
         this._isDiagonal = isDiagonal;
+    }
+
+    public static letters(isLetters: boolean, letters: string[] | null): void {
+        this._isLetters = isLetters;
+        if (letters !== null) {
+            this._letters = letters;
+        }
     }
 
     public static vxSum(isVX: boolean, vxSum: [number, string][] | null = null): void {

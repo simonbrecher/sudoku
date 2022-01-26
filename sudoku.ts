@@ -6,6 +6,8 @@ class Sudoku implements ISudoku {
     public readonly isIrregular: boolean;
     public irregularGroups: number[][][] | null;
     public readonly isDiagonal: boolean;
+    public readonly isLetters: boolean;
+    public letters: string[];
     public readonly isVX: boolean;
     public readonly vxSum: [number, string][] | null;
     public readonly isKropki: boolean;
@@ -228,6 +230,19 @@ class Sudoku implements ISudoku {
         }
     }
 
+    public hasTaskAllValues(task: number[][]): boolean {
+        let total = 0;
+        for (let y = 0; y < this.size; y++) {
+            for (let x = 0; x < this.size; x++) {
+                if (Utils.countBits32(task[y][x]) === 1) {
+                    total |= task[y][x];
+                }
+            }
+        }
+
+        return Utils.countBits32(total) === this.size;
+    }
+
     constructor(
         size: number,
         isRectangular: boolean,
@@ -235,6 +250,8 @@ class Sudoku implements ISudoku {
         rectangleWidth: number | null,
         rectangleHeight: number | null,
         isDiagonal: boolean,
+        isLetters: boolean,
+        letters: string[],
         isVX: boolean,
         vxSum: [number, string][] | null,
         isKropki: boolean,
@@ -266,6 +283,9 @@ class Sudoku implements ISudoku {
         }
 
         this.isDiagonal = isDiagonal;
+
+        this.isLetters = isLetters;
+        this.letters = Utils.shuffle(letters);
 
         this.isIrregular = isIrregular;
 

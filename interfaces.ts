@@ -3,6 +3,8 @@ interface ISudoku {
     isRectangular: boolean; rectangleWidth: number | null; rectangleHeight: number | null;
     isIrregular: boolean; irregularGroups: number[][][] | null;
     isDiagonal: boolean;
+    isLetters: boolean;
+    letters: string[];
     isVX: boolean; vxSum: [number, string][] | null;
     isKropki: boolean;
     isMinusOne: boolean;
@@ -23,6 +25,7 @@ interface ISudoku {
     getVxSumValues: () => (number[]);
     getRomanIntersection: (binary1: number, binary2: number) => number;
     getRomanIntersectionName: (intersection: number) => string;
+    hasTaskAllValues: (task: number[][]) => boolean;
     setKillerSums: () => (void);
     refreshKillerGroups: (groupSizes: number[]) => (void);
     refreshIrregularGroups: () => (void);
