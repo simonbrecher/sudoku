@@ -878,6 +878,51 @@ class Solver {
         return board;
     }
 
+    private static solveRomanOne(value1: number, value2: number, intersection: number, parent: ISudoku): number[] {
+        let output1 = 0;
+        let output2 = 0;
+        for (let shift1 = 0; shift1 < parent.size; shift1++) {
+            for (let shift2 = 0; shift2 < parent.size; shift2++) {
+                let binary1 = 1 << shift1;
+                let binary2 = 1 << shift2;
+                if ((value1 & binary1) !== 0 && (value2 & binary2) !== 0) {
+                    let shiftIntersection = parent.getRomanIntersection(binary1, binary2);
+                    if (shiftIntersection === intersection) {
+                        output1 |= binary1;
+                        output2 |= binary2;
+                    }
+                }
+            }
+        }
+
+        return [output1, output2];
+    }
+
+    private static solveRoman(board: number[][], parent: ISudoku): number[][] {
+        if (parent.orthogonalTask === null) {
+            return board;
+        }
+
+        for (let y = 0; y < parent.size; y++) {
+            for (let x = 0; x < parent.size; x++) {
+                if (x !== parent.size) {
+                    let intersection = parent.orthogonalTask[y][x][0];
+                    if (intersection !== null) {
+                        [board[y][x], board[y][x + 1]] = this.solveRomanOne(board[y][x], board[y][x + 1], intersection, parent);
+                    }
+                }
+                if (y !== parent.size) {
+                    let intersection = parent.orthogonalTask[y][x][1];
+                    if (intersection !== null) {
+                        [board[y][x], board[y + 1][x]] = this.solveRomanOne(board[y][x], board[y + 1][x], intersection, parent);
+                    }
+                }
+            }
+        }
+
+        return board;
+    }
+
     private static solveChessMoves(board: number[][], parent: ISudoku): number[][] {
         for (let y = 0; y < parent.size; y++) {
             for (let x = 0; x < parent.size; x++) {
@@ -952,6 +997,10 @@ class Solver {
             board = this.solveKiller(board, parent);
         }
 
+        if (parent.isRoman && parent.hasSolution) {
+            board = this.solveRoman(board, parent);
+        }
+
         if (parent.isSkyscraper && parent.hasSolution) {
             if (extraOnStart === Utils.getExtraNum(board)) {
                 board = this.solveSkyscraperPrompter(board, parent);
@@ -972,6 +1021,7 @@ class Solver {
         let extraNum = Utils.getExtraNum(board);
         while (lastExtraNum !== extraNum) {
             lastExtraNum = extraNum;
+
             board = this.solveCycle(board, parent);
 
             extraNum = Utils.getExtraNum(board);

@@ -21,6 +21,8 @@ class Renderer {
     private static _killerSumBoxFontSizeRelative: number;
     private static _killerSumBoxSizeRelative: number;
     private static _innerFontRelativeSize: number;
+    private static _romanBoxSizeRelative: number;
+    private static _romanBoxFontSizeRelative: number;
     private static _marginLeft: number;
     private static _marginBottom: number;
     private static _smallBorderWidth: number;
@@ -41,7 +43,7 @@ class Renderer {
         this._fontRelativeSize = 0.7;
         this._vxBoxSizeRelative = 0.4;
         this._vxBoxFontSizeRelative = 1;
-        this._kropkiBoxSizeRelative = 0.2;
+        this._kropkiBoxSizeRelative = 0.27;
         this._minusOneBoxSizeRelative = 0.2;
         this._inequalityBoxSizeRelative = 0.45;
         this._inequalityBoxFontSizeRelative = 1;
@@ -50,6 +52,8 @@ class Renderer {
         this._typeDiagonalBoxSizeRelative = 0.4;
         this._typeDiagonalBoxFontSizeRelative = 0.9;
         this._innerFontRelativeSize = 0.8;
+        this._romanBoxSizeRelative = 0.5;
+        this._romanBoxFontSizeRelative = 0.7;
         this._marginLeft = 20; // 10
         this._marginBottom = 20; // 10
         this._smallBorderWidth = 1;
@@ -112,12 +116,17 @@ class Renderer {
         pageWrapper?.appendChild(hr);
     }
 
-    private static valueToChar(value: number, parent: ISudoku): string {
+    private static shiftToChar(shift: number, parent: ISudoku): string {
         if (parent.isABC) {
-            return ["-", "A", "B", "C", "D", "E", "F", "G", "H", "I"][value - 1];
+            return ["A", "B", "C", "D", "E", "F", "G", "H", "I"][shift];
         }
 
-        return value.toString();
+        if (parent.isRoman) {
+            // return ["I", "II", "III", "V", "VI", "VII", "VIII", "X", "XI"][shift];
+            return ["1", "2", "3", "5", "6", "7", "8", "0", "9"][shift];
+        }
+
+        return (shift + 1).toString();
     }
 
     private static convertBinary(binary: number, parent: ISudoku, squareInnerCount: number): string | string[] {
@@ -136,7 +145,7 @@ class Renderer {
         }
         if (bitCount === 1) {
             // return binary.toString();
-            return this.valueToChar(Utils.binaryToShift(binary) + 1, parent);
+            return this.shiftToChar(Utils.binaryToShift(binary), parent);
         }
         if (binary === 0) {
             return this.zeroSymbol;
@@ -145,7 +154,7 @@ class Renderer {
         let number = 1;
         while (binary !== 0) {
             if ((binary & 1) === 1) {
-                values.push(this.valueToChar(number, parent));
+                values.push(this.shiftToChar(number, parent));
             }
             binary >>>= 1;
             number += 1;
@@ -490,6 +499,30 @@ class Renderer {
                         column.appendChild(div);
                     }
                 }
+                if (parent.isRoman && parent.hasSolution && parent.orthogonalTask !== null) {
+                    if (x !== size - 1) {
+                        let intersection = parent.orthogonalTask[y][x][0];
+                        if (intersection !== null) {
+                            let div = document.createElement("div");
+                            div.textContent = parent.getRomanIntersectionName(intersection);
+                            div.classList.add("orthogonal");
+                            div.classList.add("orthogonal-white");
+                            div.classList.add("orthogonal-horizontal");
+                            column.appendChild(div);
+                        }
+                    }
+                    if (y !== size - 1) {
+                        let intersection = parent.orthogonalTask[y][x][1];
+                        if (intersection !== null) {
+                            let div = document.createElement("div");
+                            div.textContent = parent.getRomanIntersectionName(intersection);
+                            div.classList.add("orthogonal");
+                            div.classList.add("orthogonal-white");
+                            div.classList.add("orthogonal-vertical");
+                            column.appendChild(div);
+                        }
+                    }
+                }
                 if ((parent.isKingMove || parent.isKnightMove) && ! (parent.isABC || parent.isSkyscraper)) {
                     if (x === parent.size - 1 && y === 0) {
                         let chessDiagonal = document.createElement("div");
@@ -500,19 +533,6 @@ class Renderer {
                         }
                         if (parent.isKnightMove) {
                             chessDiagonal.textContent += "N";
-                        }
-                    }
-                }
-                if (parent.isKropki || parent.isMinusOne) {
-                    if (x === 0 && y === 0) {
-                        let typeDiagonal = document.createElement("div");
-                        typeDiagonal.classList.add("type-diagonal");
-                        column.appendChild(typeDiagonal);
-                        if (parent.isKropki) {
-                            typeDiagonal.textContent += "K";
-                        }
-                        if (parent.isMinusOne) {
-                            typeDiagonal.textContent += "-";
                         }
                     }
                 }
@@ -620,7 +640,7 @@ class Renderer {
         style.textContent += `table.board-table-${boardNum} td.border-left { border-left-width: ${this._bigBorderWidth}px; }\n`;
         style.textContent += `table.board-table-${boardNum} td.border-right { border-right-width: ${this._bigBorderWidth}px; }\n`;
 
-        if (parent.isVX || parent.isKropki || parent.isMinusOne || parent.isInequality) {
+        if (parent.isVX || parent.isKropki || parent.isMinusOne || parent.isInequality || parent.isRoman) {
             let orthogonalBoxSize = 0;
             if (parent.isVX) {
                 orthogonalBoxSize = Math.floor(squareFullSize * this._vxBoxSizeRelative);
@@ -630,12 +650,16 @@ class Renderer {
                 orthogonalBoxSize = Math.floor(squareFullSize * this._minusOneBoxSizeRelative);
             } else if (parent.isInequality) {
                 orthogonalBoxSize = Math.floor(squareFullSize * this._inequalityBoxSizeRelative);
+            } else if (parent.isRoman) {
+                orthogonalBoxSize = Math.floor(squareFullSize * this._romanBoxSizeRelative);
             }
             let orthogonalBoxFontSize = 0;
             if (parent.isVX) {
                 orthogonalBoxFontSize = Math.floor(orthogonalBoxSize * this._vxBoxFontSizeRelative);
             } else if (parent.isInequality) {
                 orthogonalBoxFontSize = Math.floor(orthogonalBoxSize * this._inequalityBoxFontSizeRelative);
+            } else if (parent.isRoman) {
+                orthogonalBoxFontSize = Math.floor(orthogonalBoxSize * this._romanBoxFontSizeRelative);
             }
             styles = `width: ${orthogonalBoxSize}px; height: ${orthogonalBoxSize}px; line-height: ${orthogonalBoxSize}px; font-size: ${orthogonalBoxFontSize}px;`;
             styleHtml = `table.board-table-${boardNum} div.orthogonal { ${styles} }`;
@@ -652,6 +676,18 @@ class Renderer {
             styles = `margin-top: ${vxBoxMarginTop}px; margin-left: ${vxBoxMarginLeft}px;`;
             styleHtml = `table.board-table-${boardNum} div.orthogonal-vertical { ${styles} }`;
             style.textContent += styleHtml + "\n";
+
+            if (parent.isRoman) {
+                styleHtml = `table.board-table-${boardNum} div.orthogonal-white { border-radius: ${orthogonalBoxSize}px }`;
+                style.textContent += styleHtml + "\n";
+            }
+            if (parent.isKropki) {
+                styleHtml = `table.board-table-${boardNum} div.orthogonal-white { border-radius: ${orthogonalBoxSize}px }`;
+                style.textContent += styleHtml + "\n";
+
+                styleHtml = `table.board-table-${boardNum} div.orthogonal-black { border-radius: ${orthogonalBoxSize}px }`;
+                style.textContent += styleHtml + "\n";
+            }
         }
 
         if (parent.isKropki || parent.isMinusOne) {

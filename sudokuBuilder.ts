@@ -14,6 +14,7 @@ class SudokuBuilder {
     private static _isInequality: boolean;
     private static _isKiller: boolean;
     private static _killerGroupSizes: number[] | null;
+    private static _isRoman: boolean;
     private static _isABC: boolean;
     private static _abcNumber: number | null;
     private static _isSkyscraper: boolean;
@@ -100,6 +101,7 @@ class SudokuBuilder {
         this._isInequality = false;
         this._isKiller = false;
         this._killerGroupSizes = null;
+        this._isRoman = false;
     }
 
     private static getNewSudoku(): ISudoku {
@@ -117,6 +119,7 @@ class SudokuBuilder {
             this._isInequality,
             this._isKiller,
             this._killerGroupSizes,
+            this._isRoman,
             this._isABC,
             this._abcNumber,
             this._isSkyscraper,
@@ -148,43 +151,6 @@ class SudokuBuilder {
         } else {
             return null;
         }
-    }
-
-    private static reduceSideTask(parent: ISudoku): number[][] | null {
-        if (Utils.getExtraNum(Solver.solve(parent.task, parent)) > 0) {
-            if (this.STATS.isSolutionTriesEnd()) {
-                this.STATS.restartSolutionTries();
-                this.STATS.addTaskTries();
-            } else {
-                this.STATS.addSolutionTries();
-            }
-            return null;
-        }
-
-        // @ts-ignore
-        let taskSolution = Utils.deepcopyArray2d(parent.sideTask);
-        let unknownOrder = Utils.getUnknownOrder(parent);
-
-        for (let i = 0; i < unknownOrder.length; i++) {
-            let dir, position;
-            [dir, position] = unknownOrder[i];
-
-            // @ts-ignore
-            parent.sideTask[dir][position] = 0;
-
-            let numberOfSolutions = Solver.countSolutions(Solver.solve(parent.task, parent), parent);
-
-            if (numberOfSolutions > 1) {
-                // @ts-ignore
-                parent.sideTask[dir][position] = taskSolution[dir][position];
-            } else if (numberOfSolutions === 0) {
-                console.log(parent.solution);
-                Renderer.render(parent.solution, parent);
-                throw "TASK ERROR";
-            }
-        }
-
-        return parent.sideTask;
     }
 
     public static checkAbcSolutionUnambiguity(solution: number[][], parent: ISudoku): boolean {
@@ -296,13 +262,80 @@ class SudokuBuilder {
         return isSolutionSuccess;
     }
 
-    private static getTaskTry(parent: ISudoku): number[][] | null  {
-        if (parent.isABC || parent.isSkyscraper) {
-            return this.reduceSideTask(parent);
+    private static reduceSideTask(parent: ISudoku): boolean {
+        if (Utils.getExtraNum(Solver.solve(parent.task, parent)) > 0) {
+            if (this.STATS.isSolutionTriesEnd()) {
+                this.STATS.restartSolutionTries();
+                this.STATS.addTaskTries();
+            } else {
+                this.STATS.addSolutionTries();
+            }
+            return false;
         }
 
+        // @ts-ignore
+        let taskSolution = Utils.deepcopyArray2d(parent.sideTask);
+        let unknownOrder = Utils.getUnknownOrderSideTask(parent);
+
+        for (let i = 0; i < unknownOrder.length; i++) {
+            let dir, position;
+            [dir, position] = unknownOrder[i];
+
+            // @ts-ignore
+            parent.sideTask[dir][position] = 0;
+
+            let numberOfSolutions = Solver.countSolutions(Solver.solve(parent.task, parent), parent);
+
+            if (numberOfSolutions > 1) {
+                // @ts-ignore
+                parent.sideTask[dir][position] = taskSolution[dir][position];
+            } else if (numberOfSolutions === 0) {
+                console.log(parent.solution);
+                Renderer.render(parent.solution, parent);
+                throw "TASK ERROR";
+            }
+        }
+
+        return true;
+    }
+
+    private static reduceOrthogonalTask(parent: ISudoku): boolean {
+        if (Utils.getExtraNum(Solver.solve(parent.task, parent)) > 0) {
+            if (this.STATS.isSolutionTriesEnd()) {
+                this.STATS.restartSolutionTries();
+                this.STATS.addTaskTries();
+            } else {
+                this.STATS.addSolutionTries();
+            }
+            return false;
+        }
+
+        let taskSolution = Utils.deepcopy(parent.orthogonalTask);
+        let unknownOrder = Utils.getUnknownOrderOrthogonalTask(parent);
+
+        for (let i = 0; i < unknownOrder.length; i++) {
+            let x, y, dir;
+            [x, y, dir] = unknownOrder[i];
+
+            // @ts-ignore
+            parent.orthogonalTask[y][x][dir] = null;
+
+            let numberOfSolutions = Solver.countSolutions(Solver.solve(parent.task, parent), parent);
+
+            if (numberOfSolutions > 1) {
+                // @ts-ignore
+                parent.orthogonalTask[y][x][dir] = taskSolution[y][x][dir];
+            } else if (numberOfSolutions === 0) {
+                Renderer.render(parent.solution, parent);
+                throw "TASK ERROR";
+            }
+        }
+
+        return true;
+    }
+
+    private static reduceTask(parent: ISudoku): boolean {
         let task = Utils.deepcopyArray2d(parent.solution);
-        let solution = Utils.deepcopyArray2d(parent.solution);
 
         if (this._prompterNumMax === 0) {
             for (let y = 0; y < parent.size; y++) {
@@ -316,10 +349,10 @@ class SudokuBuilder {
         let numberOfSolutions = Solver.countSolutions(Solver.solve(task, parent), parent);
         if (numberOfSolutions > 1) {
             this.STATS.addTaskTries();
-            return null;
+            return false;
         }
 
-        let unknownOrder = Utils.getUnknownOrder(parent);
+        let unknownOrder = Utils.getUnknownOrderTask(parent);
 
         for (let i = 0; i < unknownOrder.length; i++) {
             let x, y;
@@ -329,7 +362,7 @@ class SudokuBuilder {
 
             let numberOfSolutions = Solver.countSolutions(Solver.solve(task, parent), parent);
             if (numberOfSolutions > 1) {
-                task[y][x] = solution[y][x];
+                task[y][x] = parent.solution[y][x];
             } else if (numberOfSolutions === 0) {
                 Renderer.render(parent.solution, parent, null, "red");
                 throw "TASK ERROR";
@@ -337,7 +370,8 @@ class SudokuBuilder {
 
             if (this._prompterNumMin !== null) {
                 if (Utils.getPrompterNum(task) <= this._prompterNumMin) {
-                    return task;
+                    parent.task = task;
+                    return true;
                 }
             }
         }
@@ -345,18 +379,36 @@ class SudokuBuilder {
         if (this._prompterNumMax !== null) {
             if (Utils.getPrompterNum(task) > this._prompterNumMax) {
                 this.STATS.addTaskTries();
-                return null;
+                return false;
             }
         }
 
         if (parent.isVX) {
             if (parent.hasPrompterInVxSum()) {
                 this.STATS.addTaskTries();
-                return null;
+                return false;
             }
         }
 
-        return task;
+        parent.task = task;
+        return true;
+    }
+
+    private static getTaskTry(parent: ISudoku): boolean {
+        if (parent.isABC || parent.isSkyscraper) {
+            parent.task = Utils.deepcopyArray2d(parent.board);
+            return this.reduceSideTask(parent);
+        }
+
+        if (parent.isRoman) {
+            let isTaskSuccess = this.reduceTask(parent);
+            if (! isTaskSuccess) {
+                return false;
+            }
+            return this.reduceOrthogonalTask(parent);
+        }
+
+        return this.reduceTask(parent);
     }
 
     private static getTask(parent: ISudoku): boolean {
@@ -366,17 +418,7 @@ class SudokuBuilder {
             let isSolutionSuccess = this.getSolution(parent);
 
             if (isSolutionSuccess) {
-                let task = this.getTaskTry(parent);
-
-                if (task !== null) {
-                    if (parent.isABC || parent.isSkyscraper) {
-                        parent.sideTask = task;
-                        parent.task = Utils.deepcopyArray2d(parent.board);
-                    } else {
-                        parent.task = task;
-                    }
-                    isTaskSuccess = true;
-                }
+                isTaskSuccess = this.getTaskTry(parent);
             }
         }
 
@@ -477,6 +519,12 @@ class SudokuBuilder {
         this.removeVariation();
 
         this._isInequality = isInequality;
+    }
+
+    public static roman(isRoman: boolean): void {
+        this.removeVariation();
+
+        this._isRoman = isRoman;
     }
 
     public static abc(isABC: boolean, abcNumber: number | null): void {

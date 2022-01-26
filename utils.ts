@@ -106,46 +106,39 @@ class Utils {
         return arr;
     }
 
-    public static getUnknownOrder(parent: ISudoku): number[][] {
-        // let solution = parent.solution;
-        let task = parent.task;
-
-        let width, height;
-        if (parent.isABC || parent.isSkyscraper) {
-            width = 4;
-            height = parent.size;
-        } else {
-            width = parent.size;
-            height = parent.size;
-        }
-
-        // let removeFirstBinary = 1 << Math.floor(Math.random() * parent.size);
-        // let beginning = [];
+    public static getUnknownOrderTask(parent: ISudoku): number[][] {
         let arr: number[][] = [];
-        for (let y = 0; y < height; y++) {
-            for (let x = 0; x < width; x++) {
-                if (parent.isABC || parent.isSkyscraper) {
-                    arr.push([x, y]);
-                } else if (task[y][x] === (1 << parent.size) - 1) {
-                    arr.push([x, y]);
-                }
-                // if (solution === null) {
-                //     arr.push([x, y]);
-                // } else if (solution[y][x] === removeFirstBinary && parent.isRemoveOne) {
-                //     beginning.push([x, y]);
-                // } else if (isVX && isSquareInVxSum[y][x]) {
-                //     beginning.push([x, y]);
-                // } else {
-                //     arr.push([x, y]);
-                // }
+        for (let y = 0; y < parent.size; y++) {
+            for (let x = 0; x < parent.size; x++) {
+                arr.push([x, y]);
             }
         }
-        arr = this.shuffle(arr);
-        // for (let i = 0; i < arr.length; i++) {
-        //     beginning.push(arr[i]);
-        // }
-        // return beginning;
-        return arr;
+        return this.shuffle(arr);
+    }
+
+    public static getUnknownOrderSideTask(parent: ISudoku): number[][] {
+        let arr: number[][] = [];
+        for (let dir = 0; dir < 4; dir++) {
+            for (let position = 0; position < parent.size; position++) {
+                arr.push([dir, position]);
+            }
+        }
+        return this.shuffle(arr);
+    }
+
+    public static getUnknownOrderOrthogonalTask(parent: ISudoku): number[][] {
+        let arr: number[][] = [];
+        for (let y = 0; y < parent.size; y++) {
+            for (let x = 0; x < parent.size; x++) {
+                if (x !== parent.size) {
+                    arr.push([x, y, 0]);
+                }
+                if (y !== parent.size) {
+                    arr.push([x, y, 1]);
+                }
+            }
+        }
+        return this.shuffle(arr);
     }
 
     public static deepcopyArray1d(board: number[][]): number[][] {

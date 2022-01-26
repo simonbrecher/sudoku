@@ -10,6 +10,7 @@ interface ISudoku {
     isKiller: boolean;
     killerGroups: number[][][] | null;
     killerSums: number[] | null;
+    isRoman: boolean;
     isABC: boolean; abcNumber: number | null; abcSpaceNumber: number | null;
     isSkyscraper: boolean;
     isKingMove: boolean;
@@ -20,6 +21,8 @@ interface ISudoku {
 
     getVxSumName: (sum: number) => (string | null);
     getVxSumValues: () => (number[]);
+    getRomanIntersection: (binary1: number, binary2: number) => number;
+    getRomanIntersectionName: (intersection: number) => string;
     setKillerSums: () => (void);
     refreshKillerGroups: (groupSizes: number[]) => (void);
     refreshIrregularGroups: () => (void);
@@ -30,6 +33,7 @@ interface ISudoku {
     solution: number[][]; task: number[][]; board: number[][];
 
     sideTask: number[][] | null;
+    orthogonalTask: (number | null)[][][] | null;
 }
 
 interface ICoral {

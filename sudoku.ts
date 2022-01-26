@@ -14,6 +14,7 @@ class Sudoku implements ISudoku {
     public readonly isKiller: boolean;
     public killerGroups: number[][][] | null;
     public killerSums: number[] | null;
+    public readonly isRoman: boolean;
     public readonly isABC: boolean;
     public readonly abcNumber: number | null;
     public readonly abcSpaceNumber: number | null;
@@ -25,8 +26,8 @@ class Sudoku implements ISudoku {
     public task: number[][]; // [y][x]
     public board: number[][];
 
-    // abc / skyscraper - [row first, row last, column first, column last][position]
-    public sideTask: number[][] | null;
+    public sideTask: number[][] | null; // abc / skyscraper - [row first, row last, column first, column last][position] ; empty -> 0
+    public orthogonalTask: (number | null)[][][] | null; // [y][x][right, bottom]
 
     public isFinished: boolean = false;
     public hasSolution: boolean = false;
@@ -41,6 +42,10 @@ class Sudoku implements ISudoku {
             }
         }
         return null;
+    }
+
+    public getRomanIntersectionName(intersection: number): string {
+        return ["0", "I", "II", "III", "V", "VI", "VII", "VIII", "X", "XI"][intersection];
     }
 
     public getVxSumValues(): number[] {
@@ -180,15 +185,46 @@ class Sudoku implements ISudoku {
         return false;
     }
 
+    // input binary, output value (XVII (number of bits for count of letter))
+    public getRomanIntersection(binary1: number, binary2: number): number {
+        let value1 = Utils.binaryToShift(binary1) + 1;
+        let value2 = Utils.binaryToShift(binary2) + 1;
+        return (value1 >> 2 & value2 >> 2) << 2 | Math.min(value1 & 3, value2 & 3);
+    }
+
+    public static getRomanIntersection(binary1: number, binary2: number): number {
+        let value1 = Utils.binaryToShift(binary1) + 1;
+        let value2 = Utils.binaryToShift(binary2) + 1;
+        return (value1 >> 2 & value2 >> 2) << 2 | Math.min(value1 & 3, value2 & 3);
+    }
+
+    private getRomanOrthogonalTask(): (number | null)[][][] {
+        let orthogonalTask = Utils.createArray3d(this.size, this.size, 2, null);
+        for (let y = 0; y < this.size; y++) {
+            for (let x = 0; x < this.size; x++) {
+                if (x !== this.size - 1) {
+                    orthogonalTask[y][x][0] = this.getRomanIntersection(this.solution[y][x], this.solution[y][x + 1]);
+                }
+                if (y !== this.size - 1) {
+                    orthogonalTask[y][x][1] = this.getRomanIntersection(this.solution[y][x], this.solution[y + 1][x]);
+                }
+            }
+        }
+
+        return orthogonalTask;
+    }
+
     public solutionAdded(): void {
         this.hasSolution = true;
 
         if (this.isABC && this.abcNumber !== null) {
             this.sideTask = this.getAbcSideTask();
-            this.board = Utils.createArray2d(this.size, this.size, (1 << this.abcNumber + 1) - 1)
-            this.task = Utils.createArray2d(this.size, this.size, (1 << this.abcNumber + 1) - 1)
+            this.board = Utils.createArray2d(this.size, this.size, (1 << this.abcNumber + 1) - 1);
+            this.task = Utils.createArray2d(this.size, this.size, (1 << this.abcNumber + 1) - 1);
         } else if (this.isSkyscraper) {
             this.sideTask = this.getSkyscraperSideTask();
+        } else if (this.isRoman) {
+            this.orthogonalTask = this.getRomanOrthogonalTask();
         }
     }
 
@@ -206,6 +242,7 @@ class Sudoku implements ISudoku {
         isInequality: boolean,
         isKiller: boolean,
         killerGroupSizes: number[] | null,
+        isRoman: boolean,
         isABC: boolean,
         abcNumber: number | null,
         isSkyscraper: boolean,
@@ -248,6 +285,8 @@ class Sudoku implements ISudoku {
         this.isMinusOne = isMinusOne;
         this.isInequality = isInequality;
 
+        this.isRoman = isRoman;
+
         if (isABC && abcNumber !== null) {
             this.isABC = true;
             this.abcNumber = abcNumber;
@@ -289,5 +328,6 @@ class Sudoku implements ISudoku {
         this.board = Utils.createEmptyBoard(this, true);
 
         this.sideTask = null;
+        this.orthogonalTask = null;
     }
 }
