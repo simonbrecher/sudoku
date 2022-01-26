@@ -8,6 +8,7 @@ interface ISudoku {
     isVX: boolean; vxSum: [number, string][] | null;
     isKropki: boolean;
     isMinusOne: boolean;
+    isMinusOneDirection: boolean;
     isInequality: boolean;
     isKiller: boolean;
     killerGroups: number[][][] | null;

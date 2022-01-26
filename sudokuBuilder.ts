@@ -13,6 +13,7 @@ class SudokuBuilder {
     private static _prompterNumMax: number | null;
     private static _isKropki: boolean;
     private static _isMinusOne: boolean;
+    private static _isMinusOneDirection: boolean;
     private static _isInequality: boolean;
     private static _isKiller: boolean;
     private static _killerGroupSizes: number[] | null;
@@ -105,6 +106,7 @@ class SudokuBuilder {
         this._valueNumber = null;
         this._isSkyscraper = false;
         this._isMinusOne = false;
+        this._isMinusOneDirection = false;
         this._isInequality = false;
         this._isKiller = false;
         this._killerGroupSizes = null;
@@ -125,6 +127,7 @@ class SudokuBuilder {
             this._vxSum,
             this._isKropki,
             this._isMinusOne,
+            this._isMinusOneDirection,
             this._isInequality,
             this._isKiller,
             this._killerGroupSizes,
@@ -425,7 +428,7 @@ class SudokuBuilder {
             if (numberOfSolutions > 1) {
                 task[y][x] = parent.solution[y][x];
             } else if (numberOfSolutions === 0) {
-                Renderer.render(parent.solution, parent, null);
+                Renderer.render(parent.solution, parent);
                 throw "TASK ERROR";
             }
 
@@ -596,6 +599,12 @@ class SudokuBuilder {
         this.removeVariation();
 
         this._isMinusOne = isMinusOne;
+    }
+
+    public static minusOneDirection(isMinusOneDirection: boolean): void {
+        this.removeVariation();
+
+        this._isMinusOneDirection = isMinusOneDirection;
     }
 
     public static inequality(isInequality: boolean): void {

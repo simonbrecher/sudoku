@@ -808,7 +808,15 @@ class Solver {
 
     private static solveMinusOneSquare(x1: number, y1: number, x2: number, y2: number, board: number[][], parent: ISudoku): number[][] {
         if (Math.abs(Utils.binaryToShift(parent.solution[y1][x1]) - Utils.binaryToShift(parent.solution[y2][x2])) === 1) {
-            board[y2][x2] &= board[y1][x1] << 1 | board[y1][x1] >>> 1;
+            if (parent.isMinusOneDirection) {
+                if (parent.solution[y2][x2] > parent.solution[y1][x1]) {
+                    board[y2][x2] &= board[y1][x1] << 1;
+                } else {
+                    board[y2][x2] &= board[y1][x1] >>> 1;
+                }
+            } else {
+                board[y2][x2] &= board[y1][x1] << 1 | board[y1][x1] >>> 1;
+            }
         } else if (Utils.countBits32(board[y1][x1]) === 1) {
             board[y2][x2] &= ~ (board[y1][x1] << 1 & board[y1][x1] >>> 1);
         }
@@ -1097,7 +1105,7 @@ class Solver {
         if (parent.isKingMove || parent.isKnightMove) {
             board = this.solveChessMoves(board, parent);
         }
-        if (parent.isMinusOne && parent.hasSolution) {
+        if ((parent.isMinusOne || parent.isMinusOneDirection) && parent.hasSolution) {
             board = this.solveMinusOne(board, parent);
         }
 

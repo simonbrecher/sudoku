@@ -16,6 +16,8 @@ class Renderer {
     private static _typeDiagonalBoxFontSizeRelative: number;
     private static _kropkiBoxSizeRelative: number;
     private static _minusOneBoxSizeRelative: number;
+    private static _minusOneDirectionBoxSizeRelative: number;
+    private static _minusOneDirectionBoxFontSizeRelative: number;
     private static _inequalityBoxFontSizeRelative: number;
     private static _inequalityBoxSizeRelative: number;
     private static _killerSumBoxFontSizeRelative: number;
@@ -47,6 +49,8 @@ class Renderer {
         this._vxBoxFontSizeRelative = 1;
         this._kropkiBoxSizeRelative = 0.27;
         this._minusOneBoxSizeRelative = 0.2;
+        this._minusOneDirectionBoxSizeRelative = 0.25;
+        this._minusOneDirectionBoxFontSizeRelative = 1;
         this._inequalityBoxSizeRelative = 0.45;
         this._inequalityBoxFontSizeRelative = 1;
         this._killerSumBoxSizeRelative = 0.35;
@@ -503,7 +507,7 @@ class Renderer {
                         }
                     }
                 }
-                if (parent.isMinusOne && parent.hasSolution) {
+                if ((parent.isMinusOne || parent.isMinusOneDirection) && parent.hasSolution) {
                     if (x !== size - 1) {
                         if (Math.abs(Utils.binaryToShift(parent.solution[y][x]) - Utils.binaryToShift(parent.solution[y][x + 1])) === 1) {
                             let div = document.createElement("div");
@@ -512,6 +516,9 @@ class Renderer {
                             div.classList.add(`orthogonal-white`);
                             div.classList.add("orthogonal-horizontal");
                             column.appendChild(div);
+                            if (parent.isMinusOneDirection) {
+                                div.textContent += parent.solution[y][x + 1] > parent.solution[y][x] ? "+" : "-";
+                            }
                         }
                     }
                     if (y !== size - 1) {
@@ -522,6 +529,9 @@ class Renderer {
                             div.classList.add(`orthogonal-white`);
                             div.classList.add("orthogonal-vertical");
                             column.appendChild(div);
+                            if (parent.isMinusOneDirection) {
+                                div.textContent += parent.solution[y + 1][x] > parent.solution[y][x] ? "+" : "-";
+                            }
                         }
                     }
                 }
@@ -684,7 +694,7 @@ class Renderer {
         style.textContent += `table.board-table-${boardNum} td.border-left { border-left-width: ${this._bigBorderWidth}px; }\n`;
         style.textContent += `table.board-table-${boardNum} td.border-right { border-right-width: ${this._bigBorderWidth}px; }\n`;
 
-        if (parent.isVX || parent.isKropki || parent.isMinusOne || parent.isInequality || parent.isRoman) {
+        if (parent.isVX || parent.isKropki || parent.isMinusOne || parent.isMinusOneDirection || parent.isInequality || parent.isRoman) {
             let orthogonalBoxSize = 0;
             if (parent.isVX) {
                 orthogonalBoxSize = Math.floor(squareFullSize * this._vxBoxSizeRelative);
@@ -692,6 +702,8 @@ class Renderer {
                 orthogonalBoxSize = Math.floor(squareFullSize * this._kropkiBoxSizeRelative);
             } else if (parent.isMinusOne) {
                 orthogonalBoxSize = Math.floor(squareFullSize * this._minusOneBoxSizeRelative);
+            } else if (parent.isMinusOneDirection) {
+                orthogonalBoxSize = Math.floor(squareFullSize * this._minusOneDirectionBoxSizeRelative);
             } else if (parent.isInequality) {
                 orthogonalBoxSize = Math.floor(squareFullSize * this._inequalityBoxSizeRelative);
             } else if (parent.isRoman) {
@@ -702,6 +714,8 @@ class Renderer {
                 orthogonalBoxFontSize = Math.floor(orthogonalBoxSize * this._vxBoxFontSizeRelative);
             } else if (parent.isInequality) {
                 orthogonalBoxFontSize = Math.floor(orthogonalBoxSize * this._inequalityBoxFontSizeRelative);
+            } else if (parent.isMinusOneDirection) {
+                orthogonalBoxFontSize = Math.floor(orthogonalBoxSize * this._minusOneDirectionBoxFontSizeRelative);
             } else if (parent.isRoman) {
                 orthogonalBoxFontSize = Math.floor(orthogonalBoxSize * this._romanBoxFontSizeRelative);
             }

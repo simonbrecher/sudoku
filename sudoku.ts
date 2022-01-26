@@ -12,6 +12,7 @@ class Sudoku implements ISudoku {
     public readonly vxSum: [number, string][] | null;
     public readonly isKropki: boolean;
     public readonly isMinusOne: boolean;
+    public readonly isMinusOneDirection: boolean;
     public readonly isInequality: boolean;
     public readonly isKiller: boolean;
     public killerGroups: number[][][] | null;
@@ -285,6 +286,7 @@ class Sudoku implements ISudoku {
         vxSum: [number, string][] | null,
         isKropki: boolean,
         isMinusOne: boolean,
+        isMinusOneDirection: boolean,
         isInequality: boolean,
         isKiller: boolean,
         killerGroupSizes: number[] | null,
@@ -333,6 +335,7 @@ class Sudoku implements ISudoku {
 
         this.isKropki = isKropki;
         this.isMinusOne = isMinusOne;
+        this.isMinusOneDirection = isMinusOneDirection;
         this.isInequality = isInequality;
 
         this.isRoman = isRoman;
