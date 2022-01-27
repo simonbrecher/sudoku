@@ -21,6 +21,8 @@ table.board-table svg { position: absolute; }
 table.board-table div.killer-sum { position: absolute; background-color: #FFF; }
 table.board-table td.slovak-sum-prompter { background-color: #DDD; }
 
+/*svg { display: none; }*/
+
 table.mastermind-table { border-collapse: collapse; float: left; margin-right: 50px; margin-bottom: 20px; }
 table.mastermind-table tr:last-child td { border-top-width: 3px; }
 table.mastermind-table td { border: 1px #000 solid; padding: 0; }

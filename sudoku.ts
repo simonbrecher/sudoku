@@ -15,8 +15,12 @@ class Sudoku implements ISudoku {
     public readonly isMinusOneDirection: boolean;
     public readonly isInequality: boolean;
     public readonly isKiller: boolean;
+    public readonly isKillerUnchained: boolean;
     public killerGroups: number[][][] | null;
     public killerSums: number[] | null;
+    public killerUnchainedGroups: number[][] | null; // x, y, sum
+    public killerUnchainedBoard: number[][][] | null;
+    public killerUnchainedIsKnown: boolean[] | null;
     public readonly isRoman: boolean;
     public readonly isSlovak: boolean;
     public readonly isABC: boolean;
@@ -93,8 +97,44 @@ class Sudoku implements ISudoku {
         this.irregularGroups = GroupGenerator.boardToGroups(GroupGenerator.build(this.size, this.size, groupSizes), this.size, this.size);
     }
 
+    private getKillerUnchainedGroups(): number[][] {
+        // @ts-ignore
+        let killerBoard = GroupGenerator.groupsToBoard(this.killerGroups, this.size, this.size);
+        // @ts-ignore
+        let killerAlreadyAdded = Utils.createArray1d(this.killerGroups.length, false);
+        // @ts-ignore
+        let killerUnchainedGroups = Utils.createArray1d(this.killerGroups.length, null);
+        for (let y = 0; y < this.size; y++) {
+            for (let x = 0; x < this.size; x++) {
+                if (! killerAlreadyAdded[killerBoard[y][x]]) {
+                    killerAlreadyAdded[killerBoard[y][x]] = true;
+                    killerUnchainedGroups[killerBoard[y][x]] = [x, y];
+                }
+            }
+        }
+
+        return killerUnchainedGroups;
+    }
+
     public refreshKillerGroups(groupSizes: number[]): void {
         this.killerGroups = GroupGenerator.boardToGroups(GroupGenerator.build(this.size, this.size, groupSizes), this.size, this.size);
+        if (this.isKillerUnchained) {
+            this.killerUnchainedGroups = this.getKillerUnchainedGroups();
+        }
+    }
+
+    public refreshKillerUnchainedOnStartSolve(): void {
+        // @ts-ignore
+        let groupNumber = this.killerGroups.length;
+
+        this.killerUnchainedBoard = Utils.createArray2d(this.size, this.size, null);
+        for (let y = 0; y < this.size; y++) {
+            for (let x = 0; x < this.size; x++) {
+                this.killerUnchainedBoard[y][x] = Utils.getFullBitArray(groupNumber);
+            }
+        }
+        // @ts-ignore
+        this.killerUnchainedIsKnown = Utils.createArray1d(this.killerGroups.length, false);
     }
 
     private getAbcSideTask(): number[][] {
@@ -289,6 +329,7 @@ class Sudoku implements ISudoku {
         isMinusOneDirection: boolean,
         isInequality: boolean,
         isKiller: boolean,
+        isKillerUnchained: boolean,
         killerGroupSizes: number[] | null,
         isRoman: boolean,
         isSlovak: boolean,
@@ -378,13 +419,26 @@ class Sudoku implements ISudoku {
 
         if (isKiller && killerGroupSizes !== null) {
             this.isKiller = true;
+            this.isKillerUnchained = false;
             this.killerGroups = GroupGenerator.boardToGroups(GroupGenerator.build(this.size, this.size, killerGroupSizes), this.size, this.size);
+            this.killerUnchainedGroups = null;
+            this.killerSums = null;
+        } else if (isKillerUnchained && killerGroupSizes !== null) {
+            this.isKillerUnchained = true;
+            this.isKiller = false;
+            this.killerGroups = GroupGenerator.boardToGroups(GroupGenerator.build(this.size, this.size, killerGroupSizes), this.size, this.size);
+            this.killerUnchainedGroups = this.getKillerUnchainedGroups();
             this.killerSums = null;
         } else {
+            this.killerUnchainedGroups = null;
             this.isKiller = false;
+            this.isKillerUnchained = false;
             this.killerGroups = null;
             this.killerSums = null;
         }
+
+        this.killerUnchainedBoard = null;
+        this.killerUnchainedIsKnown = null;
 
         this.task = Utils.createEmptyBoard(this);
         this.board = Utils.createEmptyBoard(this, true);

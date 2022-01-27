@@ -42,7 +42,6 @@ class Solver {
             let rowOne = 0;
             let spaceCount = 0;
             for (let x = 0; x < parent.size; x++) {
-                // console.log(board, y, x);
                 if (board[y][x] === 1) {
                     spaceCount ++;
                 } else if (Utils.countBits32(board[y][x]) === 1) {
@@ -598,6 +597,64 @@ class Solver {
         return board;
     }
 
+    private static solveTwoInGroup(board: number[][], parent: ISudoku): number[][] {
+        let groups = [];
+        for (let y = 0; y < parent.size; y++) {
+            let group = [];
+            for (let x = 0; x < parent.size; x++) {
+                group.push([x, y]);
+            }
+            groups.push(group);
+        }
+        for (let x = 0; x < parent.size; x++) {
+            let group = [];
+            for (let y = 0; y < parent.size; y++) {
+                group.push([x, y]);
+            }
+            groups.push(group);
+        }
+        if (parent.isRectangular && parent.rectangleWidth !== null && parent.rectangleHeight !== null) {
+            for (let startY = 0; startY < parent.size; startY += parent.rectangleHeight) {
+                for (let startX = 0; startX < parent.size; startX += parent.rectangleWidth) {
+                    let group = [];
+                    for (let relativeY = 0; relativeY < parent.rectangleHeight; relativeY++) {
+                        for (let relativeX = 0; relativeX < parent.rectangleWidth; relativeX++) {
+                            group.push([startX + relativeX, startY + relativeY]);
+                        }
+                    }
+                    groups.push(group);
+                }
+            }
+        }
+
+        for (let groupId = 0; groupId < groups.length; groupId++) {
+            let group = groups[groupId];
+
+            for (let shift1 = 0; shift1 < parent.size; shift1++) {
+                for (let shift2 = 0; shift2 < parent.size; shift2++) {
+                    if (shift1 !== shift2) {
+                        let pairBinary = 1 << shift1 | 1 << shift2;
+                        let pairBinaryNum = 0;
+                        for (let i = 0; i < parent.size; i++) {
+                            if (board[group[i][1]][group[i][0]] === pairBinary) {
+                                pairBinaryNum += 1;
+                            }
+                        }
+                        if (pairBinaryNum > 1) {
+                            for (let i = 0; i < parent.size; i++) {
+                                if (board[group[i][1]][group[i][0]] !== pairBinary) {
+                                    board[group[i][1]][group[i][0]] &= ~ pairBinary;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return board;
+    }
+
     private static solveRectangleOnlyInSquare(board: number[][], parent: ISudoku): number[][] {
         if (parent.rectangleHeight === null || parent.rectangleWidth === null) {
             return board;
@@ -973,29 +1030,280 @@ class Solver {
         return possible;
     }
 
-    private static solveKiller(board: number[][], parent: ISudoku): number[][] {
+    private static solveKiller(board: number[][], killerGroups: number[][][], killerSums: number[], isKnown: boolean[], parent: ISudoku): number[][] {
         let sameBlocks = this.getSameBlocks(parent);
 
-        // @ts-ignore
-        for (let i = 0; i < parent.killerGroups.length; i++) {
-            // @ts-ignore
-            let group = parent.killerGroups[i];
+        for (let i = 0; i < killerGroups.length; i++) {
+            if (isKnown[i]) {
+                let group = killerGroups[i];
 
-            let possible = [];
-            let possibleAdd = [];
-            for (let i = 0; i < group.length; i++) {
-                possible.push(0);
-                possibleAdd.push(0);
-            }
-            // @ts-ignore
-            possible = this.bruteforceKillerGroupRecursion(group, parent.killerSums[i], board, sameBlocks, parent, 0, possible, possibleAdd);
+                let possible = Utils.createArray1d(group.length, 0);
+                let possibleAdd = Utils.createArray1d(group.length, 0);
+                possible = this.bruteforceKillerGroupRecursion(group, killerSums[i], board, sameBlocks, parent, 0, possible, possibleAdd);
 
-            for (let j = 0; j < group.length; j++) {
-                board[group[j][1]][group[j][0]] &= possible[j];
+                for (let j = 0; j < group.length; j++) {
+                    board[group[j][1]][group[j][0]] &= possible[j];
+                }
             }
         }
 
         return board;
+    }
+
+    private static solveKillerUnchainedSumsOnSquare(board: number[][], parent: ISudoku): number[][] {
+        if (parent.killerUnchainedGroups === null || parent.killerUnchainedBoard === null || parent.killerSums === null) {
+            return board;
+        }
+        for (let groupId = 0; groupId < parent.killerSums.length; groupId++) {
+            let sum = parent.killerSums[groupId];
+            if (sum < parent.size) {
+                for (let y = 0; y < parent.size; y++) {
+                    for (let x = 0; x < parent.size; x++) {
+                        if (Utils.getBitFromArray(parent.killerUnchainedBoard[y][x], groupId) !== 0) {
+                            if (Utils.countBitsArray(parent.killerUnchainedBoard[y][x]) === 1) {
+                                board[y][x] &= (1 << sum) - 1;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return board;
+    }
+
+    private static solveKillerUnchainedLeftUp(parent: ISudoku): void {
+        if (parent.killerUnchainedGroups === null) {
+            return;
+        }
+        let groupNum = parent.killerUnchainedGroups.length;
+        let startsBinary = Utils.createArray2d(parent.size, parent.size, Utils.getEmptyBitArray(groupNum));
+        for (let groupId = 0; groupId < groupNum; groupId++) {
+            let start = parent.killerUnchainedGroups[groupId];
+
+            let binary = Utils.getEmptyBitArray(groupNum);
+            binary = Utils.setBitToArray(binary, 1, groupId);
+            startsBinary[start[1]][start[0]] = binary;
+        }
+
+        let total = Utils.getEmptyBitArray(groupNum);
+        for (let y = 0; y < parent.size; y++) {
+            for (let x = 0; x < parent.size; x++) {
+                total = Utils.orBitArray(total, startsBinary[y][x]);
+                // @ts-ignore
+                parent.killerUnchainedBoard[y][x] = Utils.andBitArray(parent.killerUnchainedBoard[y][x], total);
+            }
+        }
+    }
+
+    private static solveKillerUnchainedGroupOnSum(parent: ISudoku): void {
+        if (parent.killerUnchainedGroups === null || parent.killerUnchainedBoard === null) {
+            return;
+        }
+        let groupNum = parent.killerUnchainedGroups.length;
+        for (let groupId = 0; groupId < groupNum; groupId++) {
+            let start = parent.killerUnchainedGroups[groupId];
+
+            let andBitArray = Utils.getEmptyBitArray(groupNum);
+            andBitArray = Utils.setBitToArray(andBitArray, 1, groupId);
+            parent.killerUnchainedBoard[start[1]][start[0]] = Utils.andBitArray(parent.killerUnchainedBoard[start[1]][start[0]], andBitArray);
+        }
+    }
+
+    private static printKillerBoard(parent: ISudoku, message: string): void {
+        let printBoard = Utils.createArray2d(parent.size, parent.size, null);
+        for (let y = 0; y < parent.size; y++) {
+            for (let x = 0; x < parent.size; x++) {
+                printBoard[y][x] = "";
+                // @ts-ignore
+                for (let groupId = 0; groupId < parent.killerGroups.length; groupId++) {
+                    // @ts-ignore
+                    if (Utils.getBitFromArray(parent.killerUnchainedBoard[y][x], groupId) !== 0) {
+                        printBoard[y][x] += `${groupId} `;
+                    }
+                }
+                while (printBoard[y][x].length < 6) {
+                    printBoard[y][x] += " ";
+                }
+            }
+        }
+        if (this.print) {
+            console.log(message, printBoard);
+        }
+    }
+
+    private static solveKillerUnchainedTooFar(board: number[][], parent: ISudoku): void {
+        if (parent.killerGroups === null || parent.killerUnchainedBoard === null || parent.killerUnchainedGroups === null || parent.killerSums === null) {
+            return;
+        }
+        let groupNum = parent.killerGroups.length;
+        let secondKillerBoard = Utils.createArray3d(parent.size, parent.size, Math.ceil(groupNum / 32), 0);
+        for (let groupId = 0; groupId < groupNum; groupId ++) {
+            let bestCost = Utils.createArray2d(parent.size, parent.size, parent.killerSums[groupId] + 1);
+            let startPosition = parent.killerUnchainedGroups[groupId];
+            let deck = [[startPosition[0], startPosition[1], 0, 0]];
+            let deckStart = 0;
+            while (deckStart < deck.length) {
+                let x, y, cost, lastCostAdd;
+                [x, y, cost, lastCostAdd] = deck[deckStart];
+                deckStart ++;
+
+                if (x < 0 || x >= parent.size || y < 0 || y >= parent.size) {
+                    continue;
+                }
+                if (Utils.getBitFromArray(parent.killerUnchainedBoard[y][x], groupId) === 0) {
+                    continue;
+                }
+                let costAdd = Utils.binaryToMinShift(board[y][x]) + 1;
+                cost += costAdd;
+                if (costAdd === lastCostAdd) {
+                    cost += 1;
+                    lastCostAdd = 0;
+                }
+                if (bestCost[y][x] <= cost) {
+                    continue;
+                }
+
+                bestCost[y][x] = cost;
+                secondKillerBoard[y][x] = Utils.setBitToArray(secondKillerBoard[y][x], 1, groupId);
+
+                for (let dirY = -1; dirY <= 1; dirY++) {
+                    for (let dirX = -1; dirX <= 1; dirX ++) {
+                        if ((dirX !== 0) !== (dirY !== 0)) {
+                            deck.push([x + dirX, y + dirY, cost, lastCostAdd]);
+                        }
+                    }
+                }
+            }
+        }
+        parent.killerUnchainedBoard = secondKillerBoard;
+
+        this.printKillerBoard(parent, "A");
+    }
+
+    private static getKillerUnchainedMinGroups(parent: ISudoku): number[][][] {
+        if (parent.killerGroups === null || parent.killerUnchainedBoard === null) {
+            throw "Solver->getKillerUnchainedMinGroups - null";
+        }
+        let groupNum = parent.killerGroups.length;
+        let groups = [];
+        for (let groupId = 0; groupId < groupNum; groupId++) {
+            let group = [];
+            for (let y = 0; y < parent.size; y++) {
+                for (let x = 0; x < parent.size; x++) {
+                    if (Utils.getBitFromArray(parent.killerUnchainedBoard[y][x], groupId) !== 0) {
+                        if (Utils.countBitsArray(parent.killerUnchainedBoard[y][x]) === 1) {
+                            group.push([x, y]);
+                        }
+                    }
+                }
+            }
+            groups.push(group);
+        }
+
+        return groups;
+    }
+
+    private static getKillerUnchainedBorders(parent: ISudoku): number[][][] {
+        if (parent.killerGroups === null || parent.killerUnchainedBoard === null) {
+            throw "Solver->getKillerUnchainedMinGroups - null";
+        }
+        let groupNum = parent.killerGroups.length;
+        let borders = [];
+        for (let groupId = 0; groupId < groupNum; groupId++) {
+            let border = [];
+            for (let y = 0; y < parent.size; y++) {
+                for (let x = 0; x < parent.size; x++) {
+                    if (Utils.getBitFromArray(parent.killerUnchainedBoard[y][x], groupId) !== 0) {
+                        if (Utils.countBitsArray(parent.killerUnchainedBoard[y][x]) > 1) {
+                            let alreadyAdded = false;
+                            for (let dirY = -1; dirY <= 1; dirY++) {
+                                for (let dirX = -1; dirX <= 1; dirX++) {
+                                    if ((dirX === 0) !== (dirY === 0)) {
+                                        let newX = x + dirX;
+                                        let newY = y + dirY;
+                                        if (newX >= 0 && newX < parent.size && newY >= 0 && newY < parent.size) {
+                                            if (Utils.getBitFromArray(parent.killerUnchainedBoard[newY][newX], groupId) !== 0) {
+                                                if (Utils.countBitsArray(parent.killerUnchainedBoard[newY][newX]) === 1) {
+                                                    if (! alreadyAdded) {
+                                                        border.push([x, y]);
+                                                        alreadyAdded = true;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            borders.push(border);
+        }
+
+        return borders;
+    }
+
+    private static solveKillerUnchainedBruteforceGroups(board: number[][], parent: ISudoku): void {
+        if (parent.killerGroups === null || parent.killerUnchainedBoard === null || parent.killerUnchainedIsKnown === null || parent.killerSums === null) {
+            return;
+        }
+
+        let sameBlocks = this.getSameBlocks(parent);
+
+        let groupsMin = this.getKillerUnchainedMinGroups(parent);
+        let borders = this.getKillerUnchainedBorders(parent);
+
+        let groupNum = parent.killerGroups.length;
+        for (let groupId = 0; groupId < groupNum; groupId++) {
+            if (borders[groupId].length === 0) {
+                parent.killerUnchainedIsKnown[groupId] = true;
+            } else if (borders[groupId].length === 1) {
+                let group = groupsMin[groupId];
+                let border = borders[groupId][0];
+                let sum = parent.killerSums[groupId];
+
+                let possible = Utils.createArray1d(group.length, 0);
+                let possibleAdd = Utils.createArray1d(group.length, 0);
+                possible = this.bruteforceKillerGroupRecursion(group, sum, board, sameBlocks, parent, 0, possible, possibleAdd);
+                if (possible[0] === 0) {
+                    let binary = Utils.getEmptyBitArray(groupNum);
+                    binary = Utils.setBitToArray(binary, 1, groupId);
+                    parent.killerUnchainedBoard[border[1]][border[0]] = Utils.andBitArray(parent.killerUnchainedBoard[border[1]][border[0]], binary);
+                }
+
+                let minSumWithBorder = 0;
+                for (let i = 0; i < group.length; i++) {
+                    minSumWithBorder += Utils.binaryToMinShift(board[group[i][1]][group[i][0]]) + 1;
+                }
+                minSumWithBorder += Utils.binaryToMinShift(board[border[1]][border[0]]) + 1;
+                if (minSumWithBorder > sum) {
+                    let binary = Utils.getEmptyBitArray(groupNum);
+                    binary = Utils.setBitToArray(binary, 1, groupId);
+                    parent.killerUnchainedBoard[border[1]][border[0]] = Utils.diffBitArray(parent.killerUnchainedBoard[border[1]][border[0]], binary);
+
+                } else if (sum - minSumWithBorder < parent.size) {
+                    let biggerGroup = Utils.deepcopyArray2d(group);
+                    biggerGroup.push(Utils.deepcopyArray1d(border));
+                    let isPossible = false;
+                    for (let sum2 = minSumWithBorder; sum2 <= sum; sum2++) {
+                        let possible = Utils.createArray1d(group.length, 0);
+                        let possibleAdd = Utils.createArray1d(group.length, 0);
+                        possible = this.bruteforceKillerGroupRecursion(biggerGroup, sum2, board, sameBlocks, parent, 0, possible, possibleAdd);
+                        if (possible[0] !== 0) {
+                            isPossible = true;
+                            break;
+                        }
+                    }
+                    if (! isPossible) {
+                        let binary = Utils.getEmptyBitArray(groupNum);
+                        binary = Utils.setBitToArray(binary, 1, groupId);
+                        parent.killerUnchainedBoard[border[1]][border[0]] = Utils.diffBitArray(parent.killerUnchainedBoard[border[1]][border[0]], binary);
+                    }
+                }
+            }
+        }
     }
 
     private static solveRomanOne(value1: number, value2: number, intersection: number, parent: ISudoku): number[] {
@@ -1113,8 +1421,17 @@ class Solver {
             board = this.solveInequality(board, parent);
         }
 
-        if (parent.isKiller && parent.hasSolution) {
-            board = this.solveKiller(board, parent);
+        if (parent.isKiller && parent.hasSolution && parent.killerGroups !== null && parent.killerSums !== null) {
+            board = this.solveKiller(board, parent.killerGroups, parent.killerSums, Utils.createArray1d(parent.killerGroups.length, true), parent);
+        }
+        if (parent.isKillerUnchained && parent.hasSolution && parent.killerGroups !== null && parent.killerSums !== null && parent.killerUnchainedIsKnown !== null) {
+            board = this.solveKiller(board, parent.killerGroups, parent.killerSums, parent.killerUnchainedIsKnown, parent);
+            board = this.solveKillerUnchainedSumsOnSquare(board, parent);
+            this.solveKillerUnchainedLeftUp(parent);
+            this.solveKillerUnchainedGroupOnSum(parent);
+            this.solveKillerUnchainedTooFar(board, parent);
+            this.solveKillerUnchainedBruteforceGroups(board, parent);
+            board = this.solveTwoInGroup(board, parent);
         }
 
         if (parent.isRoman && parent.hasSolution) {
@@ -1130,21 +1447,41 @@ class Solver {
         return board;
     }
 
+    private static getExtraNumKillerUnchained(parent: ISudoku): number {
+        if (! parent.isKillerUnchained) {
+            return 0;
+        }
+
+        let extra = 0;
+        for (let y = 0; y < parent.size; y++) {
+            for (let x = 0; x < parent.size; x++) {
+                // @ts-ignore
+                extra += Utils.countBitsArray(parent.killerUnchainedBoard[y][x]);
+            }
+        }
+
+        return extra;
+    }
+
     public static solve(inputBoard: number[][], parent: ISudoku): number[][] {
         if (parent.isKropki && parent.hasSolution) {
             return Utils.deepcopyArray2d(parent.solution);
         }
 
+        if (parent.isKillerUnchained) {
+            parent.refreshKillerUnchainedOnStartSolve();
+        }
+
         let board = Utils.deepcopyArray2d(inputBoard);
 
         let lastExtraNum = -1;
-        let extraNum = Utils.getExtraNum(board);
+        let extraNum = Utils.getExtraNum(board) + this.getExtraNumKillerUnchained(parent);
         while (lastExtraNum !== extraNum) {
             lastExtraNum = extraNum;
 
             board = this.solveCycle(board, parent);
 
-            extraNum = Utils.getExtraNum(board);
+            extraNum = Utils.getExtraNum(board) + this.getExtraNumKillerUnchained(parent);
         }
 
         return board;

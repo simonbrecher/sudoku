@@ -259,6 +259,10 @@ class Renderer {
     }
 
     private static addKillerLines(x: number, y: number, column: HTMLElement, killerBoard: number[][], parent: ISudoku): void {
+        if (parent.isKillerUnchained) {
+            return;
+        }
+
         let isSame = [];
         for (let dirY = -1; dirY <= 1; dirY++) {
             let row = [];
@@ -364,14 +368,11 @@ class Renderer {
         }
         let killerBoard;
         let killerAlreadyAdded;
-        if (parent.isKiller) {
+        if (parent.isKiller || parent.isKillerUnchained) {
             // @ts-ignore
             killerBoard = GroupGenerator.groupsToBoard(parent.killerGroups, parent.size, parent.size);
-            killerAlreadyAdded = [];
             // @ts-ignore
-            for (let i = 0; i < parent.killerGroups; i++) {
-                killerAlreadyAdded.push(false);
-            }
+            killerAlreadyAdded = Utils.createArray1d(parent.killerGroups.length, false);
         }
         for (let y = 0; y < size; y++) {
             let row = boardTable.insertRow();
@@ -590,7 +591,7 @@ class Renderer {
                         }
                     }
                 }
-                if (parent.isKiller) {
+                if (parent.isKiller || parent.isKillerUnchained) {
                     // @ts-ignore
                     this.addKillerLines(x, y, column, killerBoard, parent);
                     // @ts-ignore
@@ -771,7 +772,7 @@ class Renderer {
             style.textContent += styleHtml + "\n";
         }
 
-        if (parent.isKiller) {
+        if (parent.isKiller || parent.isKillerUnchained) {
             styles = `width: ${squareFullSize}px; height: ${squareFullSize}px; margin-top: ${- squareFullSize}px;`;
             style.textContent += `table.board-table-${boardNum} svg { ${styles} }\n`;
             let killerSumBoxSize = Math.floor(squareFullSize * this._killerSumBoxSizeRelative);

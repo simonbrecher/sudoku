@@ -460,17 +460,20 @@ function main(): void {
     // SudokuBuilder.letters(true, ["♠", "♥", "♦", "♣", "♤", "♡", "♢", "♧", ":)"]);
     // SudokuBuilder.kropki(true); // kropki
     // SudokuBuilder.minusOne(true); // show all squares with difference of 1
-    SudokuBuilder.minusOneDirection(true); // show all squares with difference of 1 and inequality between them
+    // SudokuBuilder.minusOneDirection(true); // show all squares with difference of 1 and inequality between them
     // SudokuBuilder.inequality(true); // show all inequalities
     // SudokuBuilder.prompterNum(null, 0);
     // SudokuBuilder.killer(true, [[1, 1], [2, 9], [3, 3], [4, 2]]); // killer 3x2 (0 prompter)
     // SudokuBuilder.killer(true, [[1, 7], [2, 14], [3, 10], [4, 4]]); // killer 3x3 (0 prompter)
+    // SudokuBuilder.killerUnchained(true, [[1, 4], [2, 8], [3, 4], [4, 1]]); // killer unchained 3x2 (0 prompter)
+    // SudokuBuilder.killerUnchained(true, [[1, 14], [2, 14], [3, 9], [4, 3]]); // killer 3x3 (0 prompter)
     // SudokuBuilder.vxSum(true, [[5, "V"], [10, "X"]]); SudokuBuilder.prompterNum(null, 3); // vx
     // SudokuBuilder.roman(true);
     // SudokuBuilder.pieceMoves(true, false); // king move
     // SudokuBuilder.pieceMoves(false, true); // knight move
 
     Renderer.perPage(2, 3);
+    SudokuBuilder.killerUnchained(true, [[1, 4], [2, 8], [3, 4], [4, 1]]); // killer unchained 3x2 (0 prompter)
     for (let i = 0; i < 6; i++) {
         let sudoku = SudokuBuilder.build();
         if (sudoku !== null) {
@@ -478,7 +481,10 @@ function main(): void {
             // Renderer.render(sudoku.solution, sudoku);
         }
     }
+
+    SudokuBuilder.prompterNum(null, 0);
     SudokuBuilder.rectangular(true, 3, 3); // basic sudoku
+    SudokuBuilder.killerUnchained(true, [[1, 14], [2, 14], [3, 9], [4, 3]]); // killer 3x3 (0 prompter)
     for (let i = 0; i < 6; i++) {
         let sudoku = SudokuBuilder.build();
         if (sudoku !== null) {

@@ -16,6 +16,7 @@ class SudokuBuilder {
     private static _isMinusOneDirection: boolean;
     private static _isInequality: boolean;
     private static _isKiller: boolean;
+    private static _isKillerUnchained: boolean;
     private static _killerGroupSizes: number[] | null;
     private static _isRoman: boolean;
     private static _isABC: boolean;
@@ -87,8 +88,10 @@ class SudokuBuilder {
         this._prompterNumMax = null;
         this._isKropki = false;
         this._isMinusOne = false;
+        this._isMinusOneDirection = false;
         this._isInequality = false;
         this._isKiller = false;
+        this._isKillerUnchained = false;
         this._killerGroupSizes = null;
         this._isSlovak = false;
         this._isABC = false;
@@ -130,6 +133,7 @@ class SudokuBuilder {
             this._isMinusOneDirection,
             this._isInequality,
             this._isKiller,
+            this._isKillerUnchained,
             this._killerGroupSizes,
             this._isRoman,
             this._isSlovak,
@@ -232,7 +236,7 @@ class SudokuBuilder {
 
         let isSolutionSuccess = false;
         while (! this.STATS.isSolutionTriesEnd() && ! isSolutionSuccess) {
-            if (parent.isKiller) {
+            if (parent.isKiller || parent.isKillerUnchained) {
                 if (this.STATS.taskTries % 50 === 0 && this.STATS.taskTries > 0) {
                     // @ts-ignore
                     parent.refreshKillerGroups(this._killerGroupSizes);
@@ -250,7 +254,7 @@ class SudokuBuilder {
             if (solution !== null) {
                 parent.solution = solution;
 
-                if (parent.isKiller) {
+                if (parent.isKiller || parent.isKillerUnchained) {
                     parent.setKillerSums();
                 }
 
@@ -552,6 +556,24 @@ class SudokuBuilder {
             this._killerGroupSizes = killerGroupSizes;
         } else {
             this._isKiller = false;
+            this._killerGroupSizes = null;
+        }
+    }
+
+    public static killerUnchained(isKillerUnchained: boolean, killerGroupSizeCounts: number[][] | null): void {
+        if (isKillerUnchained && killerGroupSizeCounts !== null) {
+            this.removeVariation();
+
+            let killerGroupSizes = [];
+            for (let i = 0; i < killerGroupSizeCounts.length; i++) {
+                for (let j = 0; j < killerGroupSizeCounts[i][1]; j++) {
+                    killerGroupSizes.push(killerGroupSizeCounts[i][0]);
+                }
+            }
+            this._isKillerUnchained = true;
+            this._killerGroupSizes = killerGroupSizes;
+        } else {
+            this._isKillerUnchained = false;
             this._killerGroupSizes = null;
         }
     }

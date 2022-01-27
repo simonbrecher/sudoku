@@ -8,6 +8,67 @@ class Utils {
         return binary & 0x3F;
     }
 
+    public static countBitsArray(binary: number[]): number {
+        let total = 0;
+        for (let i = 0; i < binary.length; i++) {
+            total += this.countBits32(binary[i]);
+        }
+        return total;
+    }
+
+    public static getBitFromArray(binary: number[], bitId: number): number {
+        return (binary[Math.floor(bitId / 32)] & (1 << bitId % 32)) >>> bitId % 32;
+    }
+
+    public static setBitToArray(binary: number[], bit: number, bitId: number): number[] {
+        binary[Math.floor(bitId / 32)] &= ~ (1 << bitId % 32);
+        binary[Math.floor(bitId / 32)] |= (bit & 1) << bitId % 32;
+        return binary;
+    }
+
+    public static getEmptyBitArray(bitNum: number): number[] {
+        let binary = [];
+        for (let i = 0; i < Math.ceil(bitNum / 32); i++) {
+            binary.push(0);
+        }
+        return binary;
+    }
+
+    public static getFullBitArray(bitNum: number): number[] {
+        let binary = this.getEmptyBitArray(bitNum);
+        for (let i = 0; i < Math.floor(bitNum / 32); i++) {
+            binary[i] = ~ 0;
+        }
+        if (bitNum % 32 !== 0) {
+            binary[Math.floor(bitNum / 32)] = (1 << bitNum % 32) - 1;
+        }
+        return binary;
+    }
+
+    public static andBitArray(binary1: number[], binary2: number[]): number[] {
+        let binary3 = [];
+        for (let i = 0; i < binary1.length; i++) {
+            binary3[i] = binary1[i] & binary2[i];
+        }
+        return binary3;
+    }
+
+    public static orBitArray(binary1: number[], binary2: number[]): number[] {
+        let binary3 = [];
+        for (let i = 0; i < binary1.length; i++) {
+            binary3[i] = binary1[i] | binary2[i];
+        }
+        return binary3;
+    }
+
+    public static diffBitArray(binary1: number[], binary2: number[]): number[] {
+        let binary3 = [];
+        for (let i = 0; i < binary1.length; i++) {
+            binary3[i] = binary1[i] & ~ binary2[i];
+        }
+        return binary3;
+    }
+
     public static reverseBits32(binary: number): number {
         binary = (binary & 0x55555555) << 1 | (binary & 0xAAAAAAAA) >>> 1;
         binary = (binary & 0x33333333) << 2 | (binary & 0xCCCCCCCC) >>> 2;
@@ -93,6 +154,26 @@ class Utils {
             value += 1;
         }
         return value;
+    }
+
+    public static binaryToMinShift(binary: number) {
+        for (let shift = 0; shift < 32; shift++) {
+            if ((binary & 1 << shift) !== 0) {
+                return shift;
+            }
+        }
+
+        throw "Utils->binaryToMinShift - BINARY EQUALS TO ZERO";
+    }
+
+    public static binaryToMaxShift(binary: number) {
+        for (let shift = 31; shift >= 0; shift--) {
+            if ((binary & 1 << shift) !== 0) {
+                return shift;
+            }
+        }
+
+        throw "Utils->binaryToMaxShift - BINARY EQUALS TO ZERO";
     }
 
     public static shuffle(arr: any[]): any[] {

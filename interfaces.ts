@@ -11,8 +11,12 @@ interface ISudoku {
     isMinusOneDirection: boolean;
     isInequality: boolean;
     isKiller: boolean;
+    isKillerUnchained: boolean;
     killerGroups: number[][][] | null;
     killerSums: number[] | null;
+    killerUnchainedGroups: number[][] | null;
+    killerUnchainedBoard: number[][][] | null;
+    killerUnchainedIsKnown: boolean[] | null;
     isRoman: boolean;
     isSlovak: boolean;
     isABC: boolean;
@@ -35,6 +39,7 @@ interface ISudoku {
     getSolutionValues: () => number[][];
     hasPrompterInVxSum: () => boolean;
     solutionAdded: () => void;
+    refreshKillerUnchainedOnStartSolve: () => void;
 
     solution: number[][]; task: number[][]; board: number[][];
 
