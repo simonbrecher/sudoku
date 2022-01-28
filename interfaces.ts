@@ -118,8 +118,9 @@ interface IStars {
     startCount: number;
     task: number[][];
     board: number[][];
+    solution: number[][];
 
-    render: (showStars: boolean) => void;
+    render: (board: number[][], showStars: boolean) => void;
 }
 
 interface IRange {

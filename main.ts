@@ -286,7 +286,7 @@ function tournamentLogicSmall(taskNum: number, solutionNum: number): void {
     for (let i = 0; i < taskNum; i++) {
         // @ts-ignore
         MastermindBuilder.render(mastermind[0], mastermind[1], null);
-        stars?.render(false);
+        stars?.render(stars?.board, false);
         Renderer.breakLineForce();
         // @ts-ignore
         CoralBuilder.render(coral.task, coral.board, coral);
@@ -313,7 +313,7 @@ function tournamentLogicSmall(taskNum: number, solutionNum: number): void {
     for (let i = 0; i < solutionNum; i++) {
         // @ts-ignore
         MastermindBuilder.render(mastermind[0], mastermind[1], mastermind[2]);
-        stars?.render(true);
+        stars?.render(stars?.solution, true);
         Renderer.breakLineForce();
         // @ts-ignore
         CoralBuilder.render(coral.task, coral.solution, coral);
@@ -399,7 +399,7 @@ function tournamentLogicBig(taskNum: number, solutionNum: number): void {
         range?.render(range?.board, false);
         domino?.render(domino?.board);
         Renderer.breakPageForce();
-        stars.render(false);
+        stars.render(stars.board, false);
         // @ts-ignore
         TapaBuilder.render(tapa1.board, tapa1.task, tapa1);
         slitherlink1.render(false, true);
@@ -421,7 +421,7 @@ function tournamentLogicBig(taskNum: number, solutionNum: number): void {
         range?.render(range?.solution, false);
         domino?.render(domino?.solution);
         Renderer.breakPageForce();
-        stars.render(true);
+        stars.render(stars.solution, true);
         // @ts-ignore
         TapaBuilder.render(tapa1.solution, tapa1.task, tapa1);
         slitherlink1.render(true, false);
@@ -448,50 +448,50 @@ function main(): void {
 
     // ---
 
-    // Basic sudoku and variants
-    SudokuBuilder.rectangular(true, 3, 2); // basic sudoku
-    // SudokuBuilder.size(6); // without rectangles
-    // SudokuBuilder.irregular(true); // irregular blocks
-    // SudokuBuilder.diagonal(true); // add diagonal
-    // SudokuBuilder.letters(true, null);
-    // SudokuBuilder.letters(true, ["!", "@", "#", "$", "%", "^", "&", "*", "(", ")"]);
-    // SudokuBuilder.letters(true, ["♔", "♕", "♖", "♗", "♘", "♙", "♚", "♛", "♜"]);
-    // SudokuBuilder.letters(true, ["□", "◯", "◇", "⬠", "⬡", "☆", "⛧", "▱", "△"]);
-    // SudokuBuilder.letters(true, ["♠", "♥", "♦", "♣", "♤", "♡", "♢", "♧", ":)"]);
-    // SudokuBuilder.kropki(true); // kropki
-    // SudokuBuilder.minusOne(true); // show all squares with difference of 1
-    // SudokuBuilder.minusOneDirection(true); // show all squares with difference of 1 and inequality between them
-    // SudokuBuilder.inequality(true); // show all inequalities
-    // SudokuBuilder.prompterNum(null, 0);
-    // SudokuBuilder.killer(true, [[1, 1], [2, 9], [3, 3], [4, 2]]); // killer 3x2 (0 prompter)
-    // SudokuBuilder.killer(true, [[1, 7], [2, 14], [3, 10], [4, 4]]); // killer 3x3 (0 prompter)
+    // // Basic sudoku and variants
+    // SudokuBuilder.rectangular(true, 3, 2); // basic sudoku
+    // // SudokuBuilder.size(6); // without rectangles
+    // // SudokuBuilder.irregular(true); // irregular blocks
+    // // SudokuBuilder.diagonal(true); // add diagonal
+    // // SudokuBuilder.letters(true, null);
+    // // SudokuBuilder.letters(true, ["!", "@", "#", "$", "%", "^", "&", "*", "(", ")"]);
+    // // SudokuBuilder.letters(true, ["♔", "♕", "♖", "♗", "♘", "♙", "♚", "♛", "♜"]);
+    // // SudokuBuilder.letters(true, ["□", "◯", "◇", "⬠", "⬡", "☆", "⛧", "▱", "△"]);
+    // // SudokuBuilder.letters(true, ["♠", "♥", "♦", "♣", "♤", "♡", "♢", "♧", ":)"]);
+    // // SudokuBuilder.kropki(true); // kropki
+    // // SudokuBuilder.minusOne(true); // show all squares with difference of 1
+    // // SudokuBuilder.minusOneDirection(true); // show all squares with difference of 1 and inequality between them
+    // // SudokuBuilder.inequality(true); // show all inequalities
+    // // SudokuBuilder.prompterNum(null, 0);
+    // // SudokuBuilder.killer(true, [[1, 1], [2, 9], [3, 3], [4, 2]]); // killer 3x2 (0 prompter)
+    // // SudokuBuilder.killer(true, [[1, 7], [2, 14], [3, 10], [4, 4]]); // killer 3x3 (0 prompter)
+    // // SudokuBuilder.killerUnchained(true, [[1, 4], [2, 8], [3, 4], [4, 1]]); // killer unchained 3x2 (0 prompter)
+    // // SudokuBuilder.killerUnchained(true, [[1, 14], [2, 14], [3, 9], [4, 3]]); // killer 3x3 (0 prompter)
+    // // SudokuBuilder.vxSum(true, [[5, "V"], [10, "X"]]); SudokuBuilder.prompterNum(null, 3); // vx
+    // // SudokuBuilder.roman(true);
+    // // SudokuBuilder.pieceMoves(true, false); // king move
+    // // SudokuBuilder.pieceMoves(false, true); // knight move
+    //
+    // Renderer.perPage(2, 3);
     // SudokuBuilder.killerUnchained(true, [[1, 4], [2, 8], [3, 4], [4, 1]]); // killer unchained 3x2 (0 prompter)
+    // for (let i = 0; i < 6; i++) {
+    //     let sudoku = SudokuBuilder.build();
+    //     if (sudoku !== null) {
+    //         Renderer.render(sudoku.task, sudoku);
+    //         // Renderer.render(sudoku.solution, sudoku);
+    //     }
+    // }
+    //
+    // SudokuBuilder.prompterNum(null, 0);
+    // SudokuBuilder.rectangular(true, 3, 3); // basic sudoku
     // SudokuBuilder.killerUnchained(true, [[1, 14], [2, 14], [3, 9], [4, 3]]); // killer 3x3 (0 prompter)
-    // SudokuBuilder.vxSum(true, [[5, "V"], [10, "X"]]); SudokuBuilder.prompterNum(null, 3); // vx
-    // SudokuBuilder.roman(true);
-    // SudokuBuilder.pieceMoves(true, false); // king move
-    // SudokuBuilder.pieceMoves(false, true); // knight move
-
-    Renderer.perPage(2, 3);
-    SudokuBuilder.killerUnchained(true, [[1, 4], [2, 8], [3, 4], [4, 1]]); // killer unchained 3x2 (0 prompter)
-    for (let i = 0; i < 6; i++) {
-        let sudoku = SudokuBuilder.build();
-        if (sudoku !== null) {
-            Renderer.render(sudoku.task, sudoku);
-            // Renderer.render(sudoku.solution, sudoku);
-        }
-    }
-
-    SudokuBuilder.prompterNum(null, 0);
-    SudokuBuilder.rectangular(true, 3, 3); // basic sudoku
-    SudokuBuilder.killerUnchained(true, [[1, 14], [2, 14], [3, 9], [4, 3]]); // killer 3x3 (0 prompter)
-    for (let i = 0; i < 6; i++) {
-        let sudoku = SudokuBuilder.build();
-        if (sudoku !== null) {
-            Renderer.render(sudoku.task, sudoku);
-            // Renderer.render(sudoku.solution, sudoku);
-        }
-    }
+    // for (let i = 0; i < 6; i++) {
+    //     let sudoku = SudokuBuilder.build();
+    //     if (sudoku !== null) {
+    //         Renderer.render(sudoku.task, sudoku);
+    //         // Renderer.render(sudoku.solution, sudoku);
+    //     }
+    // }
 
     // ---
 
@@ -597,7 +597,19 @@ function main(): void {
 
     // ---
 
-    // // Stars
+    // let board = [[3, 3, 3, 3], [3, 3, 3, 3], [3, 1, 3, 3], [1, 1, 3, 3]];
+    // let group = [[0, 0], [0, 1], [1, 0], [1, 1], [0, 2], [1, 2], [0, 3], [1, 3]];
+    // let mustBe = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
+    // let canNotBe = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
+    // let solutionCount = 0;
+    // let added: number[] = [];
+    // let starNum = 2;
+    // let size = 4;
+    // console.log(StarsSolver.bruteforceGroup(board, group, mustBe, canNotBe, solutionCount, added, starNum, size));
+    // return;
+
+    // Stars
+    StarsSolver.MAX_DEPTH = 3;
     // Renderer.breakPageForce();
     // for (let i = 0; i < 24; i++) {
     //     if (i % 4 === 0) {
@@ -606,14 +618,17 @@ function main(): void {
     //     let stars = StarsBuilder.build(5, 1);
     //     stars?.render(false);
     // }
-    // Renderer.breakPageForce();
-    // for (let i = 0; i < 6; i++) {
-    //     if (i % 2 === 0) {
-    //         Renderer.breakLineForce();
-    //     }
-    //     let stars = StarsBuilder.build(9, 2);
-    //     stars?.render(false);
-    // }
+    Renderer.breakPageForce();
+    for (let i = 0; i < 12; i++) {
+        if (i % 2 === 0) {
+            Renderer.breakLineForce();
+        }
+        if (i % 6 === 0 && i !== 0) {
+            Renderer.breakPageForce();
+        }
+        let stars = StarsBuilder.build(9, 2);
+        stars?.render(stars?.board, false);
+    }
 
     // ---
 

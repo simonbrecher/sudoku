@@ -3,7 +3,7 @@ class Stars implements IStars {
     public readonly startCount: number;
     public task: number[][];
     public board: number[][];
-    public solution: number[][] | null;
+    public solution: number[][];
 
     constructor(size: number, starCount: number) {
         this.size = size;
@@ -37,7 +37,7 @@ class Stars implements IStars {
         return maxBoard;
     }
 
-    public render(showStars: boolean): void {
+    public render(board: number[][], showStars: boolean): void {
         let pageWrapper = document.getElementById("page-wrapper");
 
         let boardTable = document.createElement("table");
@@ -54,14 +54,12 @@ class Stars implements IStars {
                 squareDiv.classList.add("square");
                 column.appendChild(squareDiv);
 
-                if (this.solution !== null) {
-                    if (this.solution[y][x] === 2) {
-                        if (showStars) {
-                            squareDiv.textContent += "☆";
-                        }
-                    } else if (this.solution[y][x] === 3) {
+                if (showStars) {
+                    if (board[y][x] === 2) {
+                        squareDiv.textContent += "☆";
+                    } else if (board[y][x] === 3) {
                         squareDiv.textContent += "?";
-                    } else if (this.solution[y][x] === 0) {
+                    } else if (board[y][x] === 0) {
                         squareDiv.textContent += "!";
                     }
                 }
