@@ -1,6 +1,38 @@
+/**
+ * Class for solving sudoku puzzles.
+ *
+ * It uses strategy, where it writes in all squares all numbers, that can be there.
+ * After that it repeats removing those numbers by some simple rules.
+ * If it can not get to solved state, before being unable to change anything, it determines the puzzle unsolvable.
+ *
+ * Square = the small stuff with one number ( or letter/space) ; Rectangle = an area where every number must be exactly once
+ *
+ * Binary representation of square: int32
+ *      While sudoku is being solved, one int32 is used to save which numbers can be in one square.
+ *      Solver uses this and determines when numbers can not be there.
+ *      The lowest number in sudoku (1) is on the least bit.
+ *      1 = this number can be on this square
+ *      0 = this number can not be on this square
+ *
+ *      0b111111111 = all numbers from 1 to 9 can be on this square (empty square in sudoku 3x3)
+ *      0b001000000 = only number 7 can be on this square (could be prompter or we solved this square)
+ *      0b001010000 = on this square is 5 or 7.
+ *      0b000000000 = error
+ *
+ * Main method of this class is Solver.solve(). This method solves a sudoku as much as possible.
+ */
 class Solver {
+    /**
+     * Can be used to turn on viewing more information about solving.
+     * At this moment true = It will Renderer.render() all states while solving abc.
+     */
     public static print = false;
 
+    //          ABC
+
+    /**
+     * If there can be only one value in square, it can not be anywhere else in row or column.
+     */
     private static solveAbcOneInSquare(board: number[][], parent: ISudoku): number[][] {
         if (parent.abcSpaceNumber === null) {
             return board;
@@ -46,6 +78,10 @@ class Solver {
         return board;
     }
 
+    /**
+     * If a value can be only in one square from all squares in row or column (for spaces it is multiple times),
+     * in that square there can not be anything else.
+     */
     private static solveAbcOnlyInSquare(board: number[][], parent: ISudoku): number[][] {
         for (let y = 0; y < parent.size; y++) {
             let rowOne = 0;
@@ -81,35 +117,53 @@ class Solver {
         return board;
     }
 
+    /**
+     * Rule that solves row/column WITH PROMPTERS ON BOTH SIDES as much as possible.
+     * Lets assume that digit "A" is prompter on one side and letter "D" is prompter on other side.
+     *
+     * Go trough the whole line.
+     * Until there can be "A" on a square, there can not be anything else than "A" and "-".
+     * Now count until you meet at least one square, where can be "B" and one square where can be "C" and two squares where can be either.
+     *      There can not be "C".
+     * (This is how this rule works. You do not have to check, that only C is at the end last square, because we call this from all 4 directions.)
+     *
+     * Examples:
+     * A: [-ABC][-ABC][-ABC][-ABC] :C -> [-A][-AB][-ABC][-ABC] -> (now from C to A) -> [-A][-AB][-BC][-C]
+     * A: [-A][-A][-BC][-BC][-C] :C -> [-A][-A][-B][-BC][-C]
+     *
+     * @param task          sudoku.task for abc
+     * @param dir           0: rows from left, 1: rows from right, 2: columns from top, 3: columns from bottom
+     * @param position      x/y coordinate of row/column
+     */
     private static solveAbcPrompterBoth(board: number[][], parent: ISudoku, task: number[][], dir: number, position: number): number[][] {
         if (parent.abcNumber === null) {
             return board;
         }
 
-        let firstValue = Utils.getAbcFirstValue(dir, position, task);
-        let middleValue = Utils.getAbcMiddleValue(dir, position, task, parent);
-        let lastValue = Utils.getAbcLastValue(dir, position, task);
+        let firstValue = Utils.getAbcFirstValue(dir, position, task); // first visible letter
+        let middleValue = Utils.getAbcMiddleValue(dir, position, task, parent); // NOT first or last visible letter
+        let lastValue = Utils.getAbcLastValue(dir, position, task); // last visible letter (first from other side)
         let startX, startY, moveX, moveY;
         [[startX, startY], [moveX, moveY]] = Utils.getAbcDirection(dir, position, parent);
-        let firstFound = false;
-        let middleNotFound = middleValue;
-        let middleFoundCount = 0;
+        let firstFound = false; // until meeting first letter, there can not be anything else than first letter and space
+        let middleNotFound = middleValue; // binary representations of all (not first or last) letters that we did not find
+        let middleFoundCount = 0; // how many (not first or last) numbers we found (we can count single letter multiple times)
         for (let i = 0; i < parent.size; i++) {
             let x = startX + i * moveX;
             let y = startY + i * moveY;
             if (! firstFound) {
-                if ((board[y][x] & firstValue) !== 0) {
+                if ((board[y][x] & firstValue) !== 0) { // we found first letter, there can be first letter or space
                     firstFound = true;
                     board[y][x] &= firstValue | 1;
-                } else {
+                } else { // we did not find first letter, there can only be space
                     board[y][x] &= 1;
                 }
             } else {
-                middleNotFound &= ~ (board[y][x]);
+                middleNotFound &= ~ (board[y][x]); // we found (not first or last) letter
                 if ((board[y][x] & middleValue) !== 0) {
                     middleFoundCount ++;
                 }
-                board[y][x] &= ~ lastValue;
+                board[y][x] &= ~ lastValue; // there can not be last letter (because other letters wouldn't fit in previous squares)
             }
             if (firstFound && middleNotFound === 0 && middleFoundCount >= parent.abcNumber - 2) {
                 break;
@@ -119,6 +173,9 @@ class Solver {
         return board;
     }
 
+    /**
+     * Same as Solver.solveAbcPrompterBoth(), but when last visible letter is unknown.
+     */
     private static solveAbcPrompterFirst(board: number[][], parent: ISudoku, task: number[][], dir: number, position: number): number[][] {
         if (parent.abcNumber === null || parent.abcSpaceNumber === null) {
             return board;
@@ -150,6 +207,11 @@ class Solver {
         return board;
     }
 
+    /**
+     * Solve everything we can from knowing first and last visible number.
+     *
+     * Call Solver.solveAbcPrompterBoth() and Solver.solveAbcPrompterFirst() for all rows and columns in both direction.
+     */
     private static solveAbcPrompter(board: number[][], parent: ISudoku): number[][] {
         let task = parent.task;
         for (let dir = 0; dir < 4; dir++) {
@@ -167,6 +229,9 @@ class Solver {
         return board;
     }
 
+    /**
+     * Use all rules for solving abc once.
+     */
     private static solveCycleAbc(board: number[][], parent: ISudoku): number[][] {
 
         if (this.print) {
@@ -194,6 +259,11 @@ class Solver {
         return board;
     }
 
+    //          NOT ABC FROM HERE
+
+    /**
+     * If there can be only one number in square, it can not be anywhere else in row or column.
+     */
     private static solveLineOneInSquare(board: number[][], parent: ISudoku): number[][] {
         let hasOneNumber = Utils.getHasOneBit(board);
         for (let y = 0; y < parent.size; y++) {
@@ -228,6 +298,9 @@ class Solver {
         return board;
     }
 
+    /**
+     * If in row/column can a number be only in one square, there can not be anything else in that square.
+     */
     private static solveLineOnlyInSquare(board: number[][], parent: ISudoku): number[][] {
         for (let y = 0; y < parent.size; y++) {
             let rowOne = 0;
@@ -261,6 +334,9 @@ class Solver {
         return board;
     }
 
+    /**
+     * If there can be only one number in square, it can not be anywhere else in rectangle.
+     */
     private static solveRectangleOneInSquare(board: number[][], parent: ISudoku): number[][] {
         if (parent.rectangleHeight === null || parent.rectangleWidth === null) {
             return board;
@@ -291,6 +367,9 @@ class Solver {
         return board;
     }
 
+    /**
+     * If in a rectangle can a number be only in one square, there can not be anything else in that square.
+     */
     private static solveRectangleOnlyInSquare(board: number[][], parent: ISudoku): number[][] {
         if (parent.rectangleHeight === null || parent.rectangleWidth === null) {
             return board;
@@ -320,6 +399,9 @@ class Solver {
         return board;
     }
 
+    /**
+     * If there can be only one number in square, it can not be anywhere else in a diagonal.
+     */
     private static solveDiagonalOneInSquare(board: number[][], parent: ISudoku): number[][] {
         let hasOneNumber = [];
         let diagonalOne = 0;
@@ -354,6 +436,9 @@ class Solver {
         return board;
     }
 
+    /**
+     * If in a diagonal can a number be only in one square, there can not be anything else int that square.
+     */
     private static solveDiagonalOnlyInSquare(board: number[][], parent: ISudoku): number[][] {
         let diagonalOne = 0;
         let diagonalMultiple = 0;
@@ -384,10 +469,21 @@ class Solver {
         return board;
     }
 
+    /**
+     * In VX sudoku, if there is "V" or "X" between squares, their sum must be 5 or 10.
+     *
+     * @param first     binary representation of first square
+     * @param second    binary representation of its
+     * @param sum       sum of numbers in these squares
+     * @return          binary representation of second square after applying the rule
+     */
     private static solveVxInSumOne(first: number, second: number, sum: number): number {
         return first & (Utils.reverseBits32(second) >>> 32 - sum + 1);
     }
 
+    /**
+     * If there is "V" or "X" in two orthogonally adjacent squares, apply rule Solver.solveVxInSumOne().
+     */
     private static solveVxInSum(board: number[][], parent: ISudoku): number[][] {
         let solutionValues = Utils.getSolutionValues(parent.solution);
         for (let y = 0; y < parent.size; y++) {
@@ -420,6 +516,9 @@ class Solver {
         return board;
     }
 
+    /**
+     * If there is not "V" or "X" between two orthogonally adjacent squares, and one square has known value, the other square can not add to 5 or 10.
+     */
     private static solveVxOutSum(board: number[][], parent: ISudoku): number[][] {
         let solutionValues = Utils.getSolutionValues(parent.solution);
         let hasOneBit = Utils.getHasOneBit(board);
@@ -446,6 +545,9 @@ class Solver {
         return board;
     }
 
+    /**
+     * Apply all rules, which are applied for this sudoku variant, once.
+     */
     private static solveCycle(board: number[][], parent: ISudoku): number[][] {
         if (parent.isABC && parent.hasSolution) {
             return this.solveCycleAbc(board, parent);
@@ -469,6 +571,14 @@ class Solver {
         return board;
     }
 
+    /**
+     * Solve sudoku as much as possible. Main method of this class.
+     *
+     * Repeat solveCycle() until it stops changing board.
+     *
+     * @param inputBoard        sudoku.task (but for abc it is sudoku.board)
+     * @param parent            sudoku object
+     */
     public static solve(inputBoard: number[][], parent: ISudoku): number[][] {
         if (parent.isKropki && parent.hasSolution) {
             return parent.solution;
@@ -488,6 +598,9 @@ class Solver {
         return board;
     }
 
+    /**
+     * Check if solution is correct, because the solving rules do not do that.
+     */
     public static checkSolution(board: number[][], parent: ISudoku): boolean {
         for (let y = 0; y < parent.size; y++) {
             for (let x = 0; x < parent.size; x++) {
@@ -548,6 +661,9 @@ class Solver {
         return true;
     }
 
+    /**
+     * 0: there is no solution (in one square can not be anything), 1: it is solved, 2: some squares can have multiple values
+     */
     public static countSolutions(board: number[][], parent: ISudoku): number {
         let hasMultipleBits = false;
         for (let y = 0; y < parent.size; y++) {
@@ -567,6 +683,17 @@ class Solver {
         }
     }
 
+    /**
+     * Special solving method for SudokuEvaluator. ONLY FOR CLASSIC SUDOKU 3x3
+     *
+     * 1.) Start with sudoku, where some squares can have 1 number, and other squares can have all numbers
+     * 2.) For all known squares, remove their numbers from squares, that are in same row/column/rectangle
+     * 3.) If in a row/column/ractangle can a number be only in one square, remove all other numbers from that square
+     *
+     * This is used to better simulate how a human solves sudoku, without writing small numbers.
+     * SudokuEvaluator will later count, how many squares were possible to be filled with this function,
+     * and it will fill (only) one of them for the price of 1/n points of difficulty.
+     */
     public static solveCycleEvaluate(board: number[][], parent: ISudoku): number[][] {
         board = this.solveLineOneInSquare(board, parent);
         board = this.solveRectangleOneInSquare(board, parent);

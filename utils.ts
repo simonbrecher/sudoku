@@ -1,12 +1,33 @@
+/**
+ * Class for globally used and random methods.
+ */
 class Utils {
+    /**
+     * Gen binary representation of prompter on side of abc
+     * @param dir           0: row from left, 1: row from right, 2: column from top, 3: column from bottom
+     * @param position      x/y coordinate of row/column
+     * @param task          sudoku.task (the abc version)
+     */
     public static getAbcFirstValue(dir: number, position: number, task: number[][]): number {
         return task[dir][position];
     }
 
+    /**
+     * Get binary representation of prompter on the other side of abc
+     * @param dir           0: row from left, 1: row from right, 2: column from top, 3: column from bottom
+     * @param position      x/y coordinate of row/column
+     * @param task          sudoku.task (the abc version)
+     */
     public static getAbcLastValue(dir: number, position: number, task: number[][]): number {
         return task[dir ^ 1][position];
     }
 
+    /**
+     * Get binary representation of all numbers that are not on prompter on any side in row/column
+     * @param dir           0: row from left, 1: row from right, 2: column from top, 3: column from bottom
+     * @param position      x/y coordinate of row/column
+     * @param task          sudoku.task (the abc version)
+     */
     public static getAbcMiddleValue(dir: number, position: number, task: number[][], parent: ISudoku): number {
         if (parent.abcNumber === null) {
             throw "Utils->getAbcMiddle - parent.abcNumber === null";
@@ -14,6 +35,15 @@ class Utils {
         return (1 << parent.abcNumber + 1) - 2 & ~ this.getAbcFirstValue(dir, position, task) & ~ this.getAbcLastValue(dir, position, task);
     }
 
+    /**
+     * Get data for iterating all squares in one row/column in a specific direction.
+     * @param dir           0: row from left, 1: row from right, 2: column from top, 3: column from bottom
+     * @param position      x/y coordinate of row/column
+     * @return              [[xStart, yStart][xMove, yMove]]
+     * if i is order of square in row/column then:
+     *      x = xStart + xMove * i
+     *      y = yStart + yMove * i
+     */
     public static getAbcDirection(dir: number, position: number, parent: ISudoku): number[][] {
         switch (dir) {
             case 0:
@@ -29,6 +59,11 @@ class Utils {
         }
     }
 
+    /**
+     * Count number of 1 bits in int32
+     * @param binary    Binary representation of a square.
+     * @return          Number of bits with 1.
+     */
     public static countBits32(binary: number): number {
         binary -= (binary >>> 1) & 0x55555555;
         binary = (binary & 0x33333333) + ((binary >>> 2) & 0x33333333);
@@ -38,6 +73,11 @@ class Utils {
         return binary & 0x3F;
     }
 
+    /**
+     * Reverse order of bits in int32
+     * @param binary    Binary representation of a square.
+     * @return          Bits in reversed order.
+     */
     public static reverseBits32(binary: number): number {
         binary = (binary & 0x55555555) << 1 | (binary & 0xAAAAAAAA) >>> 1;
         binary = (binary & 0x33333333) << 2 | (binary & 0xCCCCCCCC) >>> 2;
@@ -48,6 +88,12 @@ class Utils {
         return binary;
     }
 
+    /**
+     * Return number of prompters in task of sudoku.
+     * !! ONLY WORKS FOR PROMPTER THAT ARE NOT ON SIDE. IF GENERATING ABC TASK, NUMBER OF PROMPTERS IS ALWAYS 0.
+     * @param board     2d array of binary representations of squares.
+     * @return          Number of binary representations with one bit with 1.
+     */
     public static getPrompterNum(board: number[][]): number {
         let total = 0;
         for (let y = 0; y < board.length; y++) {
@@ -60,6 +106,12 @@ class Utils {
         return total;
     }
 
+    /**
+     * Return number of extra possible numbers on all squares.
+     * Returns how many numbers you have to remove to have solved the puzzle.
+     * @param board     2d array of binary representations of squares.
+     * @return          SUM { ( number of 1 bits ) - 1 }
+     */
     public static getExtraNum(board: number[][]): number {
         let total = 0;
         for (let y = 0; y < board.length; y++) {
@@ -70,6 +122,11 @@ class Utils {
         return total;
     }
 
+    /**
+     * Get array saying which squares have only one possible value.
+     * @param board     2d array of binary representations of squares.
+     * @return          bool[][] saying which squares have one bit with 1.
+     */
     public static getHasOneBit(board: number[][]): boolean[][] {
         let hasOneNumber = [];
         for (let y = 0; y < board.length; y++) {
@@ -82,6 +139,15 @@ class Utils {
         return hasOneNumber;
     }
 
+    /**
+     * Get 2d array with binary representations of squares, corresponding to puzzle, where all numbers can be on all squares.
+     * @param parent            Sudoku object.
+     * @param forceHasSolution  ↓
+     * When abc solutions is created, it is created as "regular sudoku" solution and then converted to abc solution. (multiple numbers to spaces)
+     * Since abc can have multiple spaces in one row/column, it has different number of values of square = different number of 1 bits in binary representation.
+     * forceHasSolution == true -> if puzzle is abc, it will have shorter binary representation of square than sudoku, even if it does not have generated solution yet.
+     * forceHasSolution == false -> if puzzle is abc, it will have shorter binary representation of square than sudoku, only if solution has already been generated
+     */
     public static createEmptyBoard(parent: ISudoku, forceHasSolution: boolean = false): number[][] {
         if (parent.isABC && parent.abcNumber !== null && (parent.hasSolution || forceHasSolution)) {
             let board = [];
@@ -105,6 +171,12 @@ class Utils {
         return board;
     }
 
+    /**
+     * Choose random bit with 1 from int32
+     * @param possible      Binary representation of a square.
+     * @return              Random binary representation of square, which has only one bit with 1 and that bit has 1 in parameter.
+     * EXAMPLE: 0b1100 -> 0b0100 OR 0b1000
+     */
     public static chooseRandomBit(possible: number): number {
         if (possible === 0) {
             throw "Utils->chooseRandomBit - possible is 0";
@@ -122,6 +194,18 @@ class Utils {
         return arr[randomNumber];
     }
 
+    /**
+     * Converts binary representation of a square to number, that it represents.
+     *
+     * In sudoku it is used by variations like kropki (or possibly killer)
+     * It is used also by abc, before converting to letter representation.
+     *
+     * Sudoku: 0b1 -> 1, 0b10 -> 2, 0b100 -> 3 ...
+     * Abc: 0b1 -> 1 (meaning "-"), 0b10 -> 2 (meaning "A"), 0b100 -> 3 (meaning "B") ...
+     *
+     * @param binary    Binary representation of a square. MUST HAVE ONLY ONE BIT WITH 1.
+     * @return          Number in sudoku, which is represented by the binary representation.
+     */
     public static binaryToValue(binary: number) {
         if (binary === 0) {
             throw "Utils->binaryToValue - NO BITS";
@@ -137,6 +221,11 @@ class Utils {
         return value;
     }
 
+    /**
+     * Converts 2d array of binary representations of squares to 2d array of sudoku numbers, which they represent.
+     * @param solution      2d array of binary representations of squares
+     * @return              2d array of numbers in sudoku
+     */
     public static getSolutionValues(solution: number[][]) {
         let solutionValues = [];
         for (let y = 0; y < solution.length; y++) {
@@ -149,12 +238,20 @@ class Utils {
         return solutionValues;
     }
 
+    /**
+     * Shuffle and return array.
+     */
     private static shuffle(arr: any[]): any[] {
         return arr.map((value) => ({ value, sort: Math.random() }))
             .sort((a, b) => a.sort - b.sort)
             .map(({ value }) => value);
     }
 
+    /**
+     * Get random order in which prompters will be removed from task, while creating task from solution.
+     * @param parent    sudoku object
+     * @return          [x, y][] - positions of squares in random order
+     */
     public static getUnknownOrder(parent: ISudoku): number[][] {
         let solution = parent.solution;
 
@@ -190,6 +287,9 @@ class Utils {
         return beginning;
     }
 
+    /**
+     * Deepcopy number[][].
+     */
     public static deepcopyBoard(board: number[][]): number[][] {
         let copied = [];
         for (let y = 0; y < board.length; y++) {
@@ -202,6 +302,12 @@ class Utils {
         return copied;
     }
 
+    /**
+     * Convert int you get from Utils.valueToChar() to string, which is later displayed on that square.
+     *
+     * For sudoku it is only a matter of type.
+     * For Abc: 1 -> "-", 2 -> "A", 3 -> "B" ...
+     */
     public static valueToChar(value: number, parent: ISudoku): string {
         if (parent.isABC) {
             return ["-", "A", "B", "C", "D", "E", "F", "G", "H", "I"][value - 1];
@@ -210,6 +316,14 @@ class Utils {
         return value.toString();
     }
 
+    /**
+     * Check if VX sudoku has any prompter in square, which has V or X on any of its sides.
+     * The reason for this is, that having prompter in square with V or X will ensure, that the other square will have known value.
+     * I don't want to allow that.
+     * @param task      2d array of binary representations of squares
+     * @param parent    Sudoku object
+     * @return          true iff any square with V or X is prompter (V and X in default settings, but it can be any sum)
+     */
     public static hasPrompterInSum(task: number[][], parent: ISudoku): boolean {
         let solutionValues = this.getSolutionValues(parent.solution);
         for (let y = 0; y < parent.size; y++) {
@@ -242,6 +356,17 @@ class Utils {
         return false;
     }
 
+    /**
+     * Check if it can be easily determined that abc has multiple solutions with all prompters on side.
+     *
+     * In 2x2 block it can be determined, when abc has multiple solutions:
+     *
+     * A-   can also be   -A   this is used to reduce number of tries we have to generate solution for abc
+     * -A                 A-
+     *
+     * @param solution      Solution of abc puzzle
+     * @param parent        Abc object (Same as Sudoku object)
+     */
     public static checkAbcSolutionUnambiguity(solution: number[][], parent: ISudoku): boolean {
         for (let i = 0; i < 3; i++) {
             let sizeX, sizeY;
@@ -268,6 +393,9 @@ class Utils {
         return true;
     }
 
+    /**
+     * Create 2d array with zeros by width and size.
+     */
     public static getEmptyArray2d(width: number, height: number): number[][] {
         let arr = [];
         for (let y = 0; y < height; y++) {

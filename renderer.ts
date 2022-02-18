@@ -1,3 +1,8 @@
+/**
+ * Class for creating html tags from Sudoku object. It automatically creates css for and breaks pages.
+ *
+ * Main funcion is Renderer. render()
+ */
 class Renderer {
     private static readonly PAPER_HEIGHT = 1000;
     private static readonly PAPER_WIDTH = 710;
@@ -6,27 +11,31 @@ class Renderer {
     private static _pageUsedWidth = 0;
     private static _pageLineHeight = 0;
 
-    private static _width: number;
-    private static _height: number;
-    private static _fontRelativeSize: number;
-    private static _vxBoxSizeRelative: number;
-    private static _vxBoxFontSizeRelative: number;
-    private static _kropkiBoxSizeRelative: number;
-    private static _innerFontRelativeSize: number;
-    private static _marginLeft: number;
-    private static _marginBottom: number;
-    private static _smallBorderWidth: number;
-    private static _bigBorderWidth: number;
-    private static _maxSquareInnerCount: number;
+    private static _width: number; // width of puzzle table in pixels
+    private static _height: number; // height of puzzle table in pixels
+    private static _fontRelativeSize: number; // size of font relative to square size
+    private static _vxBoxSizeRelative: number; // size of box with "V" / "X" for VX sudoku relative to square size
+    private static _vxBoxFontSizeRelative: number; // size of font in vx box relative to size of vx box
+    private static _kropkiBoxSizeRelative: number; // size of black/white boxes for kropki sudoku relative to square size
+    private static _innerFontRelativeSize: number; // relative size in square with multiple numbers (but not all)
+    private static _marginLeft: number; // left margin of sudoku table
+    private static _marginBottom: number; // bottom maring of sudoku table
+    private static _smallBorderWidth: number; // width of regular border
+    private static _bigBorderWidth: number; // width of border on sides and between rectangles
+    private static _maxSquareInnerCount: number; // maximal number of numbers, which will not appear as empty square
 
-    private static _boardCount: number = 0;
+    private static _boardCount: number = 0; // number of created sudokus
 
-    public static zeroSymbol = "?";
+    public static zeroSymbol = "?"; // some debug stuff
 
+    // instead of static constructor
     private static setDefault = (() => {
         Renderer.default();
     })();
 
+    /**
+     * Set default values
+     */
     public static default(): void {
         this._width = 310;
         this._height = 310;
@@ -39,9 +48,15 @@ class Renderer {
         this._marginBottom = 5; // 10
         this._smallBorderWidth = 1;
         this._bigBorderWidth = 3;
-        this._maxSquareInnerCount = 4;
+        this._maxSquareInnerCount = 9;
     }
 
+    /**
+     * Get color of kropki box.
+     * @param value1    number in square
+     * @param value2    number in square
+     * @return          white = difference is 1, black = one is two times bigger, null = else
+     */
     private static getKropkiColor(value1: number, value2: number): "white" | "black" | null {
         let isWhite = value1 - value2 === 1 || value1 - value2 === -1;
         let isBlack = value1 === value2 * 2 || value1 * 2 === value2;
@@ -57,6 +72,9 @@ class Renderer {
         return null;
     }
 
+    /**
+     * Create pageBreak for printing.
+     */
     public static breakPage(): void {
         if (this._pageUsedWidth !== 0 || this._pageUsedHeight !== 0) {
             let pageWrapper = document.getElementById("page-wrapper");
@@ -72,6 +90,12 @@ class Renderer {
         }
     }
 
+    /**
+     * Convert binary representation of square to string value, which is viewed. (or array if there can be multiple numbers)
+     * @param binary                Binary representation of square
+     * @param squareInnerCount      Maximal number of numbers, otherwise it is viewed as empty square
+     * @return                      String of number(s) in square.
+     */
     private static convertBinary(binary: number, parent: ISudoku, squareInnerCount: number): string | string[] {
         let bitCount = Utils.countBits32(binary);
         if (bitCount > squareInnerCount) {
@@ -104,6 +128,9 @@ class Renderer {
         return values;
     }
 
+    /**
+     * For abc. Create 2d array with strings, which are what will be visible in table by people.
+     */
     private static convertAbcBoard(board: number[][], parent: ISudoku, squareInnerCount: number): (string | string[])[][] {
         let task = parent.task;
         let arr: (string | string[])[][] = [];
@@ -141,6 +168,9 @@ class Renderer {
         return arr;
     }
 
+    /**
+     * For non-abc. Create 2d array with strings, which are what will be visible in table by people.
+     */
     public static convertBoard(board: number[][], parent: ISudoku, squareInnerCount: number): (string | string[])[][] {
         if (parent.isABC) {
             return this.convertAbcBoard(board, parent, squareInnerCount);
@@ -158,6 +188,13 @@ class Renderer {
         return arr;
     }
 
+    /**
+     * Create html of sudoku and view it.
+     * @param board         2d array with binary representations of squares (sudoku.board / sudoku.task / sudoku.solution)
+     * @param parent        Sudoku object
+     * @param unsolved      same as board, but if a square has different value, it will be gray
+     * @param color         color of background
+     */
     public static render(board: number[][] | null | undefined, parent: ISudoku | null | undefined, unsolved: number[][] | null = null, color: "red" | "green" | null = null): void {
         if (board === null || board === undefined || parent === null || parent === undefined) {
             return;
@@ -294,6 +331,9 @@ class Renderer {
         }
     }
 
+    /**
+     * Do page breaks and update how many space is used by already created sudokus.
+     */
     public static formatPage(): void {
         let pageWrapper = document.getElementById("page-wrapper");
 
@@ -332,6 +372,11 @@ class Renderer {
         this._pageUsedWidth += this._width;
     }
 
+    /**
+     * Create css for one sudoku.
+     * @param boardNum      Number of already created sudokus.
+     * @param parent        Sudoku object.
+     */
     public static setStyle(boardNum: number, parent: ISudoku): void {
         let style = document.getElementById("style");
         if (style === null) {
@@ -405,6 +450,13 @@ class Renderer {
         }
     }
 
+    /**
+     * Add strong borders, where they need to be, for a square.
+     * @param x         x coordinate of square
+     * @param y         y coordinate of square
+     * @param column    <td> of square
+     * @param parent    Sudoku object
+     */
     public static addBorderStyle(x: number, y: number, column: HTMLElement, parent: ISudoku): void {
         if (parent.isABC) {
             if (x === 0 || x === parent.size + 1 || y === 0 || y === parent.size + 1) {
@@ -449,11 +501,19 @@ class Renderer {
         }
     }
 
+    /**
+     * Set size of sudoku table in pixels.
+     */
     public static size(size: number): void {
         this._width = size;
         this._height = size;
     }
 
+    /**
+     * Set maximum number of sudoku tables on one page.
+     * @param xCount        maximum number of sudoku tables in row
+     * @param yCount        maximum number of sudoku tables in column
+     */
     public static perPage(xCount: number, yCount: number): void {
         let width = Math.floor((this.PAPER_WIDTH - (xCount - 1) * this._marginLeft) / xCount) - 6;
         let height = Math.floor((this.PAPER_HEIGHT - (yCount - 1) * this._marginBottom) / yCount) - 6;

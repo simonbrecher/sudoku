@@ -1,20 +1,50 @@
+/**
+ * Class for saving settings for creating new sudokus and creating sudoku objects.
+ *
+ * First it creates solution. (for abc it creates solutions same way as regular sudoku, after that it changes multiple numbers to spaces)
+ *      It sets first square with multiple possible values to random one of them.
+ *      Then it calls Solver.solve(). (without it it can make sudoku up to 4x4, but with it it can make 5x5 (has 625 squares) in seconds.)
+ *      Repeat previous two.
+ *      If solution is incorrect, start again. (For sudoku of regular sizes, it does not have to do it many times.)
+ *
+ * Then from solution it creates task.
+ *      Try to remove each prompter in random order.
+ *      If after removing a prompter, the sudoku is unsolvable, return it back.
+ */
 class SudokuBuilder {
-    private static _size: number;
-    private static _isRectangular: boolean;
-    private static _rectangleWidth: number | null;
-    private static _rectangleHeight: number | null;
-    private static _isDiagonal: boolean;
-    private static _isVX: boolean;
-    private static _vxSum: [number, string][] | null;
-    private static _prompterNumMin: number | null;
-    private static _prompterNumMax: number | null;
-    private static _isKropki: boolean;
-    private static _isABC: boolean;
-    private static _abcNumber: number | null;
+    private static _size: number; // width, height of puzzle
+    private static _isRectangular: boolean; // true = every number must be exactly once in each of rectangle
+    private static _rectangleWidth: number | null; // width of rectangle (and number of rectangles in y direction)
+    private static _rectangleHeight: number | null; // height of rectangle (and number of rectangles in x direction)
+    private static _isDiagonal: boolean; // true = every number must be exactly once in each of two diagonals
+    private static _isVX: boolean; // true = VX variation
+    private static _vxSum: [number, string][] | null; // specification of VX - sum and character (default: [[5, "V"], [10, "X"]])
+    private static _prompterNumMin: number | null; // minimal number of prompters (does not work for kropki and abc)
+    private static _prompterNumMax: number | null; // maximal number of prompters (does not work for kropki and abc)
+    private static _isKropki: boolean; // true = kropki variation
+    private static _isABC: boolean; // true = abc variation
+    private static _abcNumber: number | null; // number of letters in abc
 
+    /**
+     * First the SudokuBuilder tries to create solution for sudoku. This is how many times it tries for one task.
+     * (If it fails to create solution MAX_TRIES_SOLUTION times, it counts as failing creating task once.)
+     * (After one SudokuBuilder.build() it tries to create solution maximally MAX_TRIES_SOLUTION*MAX_TRIES_TASK times.)
+     *
+     * Creating solution for "normal-setting" sudoku fails around once per SudokuBuilder.build()
+     * This will only make trouble if you try to create sudoku with non standard requirements.
+     */
     private static readonly MAX_TRIES_SOLUTION = 1000;
+    /**
+     * After a solution is created, it tries to create a task.
+     * Creating task can be failed by not being able to have a low amount prompters or because big abc can not be solved with all prompters.
+     *
+     * If creating task is failed MAX_TRIES_TASK times, it SudokuBuilder.build() returns null and a warning is written to console.
+     */
     private static readonly MAX_TRIES_TASK = 300;
 
+    /**
+     * Keeps track of how many times was failed to create solution or task.
+     */
     private static readonly STATS = {
         solutionTries: 0,
         taskTries: 0,
@@ -52,14 +82,23 @@ class SudokuBuilder {
         }
     };
 
+    /**
+     * @param doPrint       true = after creating sudoku, print hwo many times was creating task or solution failed
+     */
     public static setDoPrint(doPrint: boolean): void {
         this.STATS.doPrint = doPrint;
     }
 
+    /**
+     * Instead of static constructor.
+     */
     private static setDefault = (() => {
         SudokuBuilder.default();
     })();
 
+    /**
+     * Set default value for all settings. (For creating sudoku.)
+     */
     public static default(): void {
         this._size = 9;
         this._isRectangular = true;
@@ -75,6 +114,9 @@ class SudokuBuilder {
         this._abcNumber = null;
     }
 
+    /**
+     * Set sudoku to have no special variation. (Only for variations that are not compatible together)
+     */
     private static removeVariation(): void {
         this._isVX = false;
         this._vxSum = null;
@@ -83,6 +125,11 @@ class SudokuBuilder {
         this._abcNumber = null;
     }
 
+    /**
+     * Create sudoku.
+     *
+     * @return      ISudoku | null (if it fails)
+     */
     public static build(): ISudoku | null {
         let sudoku = new Sudoku(
             this._size,
@@ -117,6 +164,15 @@ class SudokuBuilder {
         }
     }
 
+    /**
+     * From solution, create task for abc.
+     *
+     * It first counts first visible letters from all directions.
+     * If abc is unsolvable with them, return null.
+     * Then it repeatedly tries to remove a prompter. If it is not solvable without it, returns it back.
+     *
+     * @return      sudoku.task | null
+     */
     private static getAbcTask(parent: ISudoku): number[][] | null {
         let solution = parent.solution;
 
@@ -176,6 +232,13 @@ class SudokuBuilder {
         return task;
     }
 
+    /**
+     * From solution, create task for non-abc.
+     *
+     * Call SudokuBuilder.getTaskTry() multiple times. If it fails every time, return null
+     *
+     * @return      true = task was successfully created
+     */
     private static getTask(parent: ISudoku): boolean {
         let isTaskSuccess = false;
 
@@ -199,6 +262,13 @@ class SudokuBuilder {
         return isTaskSuccess;
     }
 
+    /**
+     * Create solution. Set solution to Sudoku object, if it succeeds.
+     *
+     * Call SudokuBuilder.getSolutionTry() multiple times.
+     *
+     * @return      true = successfully created solution
+     */
     private static getSolution(parent: ISudoku): boolean {
         parent.hasSolution = false;
 
@@ -229,6 +299,18 @@ class SudokuBuilder {
         return isSolutionSuccess;
     }
 
+    /**
+     * Create solution.
+     *
+     * Start with board, where every number can be everywhere.
+     * Find first square with multiple possible numbers. Set it to random of them.
+     * Call Solver.solve() to remove possible numbers, which can not be somewhere. (This greatly improves change of success.)
+     * Repeat previous two.
+     *
+     * In the end, check if sudoku is valid. If not, return null.
+     *
+     * @return      sudoku.solution | null (if it fails)
+     */
     private static getSolutionTry(parent: ISudoku): number[][] | null {
         let solution = Utils.createEmptyBoard(parent);
         for (let y = 0; y < parent.size; y++) {
@@ -264,6 +346,14 @@ class SudokuBuilder {
         return solution;
     }
 
+    /**
+     * Create task for non-abc from solution.
+     *
+     * Remove prompters in random order.
+     * If it is unsolvable, give the prompter back.
+     *
+     * If task does not satisfy the requirements (mainly maximum number of prompters), return null.
+     */
     private static getTaskTry(parent: ISudoku): number[][] | null {
         if (parent.isABC) {
             return this.getAbcTask(parent);
@@ -312,6 +402,10 @@ class SudokuBuilder {
         return task;
     }
 
+    /**
+     * Set size of sudoku. Sudoku will automatically not have any rectangles.
+     * @param size      Width, height of sudoku.
+     */
     public static size(size: number): void {
         this._size = size;
         this._isRectangular = false;
@@ -319,6 +413,9 @@ class SudokuBuilder {
         this._rectangleHeight = null;
     }
 
+    /**
+     * Set: Does sudoku have rectangles, where every number is once? Size of rectangles.
+     */
     public static rectangular(isRectangular: boolean, rectangleWidth: number | null = null, rectangleHeight: number | null = null): void {
         if (isRectangular && rectangleWidth !== null && rectangleHeight !== null) {
             this._isRectangular = true;
@@ -332,10 +429,18 @@ class SudokuBuilder {
         }
     }
 
+    /**
+     * Set: Is sudoku diagonal?
+     */
     public static diagonal(isDiagonal: boolean): void {
         this._isDiagonal = isDiagonal;
     }
 
+    /**
+     * Set: Is sudoku VX variation?
+     * @param isVX      is VX variation
+     * @param vxSum     sums and their character (default [[5, "V"], ["X", 10]])
+     */
     public static vxSum(isVX: boolean, vxSum: [number, string][] | null = null): void {
         this.removeVariation();
 
@@ -348,6 +453,11 @@ class SudokuBuilder {
         }
     }
 
+    /**
+     * Set minimal and maximal number of propmter.
+     * @param prompterNumMin        Minimal number of prompter, null = not limited
+     * @param prompterNumMax        Maximal number of prompter, null = not limited
+     */
     public static prompterNum(prompterNumMin: number | null = null, prompterNumMax: number | null = null): void {
         if (prompterNumMin !== null && prompterNumMax !== null) {
             if (prompterNumMin > prompterNumMax) {
@@ -358,12 +468,20 @@ class SudokuBuilder {
         this._prompterNumMax = prompterNumMax;
     }
 
+    /**
+     * Set: Is sudoku kropki variant?
+     */
     public static kropki(isKropki: boolean): void {
         this.removeVariation();
 
         this._isKropki = isKropki;
     }
 
+    /**
+     * Set: Is abc variant?
+     * @param isABC         is abc variant?
+     * @param abcNumber     number of letters in each row/column
+     */
     public static abc(isABC: boolean, abcNumber: number | null): void {
         if (isABC && abcNumber !== null) {
             this._isABC = true;
