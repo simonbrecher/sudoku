@@ -91,6 +91,20 @@ class Renderer {
     }
 
     /**
+     * Convert int you get from Utils.valueToChar() to string, which is later displayed on that square.
+     *
+     * For sudoku it is only a matter of type.
+     * For Abc: 1 -> "-", 2 -> "A", 3 -> "B" ...
+     */
+    public static valueToChar(value: number, parent: ISudoku): string {
+        if (parent.isABC) {
+            return ["-", "A", "B", "C", "D", "E", "F", "G", "H", "I"][value - 1];
+        }
+
+        return value.toString();
+    }
+
+    /**
      * Convert binary representation of square to string value, which is viewed. (or array if there can be multiple numbers)
      * @param binary                Binary representation of square
      * @param squareInnerCount      Maximal number of numbers, otherwise it is viewed as empty square
@@ -101,8 +115,8 @@ class Renderer {
         if (bitCount > squareInnerCount) {
             return " ";
         }
-        if (parent.isABC && parent.abcNumber !== null) {
-            if (binary === (1 << parent.abcNumber + 1) - 1) {
+        if (parent.isABC && parent.abcCount !== null) {
+            if (binary === (1 << parent.abcCount + 1) - 1) {
                 return " ";
             }
         } else {
@@ -111,7 +125,7 @@ class Renderer {
             }
         }
         if (bitCount === 1) {
-            return Utils.valueToChar(Utils.binaryToValue(binary), parent);
+            return this.valueToChar(Utils.binaryToValue(binary), parent);
         }
         if (binary === 0) {
             return this.zeroSymbol;
@@ -120,7 +134,7 @@ class Renderer {
         let number = 1;
         while (binary !== 0) {
             if ((binary & 1) === 1) {
-                values.push(Utils.valueToChar(number, parent));
+                values.push(this.valueToChar(number, parent));
             }
             binary >>>= 1;
             number += 1;
@@ -253,8 +267,8 @@ class Renderer {
                     }
                 }
                 column.appendChild(div);
-                if (parent?.isABC && y === 0 && x === 0 && parent.abcNumber !== null) {
-                    div.textContent = parent.abcNumber.toString();
+                if (parent?.isABC && y === 0 && x === 0 && parent.abcCount !== null) {
+                    div.textContent = parent.abcCount.toString();
                     div.classList.add("square-full");
                     div.classList.add("small-font");
                 } else if (typeof renderBoard[y][x] === "string") {

@@ -13,7 +13,7 @@
  *      0 = this number can not be on this square
  *
  *      0b111111111 = all numbers from 1 to 9 can be on this square (empty square in sudoku 3x3)
- *      0b001000000 = only number 7 can be on this square (could be prompter or we solved this square)
+ *      0b001000000 = only number 7 can be on this square (could be given digits or we solved this square)
  *      0b001010000 = on this square is 5 or 7.
  *      0b000000000 = error (sudoku is not solvable)
  */
@@ -28,18 +28,18 @@ class Sudoku implements ISudoku {
     public readonly rectangleHeight: number | null;
     // true = all numbers in each of 2 diagonals must be different
     public readonly isDiagonal: boolean;
-    // vx variation
+    // vx variant
     public readonly isVX: boolean;
     // sums and their character, they have between them in vx sudoku (default setting is [[5, "V"], [10, "X"])
     public readonly vxSum: [number, string][] | null;
-    // kropki variation
+    // kropki variant
     public readonly isKropki: boolean;
     // Easy as abc
     public readonly isABC: boolean;
     // number of letters in "Easy as abc"
-    public readonly abcNumber: number | null;
+    public readonly abcCount: number | null;
     // number of spaces in "Easy as abc" (is calculated from sudoku.size and sudoku.abcNumber)
-    public readonly abcSpaceNumber: number | null;
+    public readonly abcSpaceCount: number | null;
 
     /**
      * 2d array of binary representations of all squares of sudoku. [y][x]
@@ -52,7 +52,7 @@ class Sudoku implements ISudoku {
      *      0 = this number can not be on this square
      *
      *      0b111111111 = all numbers from 1 to 9 can be on this square (empty square in sudoku 3x3)
-     *      0b001000000 = only number 7 can be on this square (could be prompter or we solved this square)
+     *      0b001000000 = only number 7 can be on this square (could be given digits or we solved this square)
      *      0b001010000 = on this square is 5 or 7.
      *      0b000000000 = error
      *
@@ -68,7 +68,7 @@ class Sudoku implements ISudoku {
      *      first dimension is direction: 0 = first in line, 1 = last in line, 2 = first in column, 3 = last in column
      *      Dimensions: 4, size
      *      (
-     *      btw. abc can not have any prompters other than on side, because this variable is used for something else
+     *      btw. abc can not have any given digits other than on side, because this variable is used for something else
      *      this feature was removed in main branch, there "easy as abc" and similar puzzles have variable sudoku.sideTask
      *      )
      */
@@ -84,7 +84,7 @@ class Sudoku implements ISudoku {
      *
      * For kropki:
      *      While creating solution, the Solver.solve() is used quite often. It needs to work same way as regular sudoku (because solution is same)
-     *      Kropki by default has no prompters and task is not required to have single solution (by usually has),
+     *      Kropki by default has no given digits and task is not required to have single solution (by usually has),
      *          so Solver.solve() always returns sudoku.solution variable (so it is considered solvable)
      *
      * For abc:
@@ -201,12 +201,12 @@ class Sudoku implements ISudoku {
 
         if (isABC && abcNumber !== null) {
             this.isABC = true;
-            this.abcNumber = abcNumber;
-            this.abcSpaceNumber = size - abcNumber;
+            this.abcCount = abcNumber;
+            this.abcSpaceCount = size - abcNumber;
         } else {
             this.isABC = false;
-            this.abcNumber = null;
-            this.abcSpaceNumber = null;
+            this.abcCount = null;
+            this.abcSpaceCount = null;
         }
 
         this._solution = Utils.createEmptyBoard(this);

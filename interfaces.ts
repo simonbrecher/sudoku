@@ -4,7 +4,7 @@ interface ISudoku {
     isDiagonal: boolean;
     isVX: boolean; vxSum: [number, string][] | null;
     isKropki: boolean;
-    isABC: boolean; abcNumber: number | null; abcSpaceNumber: number | null;
+    isABC: boolean; abcCount: number | null; abcSpaceCount: number | null;
 
     isFinished: boolean;
     hasSolution: boolean;

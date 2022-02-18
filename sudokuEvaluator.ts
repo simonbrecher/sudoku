@@ -11,7 +11,7 @@
  * If no block has 1 or 2 squares are present, it calls Solver.solveEvaluator() to adds squares which can be solved with 1 rule.
  * It then fills (only) one square from solved squares and gives 1/n difficulty points. (n = number of solvable squares)
  *
- * For allowing as little prompters as possible (around 21-24)
+ * For allowing as little given digits as possible (around 21-24)
  * Difficulty 2 = easy
  * Difficulty 8 = hard
  * It might take long time to create sudoku with difficulty outside this range.
@@ -96,7 +96,7 @@ class SudokuEvaluator {
     /**
      * Count number of known digits.
      */
-    private static getPrompterNum(board: number[][], parent: ISudoku): number {
+    private static getGivenDigitCount(board: number[][], parent: ISudoku): number {
         let total = 0;
         for (let y = 0; y < parent.size; y++) {
             for (let x = 0; x < parent.size; x++) {
@@ -114,21 +114,13 @@ class SudokuEvaluator {
      */
     private static solveFree(board: number[][], parent: ISudoku): number[][] {
         let lastExtraNum = -1;
-        let extraNum = Utils.getExtraNum(board);
-
-        // Renderer.zeroSymbol = " ";
-        // Renderer.render(board, parent, null, "red");
-        // Renderer.zeroSymbol = "?";
+        let extraNum = Utils.getExtraDigitsCount(board);
 
         while (lastExtraNum !== extraNum) {
             lastExtraNum = extraNum;
             board = this.solveFreeCycle(board, parent);
 
-            extraNum = this.getPrompterNum(board, parent);
-
-            // Renderer.zeroSymbol = " ";
-            // Renderer.render(board, parent, null, "red");
-            // Renderer.zeroSymbol = "?";
+            extraNum = this.getGivenDigitCount(board, parent);
         }
 
         return board;
@@ -174,10 +166,10 @@ class SudokuEvaluator {
      */
     private static solve(board: number[][], parent: ISudoku): number {
         let points = 0;
-        while (this.getPrompterNum(board, parent) !== parent.size * parent.size) {
+        while (this.getGivenDigitCount(board, parent) !== parent.size * parent.size) {
             board = this.solveFree(board, parent);
 
-            if (this.getPrompterNum(board, parent) === parent.size * parent.size) {
+            if (this.getGivenDigitCount(board, parent) === parent.size * parent.size) {
                 return points;
             }
 
@@ -246,7 +238,7 @@ class SudokuEvaluator {
      */
     public static evaluate(inputBoard: number[][], parent: ISudoku, tries: number = 1): number {
         if (! parent.isRectangular || parent.isDiagonal || parent.isVX || parent.isKropki || parent.isABC) {
-            throw "SudokuEvaluator->evaluate - CAN NOT EVALUATE VARIATIONS";
+            throw "SudokuEvaluator->evaluate - CAN NOT EVALUATE VARIANTS";
         }
 
         let totalPoints = 0;

@@ -60,16 +60,16 @@
     let minPoints = 7;<br>
     let maxPoints = 10;<br>
     let tries = 128;<br>
-    let sudoku6<br>
+    let sudoku6;<br>
     [sudoku6, points] = SudokuEvaluator.build(minPoints, maxPoints, tries); <c>// 2 = easy, 7 = hard</c><br>
     Renderer.render(sudoku6?.task, sudoku6);<br>
     SudokuBuilder.setDoPrint(true);<br>
     <br>
-    <c>// Sudoku with more prompters</c><br>
+    <c>// Sudoku with more given digits</c><br>
     SudokuBuilder.rectangular(true, 3, 3);<br>
-    SudokuBuilder.prompterNum(55, null); <c>// minimum, maximum</c><br>
+    SudokuBuilder.givenCount(55, null); <c>// minimum, maximum</c><br>
     let sudoku7 = SudokuBuilder.build();<br>
-    SudokuBuilder.prompterNum(null, null);<br>
+    SudokuBuilder.givenCount(null, null);<br>
     Renderer.render(sudoku7?.task, sudoku7);<br>
     <br>
     <c>// Sudoku solution</c><br>

@@ -47,22 +47,23 @@ function main(): void {
     let minPoints = 7;
     let maxPoints = 10;
     let tries = 128;
-    let sudoku6
+    let sudoku6;
     [sudoku6, points] = SudokuEvaluator.build(minPoints, maxPoints, tries); // 2 = easy, 7 = hard
     Renderer.render(sudoku6?.task, sudoku6);
     SudokuBuilder.setDoPrint(true);
 
-    // Sudoku with more prompters
+    // Sudoku with more given digits
     SudokuBuilder.rectangular(true, 3, 3);
-    SudokuBuilder.prompterNum(55, null); // minimum, maximum
+    SudokuBuilder.givenCount(55, null); // minimum, maximum
     let sudoku7 = SudokuBuilder.build();
-    SudokuBuilder.prompterNum(null, null);
+    SudokuBuilder.givenCount(null, null);
     Renderer.render(sudoku7?.task, sudoku7);
 
     // Sudoku solution
     SudokuBuilder.rectangular(true, 3, 3);
     let sudoku8 = SudokuBuilder.build();
     Renderer.render(sudoku8?.solution, sudoku8);
+    Renderer.render(sudoku8?.solution, sudoku8, sudoku8?.task);
 
     // Easy as abc
     SudokuBuilder.size(6);

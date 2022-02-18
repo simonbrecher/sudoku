@@ -3,63 +3,6 @@
  */
 class Utils {
     /**
-     * Gen binary representation of prompter on side of abc
-     * @param dir           0: row from left, 1: row from right, 2: column from top, 3: column from bottom
-     * @param position      x/y coordinate of row/column
-     * @param task          sudoku.task (the abc version)
-     */
-    public static getAbcFirstValue(dir: number, position: number, task: number[][]): number {
-        return task[dir][position];
-    }
-
-    /**
-     * Get binary representation of prompter on the other side of abc
-     * @param dir           0: row from left, 1: row from right, 2: column from top, 3: column from bottom
-     * @param position      x/y coordinate of row/column
-     * @param task          sudoku.task (the abc version)
-     */
-    public static getAbcLastValue(dir: number, position: number, task: number[][]): number {
-        return task[dir ^ 1][position];
-    }
-
-    /**
-     * Get binary representation of all numbers that are not on prompter on any side in row/column
-     * @param dir           0: row from left, 1: row from right, 2: column from top, 3: column from bottom
-     * @param position      x/y coordinate of row/column
-     * @param task          sudoku.task (the abc version)
-     */
-    public static getAbcMiddleValue(dir: number, position: number, task: number[][], parent: ISudoku): number {
-        if (parent.abcNumber === null) {
-            throw "Utils->getAbcMiddle - parent.abcNumber === null";
-        }
-        return (1 << parent.abcNumber + 1) - 2 & ~ this.getAbcFirstValue(dir, position, task) & ~ this.getAbcLastValue(dir, position, task);
-    }
-
-    /**
-     * Get data for iterating all squares in one row/column in a specific direction.
-     * @param dir           0: row from left, 1: row from right, 2: column from top, 3: column from bottom
-     * @param position      x/y coordinate of row/column
-     * @return              [[xStart, yStart][xMove, yMove]]
-     * if i is order of square in row/column then:
-     *      x = xStart + xMove * i
-     *      y = yStart + yMove * i
-     */
-    public static getAbcDirection(dir: number, position: number, parent: ISudoku): number[][] {
-        switch (dir) {
-            case 0:
-                return [[0, position], [1, 0]];
-            case 1:
-                return [[parent.size - 1, position], [-1, 0]];
-            case 2:
-                return [[position, 0], [0, 1]];
-            case 3:
-                return [[position, parent.size - 1], [0, -1]];
-            default:
-                throw "Utils->getAbcDirection - WRONG DIRECTION ID";
-        }
-    }
-
-    /**
      * Count number of 1 bits in int32
      * @param binary    Binary representation of a square.
      * @return          Number of bits with 1.
@@ -89,12 +32,12 @@ class Utils {
     }
 
     /**
-     * Return number of prompters in task of sudoku.
-     * !! ONLY WORKS FOR PROMPTER THAT ARE NOT ON SIDE. IF GENERATING ABC TASK, NUMBER OF PROMPTERS IS ALWAYS 0.
+     * Return number of known digits in task of sudoku.
+     * !! ONLY WORKS FOR KNOWN DIGITS THAT ARE NOT ON SIDE. IF GENERATING ABC TASK, NUMBER OF GIVEN DIGITS IS ALWAYS 0.
      * @param board     2d array of binary representations of squares.
      * @return          Number of binary representations with one bit with 1.
      */
-    public static getPrompterNum(board: number[][]): number {
+    public static getKnownDigitsCount(board: number[][]): number {
         let total = 0;
         for (let y = 0; y < board.length; y++) {
             for (let x = 0; x < board[y].length; x++) {
@@ -112,7 +55,7 @@ class Utils {
      * @param board     2d array of binary representations of squares.
      * @return          SUM { ( number of 1 bits ) - 1 }
      */
-    public static getExtraNum(board: number[][]): number {
+    public static getExtraDigitsCount(board: number[][]): number {
         let total = 0;
         for (let y = 0; y < board.length; y++) {
             for (let x = 0; x < board[y].length; x++) {
@@ -149,12 +92,12 @@ class Utils {
      * forceHasSolution == false -> if puzzle is abc, it will have shorter binary representation of square than sudoku, only if solution has already been generated
      */
     public static createEmptyBoard(parent: ISudoku, forceHasSolution: boolean = false): number[][] {
-        if (parent.isABC && parent.abcNumber !== null && (parent.hasSolution || forceHasSolution)) {
+        if (parent.isABC && parent.abcCount !== null && (parent.hasSolution || forceHasSolution)) {
             let board = [];
             for (let y = 0; y < parent.size; y++) {
                 let row = [];
                 for (let x = 0; x < parent.size; x++) {
-                    row.push((1 << parent.abcNumber + 1) - 1);
+                    row.push((1 << parent.abcCount + 1) - 1);
                 }
                 board.push(row);
             }
@@ -197,7 +140,7 @@ class Utils {
     /**
      * Converts binary representation of a square to number, that it represents.
      *
-     * In sudoku it is used by variations like kropki (or possibly killer)
+     * In sudoku it is used by variants like kropki and vx sudoku.
      * It is used also by abc, before converting to letter representation.
      *
      * Sudoku: 0b1 -> 1, 0b10 -> 2, 0b100 -> 3 ...
@@ -242,13 +185,18 @@ class Utils {
      * Shuffle and return array.
      */
     private static shuffle(arr: any[]): any[] {
-        return arr.map((value) => ({ value, sort: Math.random() }))
-            .sort((a, b) => a.sort - b.sort)
-            .map(({ value }) => value);
+        for (let i = 0; i < arr.length; i++) {
+            let randomNumber = Math.floor(Math.random() * (arr.length - i)) + i;
+            let a = arr[i];
+            arr[i] = arr[randomNumber];
+            arr[randomNumber] = a;
+        }
+
+        return arr;
     }
 
     /**
-     * Get random order in which prompters will be removed from task, while creating task from solution.
+     * Get random order in which given digits will be removed from task, while creating task from solution.
      * @param parent    sudoku object
      * @return          [x, y][] - positions of squares in random order
      */
@@ -264,17 +212,12 @@ class Utils {
             height = parent.size;
         }
 
-        // let removeFirstBinary = 1 << Math.floor(Math.random() * parent.size);
         let beginning = [];
         let arr: number[][] = [];
         for (let y = 0; y < height; y++) {
             for (let x = 0; x < width; x++) {
                 if (solution === null) {
                     arr.push([x, y]);
-                // } else if (solution[y][x] === removeFirstBinary && parent.isRemoveOne) {
-                //     beginning.push([x, y]);
-                // } else if (isVX && isSquareInVxSum[y][x]) {
-                //     beginning.push([x, y]);
                 } else {
                     arr.push([x, y]);
                 }
@@ -300,97 +243,6 @@ class Utils {
             copied.push(row);
         }
         return copied;
-    }
-
-    /**
-     * Convert int you get from Utils.valueToChar() to string, which is later displayed on that square.
-     *
-     * For sudoku it is only a matter of type.
-     * For Abc: 1 -> "-", 2 -> "A", 3 -> "B" ...
-     */
-    public static valueToChar(value: number, parent: ISudoku): string {
-        if (parent.isABC) {
-            return ["-", "A", "B", "C", "D", "E", "F", "G", "H", "I"][value - 1];
-        }
-
-        return value.toString();
-    }
-
-    /**
-     * Check if VX sudoku has any prompter in square, which has V or X on any of its sides.
-     * The reason for this is, that having prompter in square with V or X will ensure, that the other square will have known value.
-     * I don't want to allow that.
-     * @param task      2d array of binary representations of squares
-     * @param parent    Sudoku object
-     * @return          true iff any square with V or X is prompter (V and X in default settings, but it can be any sum)
-     */
-    public static hasPrompterInSum(task: number[][], parent: ISudoku): boolean {
-        let solutionValues = this.getSolutionValues(parent.solution);
-        for (let y = 0; y < parent.size; y++) {
-            for (let x = 0; x < parent.size; x++) {
-                if (this.countBits32(task[y][x]) === 1) {
-                    if (x !== 0) {
-                        if (parent.getVxSumName(solutionValues[y][x] + solutionValues[y][x - 1]) !== null) {
-                            return true;
-                        }
-                    }
-                    if (x !== parent.size - 1) {
-                        if (parent.getVxSumName(solutionValues[y][x] + solutionValues[y][x + 1]) !== null) {
-                            return true;
-                        }
-                    }
-                    if (y !== 0) {
-                        if (parent.getVxSumName(solutionValues[y][x] + solutionValues[y - 1][x]) !== null) {
-                            return true;
-                        }
-                    }
-                    if (y !== parent.size - 1) {
-                        if (parent.getVxSumName(solutionValues[y][x] + solutionValues[y + 1][x]) !== null) {
-                            return true;
-                        }
-                    }
-                }
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Check if it can be easily determined that abc has multiple solutions with all prompters on side.
-     *
-     * In 2x2 block it can be determined, when abc has multiple solutions:
-     *
-     * A-   can also be   -A   this is used to reduce number of tries we have to generate solution for abc
-     * -A                 A-
-     *
-     * @param solution      Solution of abc puzzle
-     * @param parent        Abc object (Same as Sudoku object)
-     */
-    public static checkAbcSolutionUnambiguity(solution: number[][], parent: ISudoku): boolean {
-        for (let i = 0; i < 3; i++) {
-            let sizeX, sizeY;
-            [sizeX, sizeY] = [[2, 2], [2, 3], [3, 2]][i];
-            for (let y = 0; y <= parent.size - sizeY; y++) {
-                for (let x = 0; x <= parent.size - sizeX; x++) {
-                    let possible = 0;
-                    let numberCount = 0;
-                    for (let relativeY = 0; relativeY < sizeY; relativeY++) {
-                        for (let relativeX = 0; relativeX < sizeX; relativeX++) {
-                            possible |= solution[y + relativeY][x + relativeX];
-                            if (solution[y + relativeY][x + relativeX] !== 1) {
-                                numberCount ++;
-                            }
-                        }
-                    }
-                    if (this.countBits32(possible) === 1 && numberCount >= 2) {
-                        return false;
-                    }
-                }
-            }
-        }
-
-        return true;
     }
 
     /**

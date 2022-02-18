@@ -15,7 +15,7 @@
  *      0 = this number can not be on this square
  *
  *      0b111111111 = all numbers from 1 to 9 can be on this square (empty square in sudoku 3x3)
- *      0b001000000 = only number 7 can be on this square (could be prompter or we solved this square)
+ *      0b001000000 = only number 7 can be on this square (could be given digits or we solved this square)
  *      0b001010000 = on this square is 5 or 7.
  *      0b000000000 = error
  *
@@ -31,10 +31,67 @@ class Solver {
     //          ABC
 
     /**
+     * Gen binary representation of first visible number on side of abc
+     * @param dir           0: row from left, 1: row from right, 2: column from top, 3: column from bottom
+     * @param position      x/y coordinate of row/column
+     * @param task          sudoku.task (the abc version)
+     */
+    public static getAbcFirstValue(dir: number, position: number, task: number[][]): number {
+        return task[dir][position];
+    }
+
+    /**
+     * Get binary representation of first visible number on the other side of abc
+     * @param dir           0: row from left, 1: row from right, 2: column from top, 3: column from bottom
+     * @param position      x/y coordinate of row/column
+     * @param task          sudoku.task (the abc version)
+     */
+    public static getAbcLastValue(dir: number, position: number, task: number[][]): number {
+        return task[dir ^ 1][position];
+    }
+
+    /**
+     * Get binary representation of all numbers that are not on first or last visible on any side in row/column
+     * @param dir           0: row from left, 1: row from right, 2: column from top, 3: column from bottom
+     * @param position      x/y coordinate of row/column
+     * @param task          sudoku.task (the abc version)
+     */
+    public static getAbcMiddleValue(dir: number, position: number, task: number[][], parent: ISudoku): number {
+        if (parent.abcCount === null) {
+            throw "Utils->getAbcMiddle - parent.abcNumber === null";
+        }
+        return (1 << parent.abcCount + 1) - 2 & ~ this.getAbcFirstValue(dir, position, task) & ~ this.getAbcLastValue(dir, position, task);
+    }
+
+    /**
+     * Get data for iterating all squares in one row/column in a specific direction.
+     * @param dir           0: row from left, 1: row from right, 2: column from top, 3: column from bottom
+     * @param position      x/y coordinate of row/column
+     * @return              [[xStart, yStart][xMove, yMove]]
+     * if i is order of square in row/column then:
+     *      x = xStart + xMove * i
+     *      y = yStart + yMove * i
+     */
+    public static getAbcDirection(dir: number, position: number, parent: ISudoku): number[][] {
+        switch (dir) {
+            case 0:
+                return [[0, position], [1, 0]];
+            case 1:
+                return [[parent.size - 1, position], [-1, 0]];
+            case 2:
+                return [[position, 0], [0, 1]];
+            case 3:
+                return [[position, parent.size - 1], [0, -1]];
+            default:
+                throw "Utils->getAbcDirection - WRONG DIRECTION ID";
+        }
+    }
+
+    /**
      * If there can be only one value in square, it can not be anywhere else in row or column.
      */
     private static solveAbcOneInSquare(board: number[][], parent: ISudoku): number[][] {
-        if (parent.abcSpaceNumber === null) {
+        if (parent.abcSpaceCount === null) {
             return board;
         }
         let hasOneNumber = Utils.getHasOneBit(board);
@@ -49,7 +106,7 @@ class Solver {
                     rowOne |= board[y][x];
                 }
             }
-            let notRemove = (spaceCount < parent.abcSpaceNumber) ? (~ rowOne) : (~ (rowOne | 1));
+            let notRemove = (spaceCount < parent.abcSpaceCount) ? (~ rowOne) : (~ (rowOne | 1));
             for (let x = 0; x < parent.size; x++) {
                 if (! hasOneNumber[y][x]) {
                     board[y][x] &= notRemove;
@@ -67,7 +124,7 @@ class Solver {
                     columnOne |= board[y][x];
                 }
             }
-            let notRemove = (spaceCount < parent.abcSpaceNumber) ? (~ columnOne) : (~ (columnOne | 1));
+            let notRemove = (spaceCount < parent.abcSpaceCount) ? (~ columnOne) : (~ (columnOne | 1));
             for (let y = 0; y < parent.size; y++) {
                 if (! hasOneNumber[y][x]) {
                     board[y][x] &= notRemove;
@@ -118,7 +175,7 @@ class Solver {
     }
 
     /**
-     * Rule that solves row/column WITH PROMPTERS ON BOTH SIDES as much as possible.
+     * Rule that solves row/column with known first and last visible letters as much as possible.
      * Lets assume that digit "A" is prompter on one side and letter "D" is prompter on other side.
      *
      * Go trough the whole line.
@@ -136,15 +193,15 @@ class Solver {
      * @param position      x/y coordinate of row/column
      */
     private static solveAbcPrompterBoth(board: number[][], parent: ISudoku, task: number[][], dir: number, position: number): number[][] {
-        if (parent.abcNumber === null) {
+        if (parent.abcCount === null) {
             return board;
         }
 
-        let firstValue = Utils.getAbcFirstValue(dir, position, task); // first visible letter
-        let middleValue = Utils.getAbcMiddleValue(dir, position, task, parent); // NOT first or last visible letter
-        let lastValue = Utils.getAbcLastValue(dir, position, task); // last visible letter (first from other side)
+        let firstValue = this.getAbcFirstValue(dir, position, task); // first visible letter
+        let middleValue = this.getAbcMiddleValue(dir, position, task, parent); // NOT first or last visible letter
+        let lastValue = this.getAbcLastValue(dir, position, task); // last visible letter (first from other side)
         let startX, startY, moveX, moveY;
-        [[startX, startY], [moveX, moveY]] = Utils.getAbcDirection(dir, position, parent);
+        [[startX, startY], [moveX, moveY]] = this.getAbcDirection(dir, position, parent);
         let firstFound = false; // until meeting first letter, there can not be anything else than first letter and space
         let middleNotFound = middleValue; // binary representations of all (not first or last) letters that we did not find
         let middleFoundCount = 0; // how many (not first or last) numbers we found (we can count single letter multiple times)
@@ -165,7 +222,7 @@ class Solver {
                 }
                 board[y][x] &= ~ lastValue; // there can not be last letter (because other letters wouldn't fit in previous squares)
             }
-            if (firstFound && middleNotFound === 0 && middleFoundCount >= parent.abcNumber - 2) {
+            if (firstFound && middleNotFound === 0 && middleFoundCount >= parent.abcCount - 2) {
                 break;
             }
         }
@@ -177,14 +234,14 @@ class Solver {
      * Same as Solver.solveAbcPrompterBoth(), but when last visible letter is unknown.
      */
     private static solveAbcPrompterFirst(board: number[][], parent: ISudoku, task: number[][], dir: number, position: number): number[][] {
-        if (parent.abcNumber === null || parent.abcSpaceNumber === null) {
+        if (parent.abcCount === null || parent.abcSpaceCount === null) {
             return board;
         }
 
-        let firstValue = Utils.getAbcFirstValue(dir, position, task);
-        let middleValue = Utils.getAbcMiddleValue(dir, position, task, parent);
+        let firstValue = this.getAbcFirstValue(dir, position, task);
+        let middleValue = this.getAbcMiddleValue(dir, position, task, parent);
         let startX, startY, moveX, moveY;
-        [[startX, startY], [moveX, moveY]] = Utils.getAbcDirection(dir, position, parent);
+        [[startX, startY], [moveX, moveY]] = this.getAbcDirection(dir, position, parent);
         let firstFound = false;
         let middleFound = false;
         for (let i = 0; i < parent.size; i++) {
@@ -197,7 +254,7 @@ class Solver {
                 } else {
                     board[y][x] &= 1;
                 }
-            } else if (middleFound || i > parent.abcSpaceNumber) {
+            } else if (middleFound || i > parent.abcSpaceCount) {
                 board[y][x] &= middleValue | 1;
             } else if ((board[y][x] & middleValue) !== 0 && Utils.countBits32(board[y][x]) === 1) {
                 middleFound = true;
@@ -216,8 +273,8 @@ class Solver {
         let task = parent.task;
         for (let dir = 0; dir < 4; dir++) {
             for (let position = 0; position < parent.size; position++) {
-                let firstValue = Utils.getAbcFirstValue(dir, position, task);
-                let lastValue = Utils.getAbcLastValue(dir, position, task);
+                let firstValue = this.getAbcFirstValue(dir, position, task);
+                let lastValue = this.getAbcLastValue(dir, position, task);
                 if (firstValue !== 0 && lastValue !== 0) {
                     board = this.solveAbcPrompterBoth(board, parent, task, dir, position);
                 } else if (firstValue !== 0) {
@@ -587,12 +644,12 @@ class Solver {
         let board = Utils.deepcopyBoard(inputBoard);
 
         let lastExtraNum = -1;
-        let extraNum = Utils.getExtraNum(board);
+        let extraNum = Utils.getExtraDigitsCount(board);
         while (lastExtraNum !== extraNum) {
             lastExtraNum = extraNum;
             board = this.solveCycle(board, parent);
 
-            extraNum = Utils.getExtraNum(board);
+            extraNum = Utils.getExtraDigitsCount(board);
         }
 
         return board;
