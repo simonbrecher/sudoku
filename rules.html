@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SB sudoku</title>
+
+    <link rel="stylesheet" type="text/css" href="styles.css"/>
+</head>
+<body>
+
+<div>
+    <nav class="menu"><a href="index.html">Homepage</a></nav>
+    <nav class="menu active"><a href="rules.html">Rules</a></nav>
+    <nav class="menu"><a href="code.html">Code</a></nav>
+    <nav class="menu"><a href="generator.html">Generator</a></nav>
+</div>
+<hr>
+
+<h2>Sudoku</h2>
+<ol>
+    <li>Put one number from 1 to N to each square. N is size of puzzle.</li>
+    <li>All numbers in each row and column must be different.</li>
+    <li>All numbers in each rectangle must be different.</li>
+</ol>
+
+<h2>Sudoku without rectangles</h2>
+<ol>
+    <li>All <strong>Sudoku</strong> rules except <strong>Sudoku 3</strong> apply.</li>
+</ol>
+
+<h2>Diagonal sudoku</h2>
+<ol>
+    <li>All <strong>Sudoku</strong> rules apply.</li>
+    <li>All numbers in each of two diagonals must be different.</li>
+</ol>
+
+<h2>VX sudoku</h2>
+<ol>
+    <li>All <strong>Sudoku</strong> rules apply.</li>
+    <li>All pairs of orthogonally adjacent squares with sum equal to one of specific values are labeled with character specific to that value.</li>
+    <li>Default specific sum values are 5 and 10, their specific characters are "V" and "X".</li>
+</ol>
+
+<h2>Kropki sudoku</h2>
+<ol>
+    <li>All <strong>Sudoku</strong> rules apply.</li>
+    <li>All orthogonally adjacent squares, where the difference of numbers is 1, have white square between them.</li>
+    <li>All orthogonally adjacent squares, where the number in one is two times greater than the other, have black square between them.</li>
+    <li>1/2 can have white or black square between them.</li>
+</ol>
+<ul>
+    <li>Does not include determining unambiguity of solution, therefore any task can have multiple solutions.</li>
+    <li>Color of 1/2 is determined in method Renderer.render(). Multiple calls of this function will sometimes create different tasks.</li>
+</ul>
+
+<h2>Easy as ABC</h2>
+<ol>
+    <li>Write one or none of first N letters of alphabet in each square. N is number written in top-left square of puzzle.</li>
+    <li>All letters in each row or column must be different. There can be multiple squares without any number.</li>
+    <li>Numbers on the 4 sides of the puzzle are first letters from that direction.</li>
+</ol>
+
+</body>
+</html>

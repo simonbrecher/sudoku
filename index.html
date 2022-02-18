@@ -2,43 +2,35 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Sudoku</title>
+    <title>SB sudoku</title>
 
-    <style id="style">
-        hr { clear: both; border: none; height: 0; font-size: 0; margin: 0; }
-        table.board-table { border-collapse: collapse; float: left; }
-        table.board-table td { border: 1px #000 solid; padding: 0; }
-        table.board-table td.border-none { border-width: 0; }
-        table.board-table td.diagonal { background-color: #DDD; }
-        table.board-table div { text-align: center; }
-        table.board-table div.square-inner { float: left; }
-        table.board-table td.unsolved div { color: #AAA ; }
-        @media print {
-            hr.page-break { page-break-before: always; margin-bottom: 35px; } /* 40 */
-            div.left-margin { width: 20px; height: 10px; float: left; }
-        }
-        table.board-table div.orthogonal { position: absolute; background-color: #FFF; border: none; }
-        table.board-table div.orthogonal-white { background-color: #FFF; border: 1px #000 solid; }
-        table.board-table div.orthogonal-black { background-color: #000; border: 1px #000 solid; }
+    <link rel="stylesheet" type="text/css" href="styles.css"/>
 
-        table.red { background-color: #FDD; }
-        table.green { background-color: #DFD; }
-    </style>
-
-    <script src="main.js"></script>
-    <script src="solver.js"></script>
-    <script src="sudokuBuilder.js"></script>
-    <script src="renderer.js"></script>
-    <script src="sudoku.js"></script>
-    <script src="sudokuEvaluator.js"></script>
-    <script src="utils.js"></script>
-
+    <style id="style"></style>
 </head>
-<body onload="main()">
+<body>
 
-<div id="page-wrapper" class="page-wrapper">
-
+<div>
+    <nav class="menu active"><a href="index.html">Homepage</a></nav>
+    <nav class="menu"><a href="rules.html">Rules</a></nav>
+    <nav class="menu"><a href="code.html">Code</a></nav>
+    <nav class="menu"><a href="generator.html">Generator</a></nav>
 </div>
+<hr>
+
+<h1>Sudoku generator</h1>
+
+<h2>How to use</h2>
+<ol>
+    <li>Get a javascript console on your internet explorer.</li>
+    <li>Go to page "Code" and copy some javascript code there.</li>
+    <li>Go to page "Generator" and put the code in your javascript console.</li>
+    <li>Wait for the puzzles to generate.</li>
+    <li>Press ctrl + P (as you do for printing), but save the puzzles into a .pdf file.</li>
+</ol>
+
+<h2>Github</h2>
+<p>Repository with typescript code <a href="https://github.com/simonbrecher/sudoku">https://github.com/simonbrecher/sudoku</a> branch mffuk.</p>
 
 </body>
 </html>

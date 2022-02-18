@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SB sudoku</title>
+
+    <link rel="stylesheet" type="text/css" href="styles.css"/>
+</head>
+<body>
+
+<div>
+    <nav class="menu"><a href="index.html">Homepage</a></nav>
+    <nav class="menu"><a href="rules.html">Rules</a></nav>
+    <nav class="menu active"><a href="code.html">Code</a></nav>
+    <nav class="menu"><a href="generator.html">Generator</a></nav>
+</div>
+<hr>
+
+<p>
+    <c>// Regular sudoku</c><br>
+    SudokuBuilder.rectangular(true, 3, 3);<br>
+    let sudoku1 = SudokuBuilder.build();<br>
+    Renderer.render(sudoku1?.task, sudoku1);<br>
+    <br>
+    <c>// Different sizes</c><br>
+    SudokuBuilder.rectangular(true, 3, 2);<br>
+    let sudoku1x = SudokuBuilder.build();<br>
+    Renderer.render(sudoku1x?.task, sudoku1x);<br>
+    <br>
+    <c>// Sudoku without rectangles</c><br>
+    SudokuBuilder.size(8);<br>
+    let sudoku2 = SudokuBuilder.build();<br>
+    Renderer.render(sudoku2?.task, sudoku2);<br>
+    <br>
+    <c>// Diagonal sudoku</c><br>
+    SudokuBuilder.rectangular(true, 3, 3);<br>
+    SudokuBuilder.diagonal(true);<br>
+    let sudoku3 = SudokuBuilder.build();<br>
+    SudokuBuilder.diagonal(false);<br>
+    Renderer.render(sudoku3?.task, sudoku3);<br>
+    <br>
+    <c>// Kropki sudoku</c><br>
+    SudokuBuilder.rectangular(true, 3, 3);<br>
+    SudokuBuilder.kropki(true);<br>
+    let sudoku4 = SudokuBuilder.build();<br>
+    SudokuBuilder.kropki(false);<br>
+    Renderer.render(sudoku4?.task, sudoku4);<br>
+    <br>
+    <c>// VX sudoku</c><br>
+    SudokuBuilder.rectangular(true, 3, 3);<br>
+    SudokuBuilder.vxSum(true, [[5, "V"], [10, "X"]]);<br>
+    let sudoku5 = SudokuBuilder.build();<br>
+    SudokuBuilder.vxSum(false);<br>
+    Renderer.render(sudoku5?.task, sudoku5);<br>
+    <br>
+    <c>// Sudoku by difficulty</c><br>
+    SudokuBuilder.rectangular(true, 3, 3);<br>
+    let points;<br>
+    SudokuBuilder.setDoPrint(false);<br>
+    let minPoints = 7;<br>
+    let maxPoints = 10;<br>
+    let tries = 128;<br>
+    let sudoku6<br>
+    [sudoku6, points] = SudokuEvaluator.build(minPoints, maxPoints, tries); <c>// 2 = easy, 7 = hard</c><br>
+    Renderer.render(sudoku6?.task, sudoku6);<br>
+    SudokuBuilder.setDoPrint(true);<br>
+    <br>
+    <c>// Sudoku with more prompters</c><br>
+    SudokuBuilder.rectangular(true, 3, 3);<br>
+    SudokuBuilder.prompterNum(55, null); <c>// minimum, maximum</c><br>
+    let sudoku7 = SudokuBuilder.build();<br>
+    SudokuBuilder.prompterNum(null, null);<br>
+    Renderer.render(sudoku7?.task, sudoku7);<br>
+    <br>
+    <c>// Sudoku solution</c><br>
+    SudokuBuilder.rectangular(true, 3, 3);<br>
+    let sudoku8 = SudokuBuilder.build();<br>
+    Renderer.render(sudoku8?.solution, sudoku8);<br>
+    Renderer.render(sudoku8?.solution, sudoku8, sudoku8?.task);<br>
+    <br>
+    <c>// Easy as abc</c><br>
+    SudokuBuilder.size(6);<br>
+    SudokuBuilder.abc(true, 3);<br>
+    let sudoku9 = SudokuBuilder.build();<br>
+    SudokuBuilder.rectangular(true, 3, 3);<br>
+    SudokuBuilder.abc(false, null);<br>
+    Renderer.render(sudoku9?.board, sudoku9); <c>// FOR ABC IS BOARD NOT TASK !!</c><br>
+    <br>
+    Renderer.breakPage();<br>
+    <br>
+    <c>// One page of tasks, one page of solutions</c><br>
+    let sudokus = [];<br>
+    SudokuBuilder.rectangular(true, 3, 3);<br>
+    Renderer.perPage(2, 3); <c>// number of sudoku in row, number of sudoku in column</c><br>
+    for (let i = 0; i < 6; i++) {<br>
+    <a> </a>let sudokuOne = SudokuBuilder.build();<br>
+    <a> </a>sudokus.push(sudokuOne);<br>
+    }<br>
+    for (let i = 0; i < 6; i++) {<br>
+    <a> </a>Renderer.render(sudokus[i]?.task, sudokus[i]);<br>
+    }<br>
+    for (let i = 0; i < 6; i++) {<br>
+    <a> </a>Renderer.render(sudokus[i]?.solution, sudokus[i]);<br>
+    }
+</p>
+
+</body>
+</html>
