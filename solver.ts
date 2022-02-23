@@ -192,7 +192,7 @@ class Solver {
      * @param dir           0: rows from left, 1: rows from right, 2: columns from top, 3: columns from bottom
      * @param position      x/y coordinate of row/column
      */
-    private static solveAbcPrompterBoth(board: number[][], parent: ISudoku, task: number[][], dir: number, position: number): number[][] {
+    private static solveAbcVisibleBoth(board: number[][], parent: ISudoku, task: number[][], dir: number, position: number): number[][] {
         if (parent.abcCount === null) {
             return board;
         }
@@ -231,9 +231,9 @@ class Solver {
     }
 
     /**
-     * Same as Solver.solveAbcPrompterBoth(), but when last visible letter is unknown.
+     * Same as Solver.solveAbcVisibleBoth(), but when last visible letter is unknown.
      */
-    private static solveAbcPrompterFirst(board: number[][], parent: ISudoku, task: number[][], dir: number, position: number): number[][] {
+    private static solveAbcVisibleFirst(board: number[][], parent: ISudoku, task: number[][], dir: number, position: number): number[][] {
         if (parent.abcCount === null || parent.abcSpaceCount === null) {
             return board;
         }
@@ -267,18 +267,18 @@ class Solver {
     /**
      * Solve everything we can from knowing first and last visible number.
      *
-     * Call Solver.solveAbcPrompterBoth() and Solver.solveAbcPrompterFirst() for all rows and columns in both direction.
+     * Call Solver.solveAbcVisibleBoth() and Solver.solveAbcVisibleFirst() for all rows and columns in both direction.
      */
-    private static solveAbcPrompter(board: number[][], parent: ISudoku): number[][] {
+    private static solveAbcVisible(board: number[][], parent: ISudoku): number[][] {
         let task = parent.task;
         for (let dir = 0; dir < 4; dir++) {
             for (let position = 0; position < parent.size; position++) {
                 let firstValue = this.getAbcFirstValue(dir, position, task);
                 let lastValue = this.getAbcLastValue(dir, position, task);
                 if (firstValue !== 0 && lastValue !== 0) {
-                    board = this.solveAbcPrompterBoth(board, parent, task, dir, position);
+                    board = this.solveAbcVisibleBoth(board, parent, task, dir, position);
                 } else if (firstValue !== 0) {
-                    board = this.solveAbcPrompterFirst(board, parent, task, dir, position);
+                    board = this.solveAbcVisibleFirst(board, parent, task, dir, position);
                 }
             }
         }
@@ -307,7 +307,7 @@ class Solver {
             Renderer.render(board, parent, null, "red");
         }
 
-        board = this.solveAbcPrompter(board, parent);
+        board = this.solveAbcVisible(board, parent);
 
         if (this.print) {
             Renderer.render(board, parent, null, "red");

@@ -1,0 +1,415 @@
+\documentclass{report}
+\usepackage[utf8]{inputenc}
+
+\usepackage{xcolor}
+\definecolor{gray}{rgb}{0.9, 0.9, 0.9}
+
+\usepackage{enumitem}
+\setlist{leftmargin=5mm}
+
+\makeatletter
+\def\@makechapterhead#1{%
+  \vspace*{50\p@}%
+  {\parindent \z@ \raggedright \normalfont
+    \interlinepenalty\@M
+    \Huge\bfseries  \thechapter.\quad #1\par\nobreak
+    \vskip 40\p@
+  }}
+\makeatother
+
+\title{Sudoku variant generator}
+\author{Šimon Brecher}
+\date{February 2022}
+
+\begin{document}
+
+\maketitle
+
+\chapter{Introduction}
+
+\paragraph{}
+This is my "zápočtový program na Programování 1".
+
+\paragraph{}
+This project is a generator of sudoku variants in html format, optimized for printing on A4 paper.
+
+\chapter{Rules}
+
+\section{Classical sudoku}
+
+\paragraph{Rule of squares}
+Board is divided into N*N squares (N := H*W). In each square there must be every number from 1 to N exactly once.
+
+\paragraph{Rule of lines}
+In each row and column there must be every number exactly once.
+
+\paragraph{Rule of rectangles}
+Board is divided into W*H rectangles with H*W squares. In each rectangle there must be every number exactly once.
+
+\section{Sudoku without rectangles}
+
+Classical sudoku rules except \textbf{Rule of rectangles} apply. (2.1)
+
+\section{Diagonal sudoku}
+
+Classical sudoku rules apply. (2.1)
+
+\paragraph{Rule of diagonals}
+In each of two great diagonals there must be every number exactly once.
+\section{Kropki sudoku}
+
+Classical sudoku rules apply. (2.1)
+
+\paragraph{Rule of white dots}
+If the difference of the numbers in two orthogonally adjacent squares is 1, there is a white dot between them.
+
+\paragraph{Rule of black dots}
+If one of the numbers in two orthogonally adjacent squares is 2 times bigger than the other number, there is black dot between them.
+
+\paragraph{Rule of 1/2}
+If two orthogonally adjacent squares have numbers 1 and 2 inside, the dot between them can be either black or white, but not both.
+
+\section{Sum sudoku}
+Classical sudoku rules apply. (2.1)
+
+\paragraph{Sum specification}
+Every puzzle has specific number sum values, each one of them has its own specific character. Standard specific sum values are 5 and 10, specific character of 5 is V, specific character of 10 is X. (Name of the standard variant is called VX sudoku.)
+
+\paragraph{Rule of sum}
+Every two orthogonally adjacent squares, where the sum of the numbers is any of the puzzle's specific sums, must have the specific character of that sum on the edge between them.
+
+\section{Easy as}
+
+\paragraph{Rule of letters}
+In each square there must be one letter or space. All letters must be one of the first M letters of the alphabet. M is known for the puzzle.
+
+\paragraph{Rule of lines}
+Each letter is at exactly once in each row and column.
+
+\paragraph{Rule of first letter}
+There may be letters on all of the four sides of the board. Each letter on side must be the same as the first letter from that direction in that row or column.
+
+\chapter{Implementation}
+
+\section{Data representation}
+
+\paragraph{General parameters}
+\begin{enumerate}
+    \item[] \colorbox{gray}{int $\vert$ null rectangleWidth} Width of rectangle, number of rectangles in column.
+    \item[] \colorbox{gray}{int $\vert$ null rectangleHeight} Height of rectangle, number of rectangles in row.
+    \item[] \colorbox{gray}{int size} Width and height of board.
+    \item[] \colorbox{gray}{bool isRectangular} Whether \textbf{Rule of rectangles} (2.2) applies.
+    \item[] \colorbox{gray}{bool isDiagonal} Whether rules of \textbf{Diagonal sudoku} (2.3) apply.
+    \item[] \colorbox{gray}{bool isKropki} Whether rules of \textbf{Kropki sudoku} (2.4) apply.
+    \item[] \colorbox{gray}{bool isVX} Whether \textbf{Rule of sum} (2.5) applies.
+    \item[] \colorbox{gray}{[number, string][] $\vert$ null vxSum} First: sum value, Second: specific character
+    \item[] \colorbox{gray}{bool isABC} Whether rules of \textbf{Easy as} (2.6) apply.
+    \item[] \colorbox{gray}{int $\vert$ null abcCount} Number of letters in \textbf{Easy as} (2.6).
+\end{enumerate}
+
+\subsection{Classical sudoku}
+
+\paragraph{Parameters}
+\begin{enumerate}
+    \item[] \colorbox{gray}{int rectangleWidth}
+    \item[] \colorbox{gray}{int rectangleHeight}
+    \item[] \colorbox{gray}{int size = rectangleWidth * rectangleHeight}
+    \item[] \colorbox{gray}{bool isRectangular = true}
+    \item[] \colorbox{gray}{bool isDiagonal = false}
+    \item[] \colorbox{gray}{bool isKropki = false}
+    \item[] \colorbox{gray}{bool isVX = false}
+    \item[] \colorbox{gray}{null vxSum = null}
+    \item[] \colorbox{gray}{bool isABC = false}
+    \item[] \colorbox{gray}{null abcCount = null}
+\end{enumerate}
+
+\paragraph{Binary representation of a square}
+All possible values in square are saved as 32-bit integer. Each sudoku number is saved in one bit.The smallest sudoku number is in the least bit. If the value of a bit is 0, it is known that the number is not in the square in any valid solution.
+
+\paragraph{Solution}
+\colorbox{gray}{int[y][x]} with binary representations of all squares in solved board. (Each binary representation of square has exactly one bit with 1.)
+
+\paragraph{Task}
+\colorbox{gray}{int[y][x]} with binary representations of all squares in task. (All known squares have one 1 bit, empty squares have 1 in all bits.)
+
+\paragraph{Board}
+\colorbox{gray}{int[y][x]} with binary representation of all squares in empty board. (All binary representations of squares must have 1 in all of its bits.)
+
+\subsection{Sudoku without rectangles}
+
+Most data representation is same as in \textbf{Classical sudoku}. (3.1.1)
+
+\paragraph{Parameters}
+\begin{enumerate}
+    \item[] \colorbox{gray}{null rectangleWidth = null}
+    \item[] \colorbox{gray}{null rectangleHeight = null}
+    \item[] \colorbox{gray}{int size}
+    \item[] \colorbox{gray}{bool isRectangular = false}
+\end{enumerate}
+
+\subsection{Diagonal sudoku}
+
+Most data representation is same as in \textbf{Classical sudoku}. (3.1.1)
+
+\paragraph{Parameters}
+\begin{enumerate}
+    \item[] \colorbox{gray}{bool isDiagonal = true}
+    \item[] \colorbox{gray}{bool isABC = false} Different not encouraged.
+    \item[] \colorbox{gray}{null abcCount = null} Different not encouraged.
+\end{enumerate}
+
+\subsection{Kropki sudoku}
+
+Most data representation is same as in \textbf{Classical sudoku}. (3.1.1)
+
+\paragraph{Parameters}
+\begin{enumerate}
+    \item[] \colorbox{gray}{bool isKropki = true}
+    \item[] \colorbox{gray}{bool isVX = false} Different not compatible.
+    \item[] \colorbox{gray}{null vxSum = null} Different not compatible.
+    \item[] \colorbox{gray}{bool isABC = false} Different not compatible.
+    \item[] \colorbox{gray}{null abcCount = null} Different not compatible.
+\end{enumerate}
+
+\paragraph{Task}
+Same as board. Is not used at all. Solver does not solve \textbf{Kropki sudoku} (2.4). Renderer instead uses the solution to figure out where the dots are.
+
+\subsection{Sum sudoku}
+
+Most data representation is same as in \textbf{Classical sudoku}. (3.1.1)
+
+\paragraph{Parameters}
+\begin{enumerate}
+    \item[] \colorbox{gray}{bool isKropki = false} Different not compatible.
+    \item[] \colorbox{gray}{bool isVX = true}
+    \item[] \colorbox{gray}{[number, string][] vxSum}
+    \item[] \colorbox{gray}{bool isABC = false} Different not compatible.
+    \item[] \colorbox{gray}{null abcCount = null} Different not compatible.
+\end{enumerate}
+
+\paragraph{Task}
+Same as in classical sudoku. It is not necessary to save positions of sum values. Renderer instead uses solution to figure out, where specific characters of sum values are supposed to be rendered.
+
+\subsection{Easy as}
+
+\paragraph{Parameters}
+\begin{enumerate}
+    \item[] \colorbox{gray}{null rectangleWidth = null} Different not encouraged.
+    \item[] \colorbox{gray}{null rectangleHeight = null} Different not encouraged.
+    \item[] \colorbox{gray}{bool isRectangular = false} Different not encouraged.
+    \item[] \colorbox{gray}{bool isDiagonal = false} Different not encouraged.
+    \item[] \colorbox{gray}{bool isKropki = false} Different not compatible.
+    \item[] \colorbox{gray}{bool isVX = false} Different not compatible.
+    \item[] \colorbox{gray}{null vxSum = null} Different not compatible.
+    \item[] \colorbox{gray}{bool isABC = true}
+    \item[] \colorbox{gray}{int abcCount}
+\end{enumerate}
+
+\paragraph{Binary representation of a square}
+All possible values in square are saved as 32-bit integer. Each letter or space is saved in one bit. Space is the least bit. A is the second least bit. If the value of a bit is 0, it is known that the letter or space is not in the square in any valid solution.
+
+\paragraph{Solution}
+\colorbox{gray}{int[y][x]} with binary representations of all squares in solved board. (Each binary representation of square has exactly one bit with 1.)
+
+\paragraph{Task}
+\colorbox{gray}{int[dir][coord]} 2d array of the letters on side of board (First visible letter from a direction). The values are same as binary representation of a square with only that letter.\newline
+\colorbox{gray}{@parameter dir} 0: row from left, 1: row from right, 2: column from top, 3: column from bottom\newline
+\colorbox{gray}{@parameter coord} x/y coordination the row/column
+
+\paragraph{Board}
+\colorbox{gray}{int[y][x]} with binary representation of all squares in empty board. (All binary representations of squares must have 1 in all of its bits.)
+
+\section{Base workflow}
+
+\paragraph{Order of processes for creating a puzzle:}
+\begin{enumerate}
+    \item[] 1.) If creating a solution or a task has been failed to many times, return null.
+    \item[] 2.) Create a solution.
+    \item[] 3.) Check solution. If it is incorrect, go to (1).
+    \item[] 4.) Create a task.
+    \item[] 5.) Check if task fulfills requirements, if not go to (1).
+    \item[] 6.) END
+\end{enumerate}
+
+\section{Solution creating}
+
+\paragraph{}
+Creating solution is only done for \textbf{Classic sudoku} (3.4.1), \text{Sudoku without rectangles} (3.4.2), \textbf{Diagonal sudoku} (3.4.3). For other variants, except \text{Easy as}, the solution is the same.
+
+\paragraph{Order of processes for creating a solution:}
+\begin{enumerate}
+    \item[] 1.) If creating a solution has been failed too many times, return null.
+    \item[] 2.) All squares can have all numbers.
+    \item[] 3.) Find first square with more than one possible number and remove all except one random possible values.
+    \item[] 4.) If one square can not have any number, go to (1).
+    \item[] 5.) If one or more squares can have multiple numbers, go to (3).
+    \item[] 6.) Check, if solution is valid. If not, go to (1).
+    \item[] 7.) END
+\end{enumerate}
+
+\subsection{Easy as}
+
+\paragraph{}
+Solution is created the same way it would be for a sudoku of same size. After that, the needed number of highest numbers is converted to spaces. (This has the possibility to make some solutions impossible, if we were to add some rules on letters, which are not applied on spaces. At this moment this problem does not exist.)
+
+\section{Solving}
+
+\paragraph{}
+Solving is done by repeating simple rules, reducing the number of possible values in the squares, until we get: solved puzzle, invalid puzzle, or rules can not change anything anymore. If the rules can not change anything, the puzzle is considered to have multiple solutions.
+
+\paragraph{Usage in creating a solution:}
+While we create a solution, if we get an invalid solution (one square can not have any value), we start over. Therefore solving does not have to check for invalid tasks.
+
+\paragraph{Usage in creating a task:}
+While we create a task, we already know that there is at least a single solution. Therefore solving does not have to check for invalid tasks.
+
+\paragraph{Usage for determining number of solutions:}
+Lets name multiple solutions as 2. This is how many solutions can the solver give us based on the actual number of solutions:\newline
+\tab 0 $\rightarrow$ 0 or 2 \newline
+\tab 1 $\rightarrow$ 1 or 2 (in case of 2, it will be really hard for human) \newline
+\tab 2 $\rightarrow$ 2 \newline
+If we wanted to "just" get the number of solutions, we could recursively split the output of solving and then add the numbers of solutions at the end. But it is not necessary for anything in this project.
+
+\subsection{Classical sudoku}
+
+\paragraph{Solver.solveLineOneInSquare()}
+If there can be only one number in a square, this number can not be in any other square in its row/column (unless it is the only number which can be in the other square). (The exception in the other bracket comes from the implementation of this rule. The rule itself will not ensure, that invalid tasks will be found, so we need to check the result.)
+
+\paragraph{Solver.solveRectangleOneInSquare()}
+If there can be only one number in a square, this number can not be in any other square in its rectangle (Unless it is the only number which can be in the other square).
+
+\paragraph{Solver.solveLineOnlyInSquare()}
+If in a row/column one number can be only in one square, there can not be any other number in that square.
+
+\paragraph{Solver.solveRectangleOnlyInSquare()}
+If in a rectangle one number can be only in one square, there can not be any other number in that square.
+
+Note that there is no rule saying: "If there can be only one number in a square, the number must be there." This is used in evaluating sudoku difficulty (and human solving), but here it would not do anything.
+
+\subsection{Sudoku without rectangles}
+
+Rules \textbf{Solver.solveLineOneInSquare()} (3.4.1) and \textbf{Solver.solveLineOnlyInSquare()} (3.4.1) apply.
+
+\subsection{Diagonal sudoku}
+
+All \textbf{Classical sudoku} (3.4.1) rules apply.
+
+\paragraph{Solver.solveDiagonalOneInSquare()}
+If there can be only one number in a square, and this square is on one of two diagonals, the number can not be anywhere else in the diagonal(s). (Unless it is the only number which can be in the other square).
+
+\paragraph{Solver.solveRectangleOnlyInSquare()}
+If in one of two diagonals one number can be only in one square, there can not be any other number in that square.
+
+\subsection{Kropki sudoku}
+
+Always return \colorbox{gray}{sudoku.solution}.
+
+\subsection{Sum sudoku}
+
+All \textbf{Classical sudoku} (3.4.1) rules apply.
+
+\paragraph{Solver.solveVxInSum()}
+If there is specific character of a sum between two orthogonally adjacent squares, only values that can make the sum can be inside of these squares.
+
+\paragraph{Solver.solveVxOutSum()}
+Suppose there is a square with a known digit and there is not a specific character of a sum between it and orthogonally adjacent square. If two numbers in these squares add up to one of the sums values, specific to the puzzle, then the number in the other square can not be there.
+
+\subsection{Easy as}
+
+\paragraph{Solver.solveAbcOneInSquare()}
+If there can be only one letter in a square, this letter can not be in any other square in its row/column. If there can be only a space in as many squares in a row/column, as there should be spaces, there can not be any space in any other squares in that row/column.
+
+\paragraph{Solver.solveAbcOnlyInSquare()}
+If in a row/column one letter can be only in one square, there can not be any other letter or space in that square. If in a row/column the space can be only in as many squares, as there should be spaces, there can not be any letter in these squares.
+
+\paragraph{Solver.solveAbcVisibleBoth()}
+If we know what is the first and last letter in a row/column. Go trough the row/column. \newline
+1.) Until there could have been the first letter in any previous square, there can not be anything else than the first letter or a space in this square. \newline
+2.) Until there could have been each of the non-last letters in any previous square, there can not be the last letter in this square. \newline
+3.) Until there could have been at least one of the non-last letters in at least as many squares as there is non-last letters, there can not be the last letter in this square.
+
+\paragraph{Solver.solveAbcVisibleFirst}
+If we know what is the first letter in a row/column, but don't know what the last letter is. Go trough the row/column. \newline
+1.) Until there could have been the first letter in any previous square, there can not be anything else than the first letter or a space in this square.
+
+\section{Task finding}
+
+\paragraph{Order of processes for creating a task from a solution:}
+\begin{enumerate}
+    \item[] 1.) Choose random square with known digit, that has not been chosen. Remove it.
+    \item[] 2.) If the puzzle has more than one solution, put the digit back.
+    \item[] 3.) If not all squares have been chosen, go to (2).
+    \item[] 4.) END
+\end{enumerate}
+
+\subsection{Kropki sudoku}
+
+\paragraph{}
+Return empty board. (All numbers can be in all squares.)
+
+\subsection{Easy as}
+
+\paragraph{}
+It is possible, that the puzzle will have multiple solution even with all known first and last letters in all rows and columns. If this happens, create new solution.
+
+\section{Rendering}
+
+Create html objects for the puzzle.
+
+\subsection{Kropki sudoku}
+
+\paragraph{}
+Orthogonally adjacent squares with numbers 1/2 can have either white or black dot between them. Choose this randomly.
+
+\section{Difficulty evaluating}
+
+Difficulty evaluating works only for \textbf{Classical sudoku} (2.1) 3x3.
+
+\subsection{Evaluating once}
+
+The SudokuEvaluator.evaluate() does not remember, all possible numbers in a square. It only remembers, which number can be in a square, if this number is the only number that can be in the square. It solves sudoku similar way as Solver.solve(), but it uses little different rules.
+
+\paragraph{SudokuEvaluator.solveFree()}
+Choose row, column and rectangle. If all conditions are met:
+\begin{enumerate}
+    \item[] 1.) Square in intersection of the row, column and rectangle does not have a known digit.
+    \item[] 2.) There are all but one from all numbers in the row, column or rectangle.
+    \item[] 3.) There is exactly 1 or 2 squares without a known digit in the row, column or rectangle.
+\end{enumerate}
+then the last number is in the square in the intersection. \newline
+Give 0 difficulty points.
+
+\paragraph{SudokuEvaluator.solveExpensive()}
+Apply rules:
+\begin{enumerate}
+    \item[] 1.) Solver.solveLineOneInSquare()
+    \item[] 2.) Solver.solveRectangleOneInSquare()
+    \item[] 3.) Solver.solveLineOnlyInSquare()
+    \item[] 4.) Solver.solveRectangleOnlyInSquare()
+\end{enumerate}
+Choose one square, which has got a known digit, but did not have before. Fill this square with the digit. (After that forget all of the progress from other squares.)
+Give 1/n difficulty points, where n is number of squares, which got a known digit, but did not have before.
+
+\subsection{Evaluating multiple times}
+User gives minimal and maximal difficulty. \newline
+Start by evaluating the sudoku once. If the sudoku difficulty is not inside required interval, start from the beginning, otherwise count average of two times more evaluations than before. Repeat until you evaluate the sudoku more than is the minimal required number of evaluations.
+
+\subsection{Difficulty values}
+Three people solved the same 6 sudoku puzzles with different difficulties.
+
+\begin{center}
+    \begin{tabular}{ |c|c c c|c| }
+        \hline
+        Difficulty & Person 1 & Person 2 & Person 3 & Average \\
+        \hline
+        1.5 & 5:13 & 3:34 & 6:37 & 5:08 \\
+        2.2 & 6:28 & 5:23 & 7:29 & 6:26 \\
+        3.6 & 6:03 & 5:30 & 7:06 & 6:13 \\
+        5.6 & 13:15 & 9:57 & 10:45 & 11:19 \\
+        8.4 & 8:35 & 9:25 & 14:10 & 10:43 \\
+        11.2 & 13:30 & 14:55 & 13:13 & 13:52 \\
+        \hline
+    \end{tabular}
+\end{center}
+
+\end{document}
